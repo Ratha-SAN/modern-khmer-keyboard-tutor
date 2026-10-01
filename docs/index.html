@@ -97,6 +97,12 @@ details summary{cursor:pointer;font-weight:600}
     <p id="hintline"></p>
   </section>
 
+  <section id="csvbox" class="panel" hidden>
+    <div class="note">Keystroke log (CSV). If the download did not start, copy it from here.</div>
+    <textarea id="csvtext" rows="5" readonly style="width:100%;font:12px/1.4 ui-monospace,monospace;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px"></textarea>
+    <button id="csvcopy">Copy CSV</button>
+  </section>
+
   <section id="result" class="panel">
     <b id="resulttext"></b>
     <div class="row" style="margin-top:8px"><button class="primary" id="again">Again</button><button id="next">Next lesson</button></div>
@@ -328,11 +334,13 @@ function fillLessons(){
 sel.onchange=function(){loadLesson(+sel.value);sel.blur()};
 Object.keys(LAYOUTS).forEach(function(n){var o=document.createElement("option");o.value=n;o.textContent=LAYOUTS[n].info.name;lsel.appendChild(o)});
 lsel.onchange=function(){applyLayout(lsel.value);lsel.blur()};
+$("csvcopy").onclick=function(){var t=$("csvtext");t.select();try{navigator.clipboard.writeText(t.value).catch(function(){document.execCommand("copy")})}catch(e){try{document.execCommand("copy")}catch(e2){}}};
 $("export").onclick=function(){
   var head="timestamp_ms,layout,lesson,item,expected_unit,typed_unit,physical_key,layer,correct,ms_since_prev_key\n";
   var csv="\ufeff"+head+LOG.map(function(r){return r.map(function(x){return '"'+String(x).replace(/"/g,'""')+'"'}).join(",")}).join("\n");
   var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
   a.download="khmer-typing-log.csv";document.body.appendChild(a);a.click();a.remove();
+  $("csvtext").value=csv;$("csvbox").hidden=false;
 };
 setInterval(function(){if(t0&&!done)renderStats()},500);
 
