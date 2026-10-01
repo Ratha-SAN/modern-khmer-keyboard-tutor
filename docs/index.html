@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="km">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Khmer Cluster-Frequency Typing Tutor</title>
+<meta name="description" content="Typing tutor for an experimental Khmer keyboard layout derived from letter and coeng-cluster frequency.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Khmer:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f5f1; --panel:#fff; --ink:#1d1d1b; --muted:#6b6a64; --line:#dcdad2;
+  --accent:#1f6f5c; --accent-ink:#fff; --hint:#ffd84d; --bad:#c0392b; --good:#1f7a43;
+  --key:#f1efe8;
+  --f0:#f6dede; --f1:#f8e8d2; --f2:#f6f1c9; --f3:#dcefd5; --f4:#dcefd5; --f5:#d3e7f4; --f6:#d3e7f4; --f7:#e6dcf4;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#161614; --panel:#201f1d; --ink:#ecebe5; --muted:#a09f97; --line:#3a3935;
+    --accent:#4fbf9f; --accent-ink:#0d1f1a; --hint:#b38f00; --bad:#ef7566; --good:#6fd08e; --key:#2a2927;
+    --f0:#3c2626; --f1:#3d3224; --f2:#3a3820; --f3:#27391f; --f4:#27391f; --f5:#1f3340; --f6:#1f3340; --f7:#32283f; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+.kh{font-family:"Noto Sans Khmer","Khmer OS","Leelawadee UI","Khmer UI",sans-serif}
+main{max-width:980px;margin:0 auto;padding:16px}
+h1{font-size:1.25rem;margin:4px 0 2px}
+.sub{color:var(--muted);font-size:.9rem;margin:0 0 14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+select,button{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.stats{display:flex;gap:18px;margin-left:auto;font-variant-numeric:tabular-nums}
+.stat b{display:block;font-size:1.2rem;line-height:1.1}
+.stat span{color:var(--muted);font-size:.75rem}
+#progress{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:12px}
+#bar{height:100%;width:0;background:var(--accent);transition:width .15s}
+#target{font-size:2rem;line-height:2.4;min-height:5rem;display:flex;flex-wrap:wrap;gap:0 18px;margin:8px 0}
+#target .w{color:var(--muted)}
+#target .w.done{opacity:.35}
+#target .w.cur{color:var(--ink);border-bottom:3px solid var(--accent)}
+#echo{font-size:1.6rem;min-height:2.6rem;border:1px dashed var(--line);border-radius:8px;padding:2px 12px}
+#echo.err{border-color:var(--bad);animation:shake .18s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+#hintline{color:var(--muted);font-size:.9rem;margin:6px 0 0;min-height:1.4rem}
+.kb{display:flex;flex-direction:column;gap:5px;align-items:center;user-select:none;touch-action:manipulation}
+.kr{display:flex;gap:5px}
+.k{position:relative;width:clamp(26px,7.2vw,62px);height:clamp(40px,9vw,66px);background:var(--key);border:1px solid var(--line);border-radius:7px;cursor:pointer;padding:0}
+.k .b{position:absolute;left:0;right:0;top:50%;transform:translateY(-58%);text-align:center;font-size:clamp(.95rem,2.6vw,1.45rem);color:var(--ink)}
+.k .s,.k .a{position:absolute;font-size:clamp(.5rem,1.5vw,.8rem);color:var(--muted)}
+.k .s{right:3px;top:1px}.k .a{right:3px;bottom:1px}
+.k .c{position:absolute;left:3px;top:1px;font:.55rem system-ui;color:var(--muted);opacity:.7}
+.k.hint{background:var(--hint);border-color:var(--hint)}
+.k.hint .b,.k.hint .s,.k.hint .a{color:#000}
+.k.hl-s .s,.k.hl-a .a{background:#000;color:#fff;border-radius:3px;padding:0 2px}
+.k.press{outline:2px solid var(--accent)}
+.k.f0{background:var(--f0)}.k.f1{background:var(--f1)}.k.f2{background:var(--f2)}.k.f3{background:var(--f3)}
+.k.f4{background:var(--f4)}.k.f5{background:var(--f5)}.k.f6{background:var(--f6)}.k.f7{background:var(--f7)}
+.k.hint{background:var(--hint)}
+.mods{display:flex;gap:8px;justify-content:center;margin-top:8px}
+.mods button{min-width:84px}
+.mods button.need{outline:2px solid var(--hint)}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+td,th{padding:3px 8px;border-bottom:1px solid var(--line);text-align:left}
+.bar2{height:8px;background:var(--accent);border-radius:4px}
+details summary{cursor:pointer;font-weight:600}
+.note{color:var(--muted);font-size:.85rem}
+#result{display:none}
+#result.show{display:block}
+</style>
+</head>
+<body>
+<main>
+  <h1>Khmer Cluster-Frequency Typing Tutor</h1>
+  <p class="sub">Learn an <b>experimental</b> Khmer layout in which frequent coeng clusters (e.g. ្រ, ្ត, ្ម) get their own keys. Type on a physical keyboard (QWERTY key positions) or tap the keys below.</p>
+
+  <section class="panel">
+    <div class="row">
+      <label>Lesson <select id="lesson"></select></label>
+      <button id="restart">Restart</button>
+      <button id="showhint" aria-pressed="true">Hints on</button>
+      <div class="stats">
+        <div class="stat"><b id="wpm">0</b><span>WPM (keys÷5)</span></div>
+        <div class="stat"><b id="acc">100%</b><span>accuracy</span></div>
+        <div class="stat"><b id="best">–</b><span>best WPM</span></div>
+      </div>
+    </div>
+    <div id="progress"><div id="bar"></div></div>
+  </section>
+
+  <section class="panel">
+    <div id="newkeys" class="note"></div>
+    <div id="target" class="kh" aria-live="off"></div>
+    <div id="echo" class="kh" aria-label="typed text"></div>
+    <p id="hintline"></p>
+  </section>
+
+  <section id="result" class="panel">
+    <b id="resulttext"></b>
+    <div class="row" style="margin-top:8px"><button class="primary" id="again">Again</button><button id="next">Next lesson</button></div>
+  </section>
+
+  <section class="panel">
+    <div class="kb kh" id="kb"></div>
+    <div class="mods">
+      <button id="mshift" aria-pressed="false">Shift</button>
+      <button id="maltgr" aria-pressed="false">AltGr / Option</button>
+    </div>
+    <p class="note" style="text-align:center;margin:8px 0 0">Small top-right glyph = Shift layer, bottom-right = AltGr (Option on Mac). Number row: Khmer digits, Shift for 0–9.</p>
+  </section>
+
+  <section class="panel">
+    <details>
+      <summary>About this layout &amp; how it was derived</summary>
+      <p class="note" id="about"></p>
+      <div id="freq"></div>
+    </details>
+  </section>
+</main>
+<script src="layout.js"></script>
+<script src="words.js"></script>
+<script>
+(function(){
+"use strict";
+var L=window.LAYOUT, WORDS=window.WORDS, K=L.keys, COENG="្";
+var PER_LESSON=8, MAXL=6, ITEMS=24;
+
+// ---- helpers
+function $(id){return document.getElementById(id)}
+function disp(u){
+  var c=u.charCodeAt(0);
+  var dep=(c>=0x17B6&&c<=0x17D3)||c===0x17DD||u.charAt(0)===COENG;
+  return dep?"◌"+u:u;
+}
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+var FINGER={KeyQ:0,KeyA:0,KeyZ:0,KeyW:1,KeyS:1,KeyX:1,KeyE:2,KeyD:2,KeyC:2,KeyR:3,KeyF:3,KeyV:3,KeyT:3,KeyG:3,KeyB:3,
+  KeyY:4,KeyH:4,KeyN:4,KeyU:4,KeyJ:4,KeyM:4,KeyI:5,KeyK:5,Comma:5,KeyO:6,KeyL:6,Period:6,
+  KeyP:7,Semicolon:7,Slash:7,BracketLeft:7,BracketRight:7,Quote:7};
+
+// ---- unit lookup: unit string -> {code, layer}
+var where={}, units=[];
+Object.keys(K).forEach(function(code){
+  K[code].forEach(function(u,layer){ if(u && !where[u]){where[u]={code:code,layer:layer}} });
+});
+var rank=L.ranking.filter(function(r){return r[1]>0}).map(function(r){return r[0]});
+var pairSet={}; L.info.pairs.forEach(function(p){pairSet[p]=1});
+function splitUnits(w){
+  var out=[],i=0;
+  while(i<w.length){
+    if(w.charAt(i)===COENG && pairSet[w.substr(i,2)]){out.push(w.substr(i,2));i+=2}
+    else{out.push(w.charAt(i));i++}
+  }
+  return out;
+}
+
+// ---- lessons
+var NLESS=Math.min(MAXL,Math.ceil(rank.length/PER_LESSON));
+var lessons=[];
+for(var i=1;i<=NLESS;i++){
+  lessons.push({name:"Lesson "+i+" – keys "+((i-1)*PER_LESSON+1)+"–"+Math.min(i*PER_LESSON,rank.length),
+    learned:rank.slice(0,i*PER_LESSON), fresh:rank.slice((i-1)*PER_LESSON,i*PER_LESSON)});
+}
+lessons.push({name:"Final – all keys, common words",learned:null,fresh:[]});
+
+function rnd(n){return Math.floor(Math.random()*n)}
+function pick(a){return a[rnd(a.length)]}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=rnd(i+1),t=a[i];a[i]=a[j];a[j]=t}return a}
+
+function buildItems(les){
+  if(!les.learned){return shuffle(WORDS.slice(0,1500)).slice(0,ITEMS)}
+  var set={};les.learned.forEach(function(u){set[u]=1});
+  var ok=WORDS.filter(function(w){return splitUnits(w).every(function(u){return set[u]})});
+  var fresh=les.fresh, items=[];
+  var wordsUse=ok.filter(function(w){return splitUnits(w).some(function(u){return fresh.indexOf(u)>=0})});
+  // drills first: 2–4 units mixing new keys with earlier ones
+  var nd=Math.max(8,ITEMS-Math.min(wordsUse.length,12));
+  for(var i=0;i<nd;i++){
+    var n=2+rnd(3), s="";
+    for(var j=0;j<n;j++){
+      s+= (j===0||Math.random()<.6)&&fresh.length ? pick(fresh) : pick(les.learned);
+    }
+    items.push(s);
+  }
+  shuffle(wordsUse);
+  var take=wordsUse.slice(0,ITEMS-items.length);
+  var rest=shuffle(ok.slice(0,400)).slice(0,ITEMS-items.length-take.length);
+  return items.concat(take,rest).slice(0,ITEMS);
+}
+
+// ---- keyboard rendering
+var kbEl=$("kb"), keyEls={};
+function mkKey(code,label){
+  var b=document.createElement("button");
+  b.className="k f"+(FINGER[code]!==undefined?FINGER[code]:0);
+  b.type="button"; b.dataset.code=code;
+  var k=K[code]||["","",""];
+  b.innerHTML='<span class="b"></span><span class="s"></span><span class="a"></span>';
+  b.children[0].textContent=k[0]?disp(k[0]):"";
+  b.children[1].textContent=k[1]?disp(k[1]):"";
+  b.children[2].textContent=k[2]?disp(k[2]):"";
+  b.addEventListener("click",function(){virtual(code)});
+  keyEls[code]=b;return b;
+}
+(function(){
+  var rows=[L.digits].concat(L.rows);
+  rows.forEach(function(r,ri){
+    var d=document.createElement("div");d.className="kr";
+    d.style.marginLeft=(ri*10)+"px";
+    r.forEach(function(c){d.appendChild(mkKey(c))});
+    kbEl.appendChild(d);
+  });
+  // number row shows ASCII digits on shift; those need no AltGr glyph
+})();
+
+// ---- state
+var cur=0, items=[], idx=0, typed="", correct=0, errors=0, t0=0, done=false;
+var showHint=true, stickyShift=false, stickyAlt=false;
+var targetEl=$("target"), echoEl=$("echo");
+
+function loadLesson(i){
+  cur=i; items=buildItems(lessons[i]); idx=0; typed=""; correct=0; errors=0; t0=0; done=false;
+  $("result").classList.remove("show");
+  var f=lessons[i].fresh;
+  $("newkeys").textContent=f.length?"New keys this lesson: "+f.map(disp).join("  "):"All keys.";
+  renderTarget(); renderStats(); updateHint();
+  var b=store("best"+i); $("best").textContent=b?b:"–";
+}
+function renderTarget(){
+  targetEl.innerHTML="";
+  items.forEach(function(w,i){
+    var s=document.createElement("span");
+    s.className="w"+(i<idx?" done":i===idx?" cur":"");
+    s.textContent=w; targetEl.appendChild(s);
+  });
+  echoEl.textContent=typed;
+  $("bar").style.width=(100*idx/items.length)+"%";
+}
+function renderStats(){
+  var mins=t0?(Date.now()-t0)/60000:0;
+  $("wpm").textContent=mins>0.02?Math.round(correct/5/mins):0;
+  var tot=correct+errors; $("acc").textContent=tot?Math.round(100*correct/tot)+"%":"100%";
+}
+function nextUnit(){
+  if(done)return null;
+  var T=items[idx], pos=typed.length, best=null;
+  Object.keys(where).forEach(function(u){
+    if(T.substr(pos,u.length)===u && (!best||u.length>best.length)) best=u;
+  });
+  return best;
+}
+function clearHint(){
+  Object.keys(keyEls).forEach(function(c){keyEls[c].classList.remove("hint","hl-s","hl-a")});
+  $("mshift").classList.remove("need");$("maltgr").classList.remove("need");
+}
+function updateHint(){
+  clearHint(); var hl=$("hintline"); hl.textContent="";
+  var u=nextUnit(); if(!u||!showHint)return;
+  var w=where[u], el=keyEls[w.code];
+  if(el){el.classList.add("hint"); if(w.layer===1)el.classList.add("hl-s"); if(w.layer===2)el.classList.add("hl-a");}
+  if(w.layer===1)$("mshift").classList.add("need");
+  if(w.layer===2)$("maltgr").classList.add("need");
+  hl.textContent="Next: "+disp(u)+(w.layer===1?"  (hold Shift)":w.layer===2?"  (hold AltGr / Option)":"");
+}
+function press(unit,code){
+  if(done)return;
+  if(!t0)t0=Date.now();
+  var T=items[idx];
+  if(T.substr(0,(typed+unit).length)===typed+unit){
+    typed+=unit; correct++; echoEl.classList.remove("err");
+    if(typed===T){idx++;typed="";
+      if(idx>=items.length){finish();return}}
+    renderTarget();
+  }else{
+    errors++; echoEl.classList.remove("err"); void echoEl.offsetWidth; echoEl.classList.add("err");
+  }
+  renderStats(); updateHint();
+}
+function finish(){
+  done=true; renderTarget(); clearHint();
+  var mins=(Date.now()-t0)/60000, wpm=Math.round(correct/5/mins), acc=Math.round(100*correct/(correct+errors));
+  var prev=+store("best"+cur)||0;
+  if(acc>=90&&wpm>prev){store("best"+cur,String(wpm));$("best").textContent=wpm}
+  $("resulttext").textContent="Done: "+wpm+" WPM, "+acc+"% accuracy"+(acc<90?" (aim for 90%+ to record a best).":".");
+  $("result").classList.add("show");
+  $("next").style.display=cur<lessons.length-1?"":"none";
+}
+
+// ---- input
+function layerFrom(e){
+  var alt=(e.getModifierState&&e.getModifierState("AltGraph"))||e.altKey;
+  return alt?2:(e.shiftKey?1:0);
+}
+document.addEventListener("keydown",function(e){
+  if(e.target&&/SELECT|INPUT|TEXTAREA/.test(e.target.tagName))return;
+  if((e.ctrlKey&&!e.getModifierState("AltGraph"))||e.metaKey)return;
+  if(!K[e.code])return;
+  var u=K[e.code][layerFrom(e)];
+  e.preventDefault();
+  if(!u)return;
+  var el=keyEls[e.code];
+  if(el){el.classList.add("press");setTimeout(function(){el.classList.remove("press")},120)}
+  press(u,e.code);
+});
+function virtual(code){
+  var layer=stickyAlt?2:stickyShift?1:0, u=K[code]&&K[code][layer];
+  if(u)press(u,code);
+  setMod(false,false);
+}
+function setMod(s,a){
+  stickyShift=s;stickyAlt=a;
+  $("mshift").setAttribute("aria-pressed",s);$("maltgr").setAttribute("aria-pressed",a);
+}
+$("mshift").onclick=function(){setMod(!stickyShift,false)};
+$("maltgr").onclick=function(){setMod(false,!stickyAlt)};
+$("restart").onclick=$("again").onclick=function(){loadLesson(cur)};
+$("next").onclick=function(){$("lesson").value=cur+1;loadLesson(cur+1)};
+$("showhint").onclick=function(){showHint=!showHint;this.setAttribute("aria-pressed",showHint);this.textContent=showHint?"Hints on":"Hints off";updateHint()};
+var sel=$("lesson");
+lessons.forEach(function(l,i){var o=document.createElement("option");o.value=i;o.textContent=l.name;sel.appendChild(o)});
+sel.onchange=function(){loadLesson(+sel.value);sel.blur()};
+setInterval(function(){if(t0&&!done)renderStats()},500);
+
+// ---- about
+var I=L.info;
+$("about").textContent="Layout \""+I.name+"\". Built by tools/build_layout.py from "+I.source+
+  ". Units = single code points plus the "+I.pairs.length+" most frequent coeng+consonant pairs ("+I.pairs.join(" ")+
+  "), which cover "+Math.round(I.pairShareOfCoeng*100)+"% of coeng uses in the data; other clusters are typed coeng key + consonant. "+
+  "Units are ranked by weighted frequency and assigned greedily to the lowest-effort slots: "+
+  Math.round(I.layerShare[0]*100)+"% of keystrokes land on the base layer, "+Math.round(I.layerShare[1]*100)+"% on Shift, "+
+  Math.round(I.layerShare[2]*100)+"% on AltGr. Caveats: the counts come from word-usage (search) data, which over-represents formal vocabulary; "+
+  "the effort model ignores hand alternation and bigrams; this is not an official or standard layout.";
+var ft=document.createElement("table"), max=L.ranking[0][1];
+ft.innerHTML="<tr><th>#</th><th>unit</th><th>key</th><th style='width:45%'>weight</th></tr>";
+L.ranking.slice(0,30).forEach(function(r,i){
+  var w=where[r[0]], tr=document.createElement("tr");
+  var keyname=w?(w.layer?(w.layer===1?"Shift+":"AltGr+"):"")+w.code.replace("Key","").replace("Bracket","[").replace("Semicolon",";").replace("Quote","'").replace("Comma",",").replace("Period",".").replace("Slash","/"):"";
+  tr.innerHTML="<td>"+(i+1)+"</td><td class='kh'></td><td></td><td><div class='bar2' style='width:"+(100*r[1]/max)+"%'></div></td>";
+  tr.children[1].textContent=disp(r[0]);tr.children[2].textContent=keyname;ft.appendChild(tr);
+});
+$("freq").appendChild(ft);
+
+loadLesson(0);
+})();
+</script>
+</body>
+</html>
