@@ -12,6 +12,8 @@ Browser typing tutor for an **experimental** Khmer keyboard layout whose key ass
 - The counts come from a word-usage list ([type-kor](https://github.com/Manethpak/type-kor), `src/data/khmer-search-frequency.csv`, 9,428 words). That is search-term data, so it over-represents formal vocabulary. The CSV is not redistributed here (licence unchecked); to rebuild, download it to `data/source-freq.csv`.
 - The effort model is a simple per-key cost plus Shift/AltGr penalties. It ignores hand alternation and bigram effort, and no typing-speed benefit has been measured.
 
+- Font: Noto Sans Khmer (SIL OFL 1.1, see `docs/fonts/OFL.txt`) is bundled, so Khmer renders without network access or a system Khmer font.
+
 ## Rebuild the layout
 
 ```
