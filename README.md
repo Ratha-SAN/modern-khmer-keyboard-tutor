@@ -55,7 +55,7 @@ python3 tools/optimize_layout.py                              # -> docs/layout.j
 
 ## Word Rain game
 
-`docs/game.html` (linked from the lessons page): Khmer words fall; type each before it hits the red line. Choose the layout and how many keys (top 8/16/…/all) are in play, so it doubles as practice for the lessons. Three lives, speed rises every 8 words, Backspace drops the current word lock, Esc pauses, best score is stored per layout and key set in `localStorage`.
+The **Word Rain game** is a tab in `docs/index.html` next to the lessons: Khmer words fall; type each before it hits the red line. Choose the layout and how many keys (top 8/16/…/all) are in play, so it doubles as practice for the lessons. Three lives, speed rises every 8 words, Backspace drops the current word lock, Esc pauses, best score is stored per layout and key set in `localStorage`.
 
 ## Tutor
 
