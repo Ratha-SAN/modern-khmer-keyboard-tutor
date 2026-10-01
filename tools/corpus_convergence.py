@@ -66,20 +66,22 @@ def lines(paths):
 
 def main(paths, max_units=0):
     A, B, ALL = collections.Counter(), collections.Counter(), collections.Counter()
-    blocks, cur, nA, nB, tot = [], collections.Counter(), 0, 0, 0
+    blocks, cur, nA, nB, tot, cur_n = [], collections.Counter(), 0, 0, 0, 0
     ci, report = 0, []
     for k, ln in enumerate(lines(paths)):
         us = units(ln)
         if not us:
             continue
         (A if k % 2 == 0 else B).update(us)
-        ALL.update(us); cur.update(us); tot += len(us)
+        ALL.update(us); cur.update(us); tot += len(us); cur_n += len(us)
+        if k % 2 == 0: nA += len(us)
+        else: nB += len(us)
         if max_units and tot >= max_units:
             break
-        if sum(cur.values()) >= BLOCK:
-            blocks.append(cur); cur = collections.Counter()
+        if cur_n >= BLOCK:
+            blocks.append(cur); cur = collections.Counter(); cur_n = 0
         while ci < len(CHECK) and tot >= CHECK[ci]:
-            if sum(A.values()) and sum(B.values()):
+            if nA and nB:
                 report.append((tot, spearman(A, B), tier_agree(A, B)))
                 print("%12d units  spearman(top%d)=%.3f  tier-agreement=%.3f" % (tot, TOP, report[-1][1], report[-1][2]), flush=True)
             ci += 1
