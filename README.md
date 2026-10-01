@@ -53,6 +53,10 @@ python3 tools/optimize_layout.py                              # -> docs/layout.j
 
 `tools/build_layout.py` is the v1 greedy generator (single-layout `window.LAYOUT` format). It is superseded: running it overwrites `docs/layout.js` in a format the tutor no longer reads. Its helpers are still imported by the optimiser.
 
+## Word Rain game
+
+`docs/game.html` (linked from the lessons page): Khmer words fall; type each before it hits the red line. Choose the layout and how many keys (top 8/16/…/all) are in play, so it doubles as practice for the lessons. Three lives, speed rises every 8 words, Backspace drops the current word lock, Esc pauses, best score is stored per layout and key set in `localStorage`.
+
 ## Tutor
 
 Lessons introduce 8 keys at a time in frequency order, with drills and words made only of learned keys, then a final all-keys lesson. WPM is keystrokes ÷ 5 per minute. Best scores are stored in `localStorage`.

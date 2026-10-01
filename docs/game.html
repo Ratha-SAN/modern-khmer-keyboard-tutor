@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="km">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Khmer Word Rain</title>
+<meta name="description" content="Typing game: type the falling Khmer words before they reach the bottom.">
+<style>
+@font-face{font-family:"Noto Sans Khmer";src:url(fonts/NotoSansKhmer-Regular.woff2) format("woff2");font-weight:400;font-style:normal;font-display:swap}
+:root{
+  --bg:#f6f5f1; --panel:#fff; --ink:#1d1d1b; --muted:#6b6a64; --line:#dcdad2;
+  --accent:#1f6f5c; --accent-ink:#fff; --hint:#ffd84d; --bad:#c0392b; --good:#1f7a43; --key:#f1efe8; --sky:#eef3f1;
+  --f0:#f6dede; --f1:#f8e8d2; --f2:#f6f1c9; --f3:#dcefd5; --f4:#dcefd5; --f5:#d3e7f4; --f6:#d3e7f4; --f7:#e6dcf4;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#161614; --panel:#201f1d; --ink:#ecebe5; --muted:#a09f97; --line:#3a3935; --accent:#4fbf9f; --accent-ink:#0d1f1a;
+    --hint:#b38f00; --bad:#ef7566; --good:#6fd08e; --key:#2a2927; --sky:#1b2320;
+    --f0:#3c2626; --f1:#3d3224; --f2:#3a3820; --f3:#27391f; --f4:#27391f; --f5:#1f3340; --f6:#1f3340; --f7:#32283f; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI","Noto Sans Khmer",sans-serif}
+.kh{font-family:"Noto Sans Khmer","Khmer OS","Leelawadee UI","Khmer UI",sans-serif}
+main{max-width:980px;margin:0 auto;padding:16px}
+h1{font-size:1.25rem;margin:4px 0 2px}
+a{color:var(--accent)}
+.sub{color:var(--muted);font-size:.9rem;margin:0 0 14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+select,button{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.stats{display:flex;gap:18px;margin-left:auto;font-variant-numeric:tabular-nums}
+.stat b{display:block;font-size:1.2rem;line-height:1.1}
+.stat span{color:var(--muted);font-size:.75rem}
+#field{position:relative;height:min(62vh,430px);background:var(--sky);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+#field::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--bad);opacity:.6}
+.rw{position:absolute;top:0;left:0;padding:2px 14px;border-radius:999px;background:var(--panel);border:2px solid var(--line);font-size:1.5rem;line-height:1.9;white-space:nowrap;will-change:transform}
+.rw.lock{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent)}
+.rw i{position:absolute;left:12px;bottom:3px;height:3px;width:0;background:var(--accent);border-radius:2px}
+.rw.pop{animation:pop .25s forwards}
+@keyframes pop{to{opacity:0;transform:scale(1.3)}}
+#overlay{position:absolute;inset:0;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;text-align:center;background:color-mix(in srgb,var(--panel) 82%,transparent);padding:16px}
+#overlay.hide{display:none}
+#overlay h2{margin:0;font-size:1.3rem}
+#flash{position:absolute;inset:0;pointer-events:none;background:var(--bad);opacity:0}
+#flash.on{animation:fl .25s}
+@keyframes fl{from{opacity:.25}to{opacity:0}}
+.kb{display:flex;flex-direction:column;gap:5px;align-items:center;user-select:none;touch-action:manipulation}
+.kr{display:flex;gap:5px}
+.k{position:relative;width:clamp(26px,7.2vw,62px);height:clamp(40px,9vw,66px);background:var(--key);border:1px solid var(--line);border-radius:7px;cursor:pointer;padding:0}
+.k .b{position:absolute;left:0;right:0;top:50%;transform:translateY(-58%);text-align:center;font-size:clamp(.95rem,2.6vw,1.45rem);color:var(--ink)}
+.k .s,.k .a{position:absolute;font-size:clamp(.5rem,1.5vw,.8rem);color:var(--muted)}
+.k .s{right:3px;top:1px}.k .a{right:3px;bottom:1px}
+.k.hint{background:var(--hint);border-color:var(--hint)}
+.k.hint .b,.k.hint .s,.k.hint .a{color:#000}
+.k.hl-s .s,.k.hl-a .a{background:#000;color:#fff;border-radius:3px;padding:0 2px}
+.k.press{outline:2px solid var(--accent)}
+.k.f0{background:var(--f0)}.k.f1{background:var(--f1)}.k.f2{background:var(--f2)}.k.f3{background:var(--f3)}
+.k.f4{background:var(--f4)}.k.f5{background:var(--f5)}.k.f6{background:var(--f6)}.k.f7{background:var(--f7)}
+.k.hint{background:var(--hint)}
+.mods{display:flex;gap:8px;justify-content:center;margin-top:8px}
+.mods button{min-width:84px}
+.note{color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+<main>
+  <h1>Khmer Word Rain</h1>
+  <p class="sub"><a href="index.html">← Back to lessons</a> · Type each falling word before it reaches the red line. <b>Backspace</b> drops your current word lock; <b>Esc</b> pauses.</p>
+
+  <section class="panel">
+    <div class="row">
+      <label>Layout <select id="layout"></select></label>
+      <label>Keys <select id="level"></select></label>
+      <button id="showhint" aria-pressed="true">Hints on</button>
+      <div class="stats">
+        <div class="stat"><b id="score">0</b><span>score</span></div>
+        <div class="stat"><b id="lives">♥♥♥</b><span>lives</span></div>
+        <div class="stat"><b id="lvl">1</b><span>speed level</span></div>
+        <div class="stat"><b id="best">–</b><span>best</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div id="field" class="kh" aria-label="Game area">
+    <div id="flash"></div>
+    <div id="overlay">
+      <h2 id="otitle">Ready?</h2>
+      <div id="otext" class="note">Words fall from the top. Type them on the keys you chose.</div>
+      <button class="primary" id="start">Start (Enter)</button>
+    </div>
+  </div>
+
+  <section class="panel" style="margin-top:14px">
+    <div class="kb kh" id="kb"></div>
+    <div class="mods">
+      <button id="mshift" aria-pressed="false">Shift</button>
+      <button id="maltgr" aria-pressed="false">AltGr / Option</button>
+    </div>
+    <p class="note" style="text-align:center;margin:8px 0 0">Tap the keys if you have no physical keyboard. Layout choice is shared with the lessons page.</p>
+  </section>
+</main>
+<script src="layout.js"></script>
+<script src="words.js"></script>
+<script>
+(function(){
+"use strict";
+var LAYOUTS=window.LAYOUTS, WORDS=window.WORDS, COENG="្", PER_LEVEL=8, MAXL=6, MAXU=8;
+var L,K,layoutName,where,rank,pairSet,pool;
+var FINGER={KeyQ:0,KeyA:0,KeyZ:0,KeyW:1,KeyS:1,KeyX:1,KeyE:2,KeyD:2,KeyC:2,KeyR:3,KeyF:3,KeyV:3,KeyT:3,KeyG:3,KeyB:3,
+  KeyY:4,KeyH:4,KeyN:4,KeyU:4,KeyJ:4,KeyM:4,KeyI:5,KeyK:5,Comma:5,KeyO:6,KeyL:6,Period:6,
+  KeyP:7,Semicolon:7,Slash:7,BracketLeft:7,BracketRight:7,Quote:7};
+function $(id){return document.getElementById(id)}
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+function rnd(n){return Math.floor(Math.random()*n)}
+function pick(a){return a[rnd(a.length)]}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=rnd(i+1),t=a[i];a[i]=a[j];a[j]=t}return a}
+function disp(u){var c=u.charCodeAt(0);return ((c>=0x17B6&&c<=0x17D3)||c===0x17DD||u.charAt(0)===COENG)?"◌"+u:u}
+function splitUnits(w){var o=[],i=0;while(i<w.length){if(w.charAt(i)===COENG&&pairSet[w.substr(i,2)]){o.push(w.substr(i,2));i+=2}else{o.push(w.charAt(i));i++}}return o}
+
+// ---- layout + keyboard
+var kbEl=$("kb"), keyEls={}, stickyShift=false, stickyAlt=false, showHint=true;
+function mkKey(code){
+  var b=document.createElement("button"), k=K[code]||["","",""];
+  b.className="k f"+(FINGER[code]!==undefined?FINGER[code]:0); b.type="button";
+  b.innerHTML='<span class="b"></span><span class="s"></span><span class="a"></span>';
+  for(var i=0;i<3;i++)b.children[i].textContent=k[i]?disp(k[i]):"";
+  b.addEventListener("click",function(){var l=stickyAlt?2:stickyShift?1:0,u=K[code]&&K[code][l];if(u)typeUnit(u,code,l);setMod(false,false)});
+  keyEls[code]=b;return b;
+}
+function renderKeyboard(){
+  kbEl.innerHTML="";keyEls={};
+  [L.digits].concat(L.rows).forEach(function(r,ri){
+    var d=document.createElement("div");d.className="kr";d.style.marginLeft=(ri*10)+"px";
+    r.forEach(function(c){d.appendChild(mkKey(c))});kbEl.appendChild(d);
+  });
+}
+function setMod(s,a){stickyShift=s;stickyAlt=a;$("mshift").setAttribute("aria-pressed",s);$("maltgr").setAttribute("aria-pressed",a)}
+function applyLayout(name){
+  layoutName=name;L=LAYOUTS[name];K=L.keys;store("layout",name);$("layout").value=name;
+  where={};Object.keys(K).forEach(function(c){K[c].forEach(function(u,l){if(u&&!where[u])where[u]={code:c,layer:l}})});
+  rank=L.ranking.filter(function(r){return r[1]>0}).map(function(r){return r[0]});
+  pairSet={};L.info.pairs.forEach(function(p){pairSet[p]=1});
+  renderKeyboard();setMod(false,false);
+  var ls=$("level"),keep=ls.value;ls.innerHTML="";
+  for(var i=1;i<=Math.min(MAXL,Math.ceil(rank.length/PER_LEVEL));i++){
+    var o=document.createElement("option");o.value=i;o.textContent="Top "+Math.min(i*PER_LEVEL,rank.length)+" keys";ls.appendChild(o);
+  }
+  var all=document.createElement("option");all.value=0;all.textContent="All keys, common words";ls.appendChild(all);
+  ls.value=keep&&ls.querySelector('option[value="'+keep+'"]')?keep:"1";
+  resetGame();
+}
+
+// ---- word pool for the chosen key set
+function buildPool(level){
+  if(+level===0)return WORDS.slice(0,1500).filter(function(w){return splitUnits(w).length<=MAXU});
+  var learned=rank.slice(0,level*PER_LEVEL),set={};learned.forEach(function(u){set[u]=1});
+  var ok=WORDS.filter(function(w){var u=splitUnits(w);return u.length>=2&&u.length<=MAXU&&u.every(function(x){return set[x]})});
+  var out=ok.slice(0,200);
+  for(var i=0;out.length<40;i++){var n=2+rnd(2),s="";for(var j=0;j<n;j++)s+=pick(learned);out.push(s)}
+  return out;
+}
+
+// ---- game state
+var field=$("field"),overlay=$("overlay");
+var items=[],locked=null,score,lives,speedLvl,spawnT,running=false,paused=false,lastTs=0,done,hits,errs,keys,t0,wordsDone,raf=0;
+function resetGame(){
+  stop();items.forEach(function(w){w.el.remove()});items=[];locked=null;
+  score=0;lives=3;speedLvl=1;spawnT=0;hits=0;errs=0;keys=0;wordsDone=0;t0=0;
+  updateHud();showOverlay("Ready?","Words fall from the top. Type them on the keys you chose.","Start (Enter)");
+  var b=store("rain_"+layoutName+"_"+$("level").value);$("best").textContent=b||"–";
+  clearHint();
+}
+function updateHud(){
+  $("score").textContent=score;$("lives").textContent=new Array(lives+1).join("♥")||"–";$("lvl").textContent=speedLvl;
+}
+function showOverlay(t,txt,btn){$("otitle").textContent=t;$("otext").textContent=txt;$("start").textContent=btn;overlay.classList.remove("hide")}
+function startGame(){
+  if(done||!running){resetGameSilently()}
+  overlay.classList.add("hide");pool=buildPool($("level").value);
+  running=true;paused=false;done=false;lastTs=0;t0=Date.now();spawnT=0.4;cancelAnimationFrame(raf);raf=requestAnimationFrame(frame);
+}
+function resetGameSilently(){items.forEach(function(w){w.el.remove()});items=[];locked=null;score=0;lives=3;speedLvl=1;hits=0;errs=0;keys=0;wordsDone=0;updateHud()}
+function stop(){running=false;done=false;paused=false;cancelAnimationFrame(raf)}
+function pause(on){
+  if(!running)return;paused=on;
+  if(on){showOverlay("Paused","Press Esc or Enter to continue.","Resume")}
+  else{overlay.classList.add("hide");lastTs=0;raf=requestAnimationFrame(frame)}
+}
+function spawn(){
+  var text=pick(pool),el=document.createElement("div");
+  el.className="rw";el.textContent=text;var bar=document.createElement("i");el.appendChild(bar);
+  field.appendChild(el);
+  var w=el.offsetWidth,fw=field.clientWidth,x=0;
+  for(var t=0;t<8;t++){x=rnd(Math.max(1,fw-w-8))+4;
+    if(!items.some(function(o){return o.y<70&&Math.abs(o.x-x)<Math.max(o.w,w)}))break}
+  var it={el:el,bar:bar,text:text,x:x,y:-44,w:w,typed:"",clean:true};
+  items.push(it);place(it);
+}
+function place(it){it.el.style.transform="translate("+it.x+"px,"+it.y+"px)"}
+function speed(){return 36+(speedLvl-1)*6}
+function interval(){return Math.max(1.1,2.7*Math.pow(.93,speedLvl-1))}
+function frame(ts){
+  if(!running||paused)return;
+  var dt=lastTs?Math.min(.1,(ts-lastTs)/1000):0;lastTs=ts;
+  spawnT-=dt;if(spawnT<=0){spawn();spawnT=interval()}
+  var H=field.clientHeight;
+  for(var i=items.length-1;i>=0;i--){
+    var it=items[i];it.y+=speed()*dt;place(it);
+    if(it.y+it.el.offsetHeight>=H){
+      if(locked===it)locked=null;
+      it.el.remove();items.splice(i,1);lives--;updateHud();
+      var f=$("flash");f.classList.remove("on");void f.offsetWidth;f.classList.add("on");
+      if(lives<=0){gameOver();return}
+    }
+  }
+  updateHint();
+  raf=requestAnimationFrame(frame);
+}
+function gameOver(){
+  running=false;done=true;clearHint();
+  var mins=(Date.now()-t0)/60000,acc=keys?Math.round(100*hits/keys):100,wpm=mins>0?Math.round(hits/5/mins):0;
+  var bk="rain_"+layoutName+"_"+$("level").value,prev=+store(bk)||0,rec=score>prev;
+  if(rec){store(bk,String(score));$("best").textContent=score}
+  showOverlay("Game over"+(rec&&score>0?" – new best!":""),"Score "+score+" · "+wordsDone+" words · "+acc+"% accuracy · "+wpm+" WPM (keys÷5)","Play again (Enter)");
+}
+
+// ---- typing
+function lowest(pred){var b=null;items.forEach(function(it){if(pred(it)&&(!b||it.y>b.y))b=it});return b}
+function typeUnit(u,code,layer){
+  if(!running||paused)return;
+  keys++;var el=keyEls[code];if(el){el.classList.add("press");setTimeout(function(){el.classList.remove("press")},120)}
+  var tgt=locked||lowest(function(it){return it.text.indexOf(u)===0});
+  if(locked&&locked.text.substr(0,(locked.typed+u).length)!==locked.typed+u)tgt=null;
+  if(!tgt){errs++;if(locked)locked.clean=false;var f=$("flash");f.classList.remove("on");void f.offsetWidth;f.classList.add("on");return}
+  if(!locked)locked=tgt;
+  tgt.typed+=u;hits++;
+  tgt.bar.style.width=Math.min(100,100*tgt.typed.length/tgt.text.length)+"%";
+  locked.el.classList.add("lock");
+  if(tgt.typed===tgt.text){
+    var len=splitUnits(tgt.text).length;score+=len*10+(tgt.clean?5*len:0);wordsDone++;
+    if(wordsDone%8===0){speedLvl++}
+    tgt.el.classList.add("pop");(function(n){setTimeout(function(){n.remove()},250)})(tgt.el);
+    items.splice(items.indexOf(tgt),1);locked=null;updateHud();
+  }
+  updateHint();
+}
+function layerFrom(e){return ((e.getModifierState&&e.getModifierState("AltGraph"))||e.altKey)?2:(e.shiftKey?1:0)}
+document.addEventListener("keydown",function(e){
+  if(e.target&&/SELECT|INPUT|TEXTAREA/.test(e.target.tagName))return;
+  if((e.ctrlKey&&!e.getModifierState("AltGraph"))||e.metaKey)return;
+  if(e.key==="Enter"||(e.key===" "&&!running&&!overlay.classList.contains("hide"))){
+    e.preventDefault();
+    if(paused)pause(false);else if(!running)startGame();return;
+  }
+  if(e.key==="Escape"){e.preventDefault();if(running)pause(!paused);return}
+  if(e.key==="Backspace"){e.preventDefault();if(locked){locked.typed="";locked.bar.style.width="0";locked.el.classList.remove("lock");locked=null;updateHint()}return}
+  if(!K[e.code])return;
+  e.preventDefault();
+  var l=layerFrom(e),u=K[e.code][l];if(u)typeUnit(u,e.code,l);
+});
+document.addEventListener("visibilitychange",function(){if(document.hidden&&running&&!paused)pause(true)});
+
+// ---- hint
+function clearHint(){
+  Object.keys(keyEls).forEach(function(c){keyEls[c].classList.remove("hint","hl-s","hl-a")});
+  $("mshift").classList.remove("need");$("maltgr").classList.remove("need");
+}
+function updateHint(){
+  clearHint();if(!showHint||!running)return;
+  var t=locked||lowest(function(){return true});if(!t)return;
+  var rem=t.text.substr(t.typed.length),best=null;
+  Object.keys(where).forEach(function(u){if(rem.indexOf(u)===0&&(!best||u.length>best.length))best=u});
+  if(!best)return;var w=where[best],el=keyEls[w.code];
+  if(el){el.classList.add("hint");if(w.layer===1)el.classList.add("hl-s");if(w.layer===2)el.classList.add("hl-a")}
+}
+
+// ---- wiring
+$("start").onclick=function(){if(paused)pause(false);else startGame()};
+$("mshift").onclick=function(){setMod(!stickyShift,false)};
+$("maltgr").onclick=function(){setMod(false,!stickyAlt)};
+$("showhint").onclick=function(){showHint=!showHint;this.setAttribute("aria-pressed",showHint);this.textContent=showHint?"Hints on":"Hints off";updateHint()};
+Object.keys(LAYOUTS).forEach(function(n){var o=document.createElement("option");o.value=n;o.textContent=LAYOUTS[n].info.name;$("layout").appendChild(o)});
+$("layout").onchange=function(){applyLayout(this.value);this.blur()};
+$("level").onchange=function(){resetGame();this.blur()};
+var saved=store("layout");
+applyLayout(saved&&LAYOUTS[saved]?saved:window.LAYOUT_DEFAULT);
+window.__rain={items:function(){return items},state:function(){return{score:score,lives:lives,running:running,done:done}}};
+})();
+</script>
+</body>
+</html>
