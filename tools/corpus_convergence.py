@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """How much Khmer text is needed before key frequencies / layer assignments stabilise?
 
-Usage: python3 tools/corpus_convergence.py khmer_corpus_v5.txt.gz [more files...]
+Usage: python3 tools/corpus_convergence.py [--max-units N] khmer_corpus_v5.txt.gz [more files...]
+(--max-units stops after N units, e.g. 100000000 for a quick run; note this reads only the file head,
+ so it cannot reveal drift that appears later in the file.)
 Streams .txt or .txt.gz (one pass, low memory) and writes data/corpus-unit-counts.json.
 
 Units = coeng+consonant pairs and single Khmer code points (same as build_layout.py,
@@ -62,7 +64,7 @@ def lines(paths):
                 yield ln
 
 
-def main(paths):
+def main(paths, max_units=0):
     A, B, ALL = collections.Counter(), collections.Counter(), collections.Counter()
     blocks, cur, nA, nB, tot = [], collections.Counter(), 0, 0, 0
     ci, report = 0, []
@@ -72,6 +74,8 @@ def main(paths):
             continue
         (A if k % 2 == 0 else B).update(us)
         ALL.update(us); cur.update(us); tot += len(us)
+        if max_units and tot >= max_units:
+            break
         if sum(cur.values()) >= BLOCK:
             blocks.append(cur); cur = collections.Counter()
         while ci < len(CHECK) and tot >= CHECK[ci]:
@@ -92,4 +96,8 @@ def main(paths):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    args = sys.argv[1:]
+    mu = 0
+    if args and args[0] == "--max-units":
+        mu, args = int(args[1]), args[2:]
+    main(args, mu)
