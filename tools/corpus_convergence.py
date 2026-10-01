@@ -9,6 +9,9 @@ Streams .txt or .txt.gz (one pass, low memory) and writes data/corpus-unit-count
 Units = coeng+consonant pairs and single Khmer code points (same as build_layout.py,
 but ALL pairs are counted, so you can pick the pair set from the full corpus).
 
+Also writes adjacent-unit bigram counts ("bigrams", top 60000, never across a space/non-Khmer break)
+for the layout optimizer (tools/optimize_layout.py).
+
 Reports
  1. split-half: lines alternate into halves A/B; at growing sizes, compare A vs B
     - Spearman rank correlation of the top-150 units
@@ -66,12 +69,15 @@ def lines(paths):
 
 def main(paths, max_units=0):
     A, B, ALL = collections.Counter(), collections.Counter(), collections.Counter()
+    BIG = collections.Counter()
     blocks, cur, nA, nB, tot, cur_n = [], collections.Counter(), 0, 0, 0, 0
     ci, report = 0, []
     for k, ln in enumerate(lines(paths)):
-        us = units(ln)
+        raw = units(ln)
+        us = [u for u in raw if u is not None]
         if not us:
             continue
+        BIG.update(zip(raw, raw[1:]))
         (A if k % 2 == 0 else B).update(us)
         ALL.update(us); cur.update(us); tot += len(us); cur_n += len(us)
         if k % 2 == 0: nA += len(us)
@@ -93,7 +99,8 @@ def main(paths, max_units=0):
               % (len(blocks), BLOCK, min(ag), sum(ag) / len(ag), min(sp)))
     os.makedirs("data", exist_ok=True)
     with open("data/corpus-unit-counts.json", "w", encoding="utf-8") as f:
-        json.dump({"total": tot, "counts": ALL.most_common(), "splitHalf": report}, f, ensure_ascii=False)
+        big = [[a, b, n] for (a, b), n in BIG.most_common(60000) if a is not None and b is not None]
+        json.dump({"total": tot, "counts": ALL.most_common(), "splitHalf": report, "bigrams": big}, f, ensure_ascii=False)
     print("wrote data/corpus-unit-counts.json")
 
 

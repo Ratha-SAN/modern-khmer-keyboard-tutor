@@ -15,6 +15,34 @@ Browser typing tutor for an **experimental** Khmer keyboard layout whose key ass
 
 - Font: Noto Sans Khmer (SIL OFL 1.1, see `docs/fonts/OFL.txt`) is bundled, so Khmer renders without network access or a system Khmer font.
 
+## Layout design (v2)
+
+`tools/optimize_layout.py` (needs numpy) searches slot assignments by simulated annealing. Per Khmer unit typed, the cost has:
+
+1. **Position + modifier effort**: key cost (home row cheapest) plus a layer penalty (Shift +1.0, AltGr +2.0, both assumptions; override with `SHIFT_PEN`/`ALT_PEN`).
+2. **Bigram effort**: same-finger repeats, row jumps, inward/outward rolls, hand alternation, layer switches.
+3. **Finger load caps**: pinky 6%, ring 9%, middle 15%, index 20% per hand.
+4. **Learnability**: a-series/o-series counterpart letters (ក/គ, ខ/ឃ, ច/ជ, ឆ/ឈ, ដ/ឌ, ឋ/ឍ, ត/ទ, ថ/ធ, ប/ព, ផ/ភ) share a key (other layer) or sit side by side. This costs about 1% modelled effort and raises counterpart closeness from 0.15 to 0.65.
+5. **Pair keys**: the number of dedicated coeng-pair keys K is chosen by the model.
+
+**Finding on cluster keys.** With only 33 base-layer slots, dedicated pair keys did *not* lower modelled effort at any tested setting. A single coeng key carries ~8.5% of keystrokes and is hard to beat; splitting it into 12 pair keys saves ~7% of keystrokes but pushes more units to Shift/AltGr. Exact position-only costs (noise-free) at Shift +1.0 / AltGr +2.0: K=0 2.050, K=1 2.064, K=4 2.085, K=12 2.086; only at near-zero modifier penalties (Shift ≤0.2) does K=1 edge ahead. Hence the model-optimal "refined" layout has no pair keys, which also makes it installable as a normal OS layout (see below). The "clusters" layout (12 pair keys, same optimiser) and the old frequency-only "unigram" layout are kept in the tutor for comparison. Whether fewer keystrokes beats fewer modifiers for real typists is an empirical question.
+
+Modelled comparison (interim bigrams, see caveats): same-finger bigrams 9.4% (v1 frequency-only) → 1.4% (v2); hand alternation 49% → 77%.
+
+## Caveats on v2
+
+- Bigram statistics are currently **interim**, estimated from the 9,428-word list. For the real thing, re-run `tools/corpus_convergence.py` on your corpus (it now also writes bigram counts into `data/corpus-unit-counts.json`) and then `python3 tools/optimize_layout.py`.
+- The effort model is an assumption-laden proxy. Nobody has timed typists on these layouts.
+- Layer penalties, bigram weights and finger caps are my choices, not measured values.
+
+## Measuring with people
+
+The tutor has a layout selector and an **Export log (CSV)** button (every keystroke: expected unit, typed unit, physical key, layer, correct, ms since previous key). Compare layouts on speed, error rate and learning curve with the same participants and lessons. Counterbalance the order, since a second layout benefits from practice on the first.
+
+## Installing on Linux (no pair keys only)
+
+`python3 tools/export_xkb.py refined` writes `exports/khmer-cluster-refined.xkb`. It compiles with `xkbcomp`, but I have not tested it on a live desktop. Copy it to `~/.xkb/symbols/khcluster` and load it with `setxkbmap -I ~/.xkb khcluster` on X11 (Wayland setups differ). AltGr = Right Alt. Windows and macOS layouts are not generated. Pair-key layouts need an IME or software keyboard because OS key layouts emit one character per key level.
+
 ## Rebuild the layout
 
 ```

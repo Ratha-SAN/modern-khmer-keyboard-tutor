@@ -75,8 +75,10 @@ details summary{cursor:pointer;font-weight:600}
 
   <section class="panel">
     <div class="row">
+      <label>Layout <select id="layout"></select></label>
       <label>Lesson <select id="lesson"></select></label>
       <button id="restart">Restart</button>
+      <button id="export" disabled title="Per-keystroke log for comparing layouts with real typists">Export log (CSV)</button>
       <button id="showhint" aria-pressed="true">Hints on</button>
       <div class="stats">
         <div class="stat"><b id="wpm">0</b><span>WPM (keys÷5)</span></div>
@@ -121,7 +123,7 @@ details summary{cursor:pointer;font-weight:600}
 <script>
 (function(){
 "use strict";
-var L=window.LAYOUT, WORDS=window.WORDS, K=L.keys, COENG="្";
+var LAYOUTS=window.LAYOUTS, L, K, layoutName, WORDS=window.WORDS, COENG="្";
 var PER_LESSON=8, MAXL=6, ITEMS=24;
 
 // ---- helpers
@@ -136,13 +138,23 @@ var FINGER={KeyQ:0,KeyA:0,KeyZ:0,KeyW:1,KeyS:1,KeyX:1,KeyE:2,KeyD:2,KeyC:2,KeyR:
   KeyY:4,KeyH:4,KeyN:4,KeyU:4,KeyJ:4,KeyM:4,KeyI:5,KeyK:5,Comma:5,KeyO:6,KeyL:6,Period:6,
   KeyP:7,Semicolon:7,Slash:7,BracketLeft:7,BracketRight:7,Quote:7};
 
-// ---- unit lookup: unit string -> {code, layer}
-var where={}, units=[];
-Object.keys(K).forEach(function(code){
-  K[code].forEach(function(u,layer){ if(u && !where[u]){where[u]={code:code,layer:layer}} });
-});
-var rank=L.ranking.filter(function(r){return r[1]>0}).map(function(r){return r[0]});
-var pairSet={}; L.info.pairs.forEach(function(p){pairSet[p]=1});
+// ---- unit lookup: unit string -> {code, layer}   (rebuilt whenever the layout changes)
+var where, rank, pairSet, lessons;
+function buildTables(){
+  where={};
+  Object.keys(K).forEach(function(code){
+    K[code].forEach(function(u,layer){ if(u && !where[u]){where[u]={code:code,layer:layer}} });
+  });
+  rank=L.ranking.filter(function(r){return r[1]>0}).map(function(r){return r[0]});
+  pairSet={}; L.info.pairs.forEach(function(p){pairSet[p]=1});
+  var NLESS=Math.min(MAXL,Math.ceil(rank.length/PER_LESSON));
+  lessons=[];
+  for(var i=1;i<=NLESS;i++){
+    lessons.push({name:"Lesson "+i+" – keys "+((i-1)*PER_LESSON+1)+"–"+Math.min(i*PER_LESSON,rank.length),
+      learned:rank.slice(0,i*PER_LESSON), fresh:rank.slice((i-1)*PER_LESSON,i*PER_LESSON)});
+  }
+  lessons.push({name:"Final – all keys, common words",learned:null,fresh:[]});
+}
 function splitUnits(w){
   var out=[],i=0;
   while(i<w.length){
@@ -151,15 +163,6 @@ function splitUnits(w){
   }
   return out;
 }
-
-// ---- lessons
-var NLESS=Math.min(MAXL,Math.ceil(rank.length/PER_LESSON));
-var lessons=[];
-for(var i=1;i<=NLESS;i++){
-  lessons.push({name:"Lesson "+i+" – keys "+((i-1)*PER_LESSON+1)+"–"+Math.min(i*PER_LESSON,rank.length),
-    learned:rank.slice(0,i*PER_LESSON), fresh:rank.slice((i-1)*PER_LESSON,i*PER_LESSON)});
-}
-lessons.push({name:"Final – all keys, common words",learned:null,fresh:[]});
 
 function rnd(n){return Math.floor(Math.random()*n)}
 function pick(a){return a[rnd(a.length)]}
@@ -200,16 +203,15 @@ function mkKey(code,label){
   b.addEventListener("click",function(){virtual(code)});
   keyEls[code]=b;return b;
 }
-(function(){
-  var rows=[L.digits].concat(L.rows);
-  rows.forEach(function(r,ri){
+function renderKeyboard(){
+  kbEl.innerHTML=""; keyEls={};
+  [L.digits].concat(L.rows).forEach(function(r,ri){
     var d=document.createElement("div");d.className="kr";
     d.style.marginLeft=(ri*10)+"px";
     r.forEach(function(c){d.appendChild(mkKey(c))});
     kbEl.appendChild(d);
   });
-  // number row shows ASCII digits on shift; those need no AltGr glyph
-})();
+}
 
 // ---- state
 var cur=0, items=[], idx=0, typed="", correct=0, errors=0, t0=0, done=false;
@@ -222,7 +224,7 @@ function loadLesson(i){
   var f=lessons[i].fresh;
   $("newkeys").textContent=f.length?"New keys this lesson: "+f.map(disp).join("  "):"All keys.";
   renderTarget(); renderStats(); updateHint();
-  var b=store("best"+i); $("best").textContent=b?b:"–";
+  var b=store("best"+layoutName+"_"+i); $("best").textContent=b?b:"–";
 }
 function renderTarget(){
   targetEl.innerHTML="";
@@ -260,11 +262,14 @@ function updateHint(){
   if(w.layer===2)$("maltgr").classList.add("need");
   hl.textContent="Next: "+disp(u)+(w.layer===1?"  (hold Shift)":w.layer===2?"  (hold AltGr / Option)":"");
 }
-function press(unit,code){
+var LOG=[], lastT=0;
+function press(unit,code,layer){
   if(done)return;
-  if(!t0)t0=Date.now();
-  var T=items[idx];
-  if(T.substr(0,(typed+unit).length)===typed+unit){
+  var now=Date.now(); if(!t0)t0=now;
+  var T=items[idx], ok=T.substr(0,(typed+unit).length)===typed+unit;
+  LOG.push([now,layoutName,cur,idx,nextUnit()||"",unit,code,layer,ok?1:0,lastT?now-lastT:""]); lastT=now;
+  $("export").disabled=false;
+  if(ok){
     typed+=unit; correct++; echoEl.classList.remove("err");
     if(typed===T){idx++;typed="";
       if(idx>=items.length){finish();return}}
@@ -277,8 +282,8 @@ function press(unit,code){
 function finish(){
   done=true; renderTarget(); clearHint();
   var mins=(Date.now()-t0)/60000, wpm=Math.round(correct/5/mins), acc=Math.round(100*correct/(correct+errors));
-  var prev=+store("best"+cur)||0;
-  if(acc>=90&&wpm>prev){store("best"+cur,String(wpm));$("best").textContent=wpm}
+  var prev=+store("best"+layoutName+"_"+cur)||0;
+  if(acc>=90&&wpm>prev){store("best"+layoutName+"_"+cur,String(wpm));$("best").textContent=wpm}
   $("resulttext").textContent="Done: "+wpm+" WPM, "+acc+"% accuracy"+(acc<90?" (aim for 90%+ to record a best).":".");
   $("result").classList.add("show");
   $("next").style.display=cur<lessons.length-1?"":"none";
@@ -298,11 +303,11 @@ document.addEventListener("keydown",function(e){
   if(!u)return;
   var el=keyEls[e.code];
   if(el){el.classList.add("press");setTimeout(function(){el.classList.remove("press")},120)}
-  press(u,e.code);
+  press(u,e.code,layerFrom(e));
 });
 function virtual(code){
   var layer=stickyAlt?2:stickyShift?1:0, u=K[code]&&K[code][layer];
-  if(u)press(u,code);
+  if(u)press(u,code,layer);
   setMod(false,false);
 }
 function setMod(s,a){
@@ -314,31 +319,48 @@ $("maltgr").onclick=function(){setMod(false,!stickyAlt)};
 $("restart").onclick=$("again").onclick=function(){loadLesson(cur)};
 $("next").onclick=function(){$("lesson").value=cur+1;loadLesson(cur+1)};
 $("showhint").onclick=function(){showHint=!showHint;this.setAttribute("aria-pressed",showHint);this.textContent=showHint?"Hints on":"Hints off";updateHint()};
-var sel=$("lesson");
-lessons.forEach(function(l,i){var o=document.createElement("option");o.value=i;o.textContent=l.name;sel.appendChild(o)});
+var sel=$("lesson"), lsel=$("layout");
+function fillLessons(){
+  sel.innerHTML="";
+  lessons.forEach(function(l,i){var o=document.createElement("option");o.value=i;o.textContent=l.name;sel.appendChild(o)});
+}
 sel.onchange=function(){loadLesson(+sel.value);sel.blur()};
+Object.keys(LAYOUTS).forEach(function(n){var o=document.createElement("option");o.value=n;o.textContent=LAYOUTS[n].info.name;lsel.appendChild(o)});
+lsel.onchange=function(){applyLayout(lsel.value);lsel.blur()};
+$("export").onclick=function(){
+  var head="timestamp_ms,layout,lesson,item,expected_unit,typed_unit,physical_key,layer,correct,ms_since_prev_key\n";
+  var csv="\ufeff"+head+LOG.map(function(r){return r.map(function(x){return '"'+String(x).replace(/"/g,'""')+'"'}).join(",")}).join("\n");
+  var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
+  a.download="khmer-typing-log.csv";document.body.appendChild(a);a.click();a.remove();
+};
 setInterval(function(){if(t0&&!done)renderStats()},500);
 
 // ---- about
-var I=L.info;
-$("about").textContent="Layout \""+I.name+"\". Built by tools/build_layout.py from "+I.source+
-  ". Units = single code points plus the "+I.pairs.length+" most frequent coeng+consonant pairs ("+I.pairs.join(" ")+
-  "), which cover "+Math.round(I.pairShareOfCoeng*100)+"% of coeng uses in the data; other clusters are typed coeng key + consonant. "+
-  "Units are ranked by weighted frequency and assigned greedily to the lowest-effort slots: "+
-  Math.round(I.layerShare[0]*100)+"% of keystrokes land on the base layer, "+Math.round(I.layerShare[1]*100)+"% on Shift, "+
-  Math.round(I.layerShare[2]*100)+"% on AltGr. Caveats: the counts come from word-usage (search) data, which over-represents formal vocabulary; "+
-  "the effort model ignores hand alternation and bigrams; this is not an official or standard layout.";
-var ft=document.createElement("table"), max=L.ranking[0][1];
-ft.innerHTML="<tr><th>#</th><th>unit</th><th>key</th><th style='width:45%'>weight</th></tr>";
-L.ranking.slice(0,30).forEach(function(r,i){
-  var w=where[r[0]], tr=document.createElement("tr");
-  var keyname=w?(w.layer?(w.layer===1?"Shift+":"AltGr+"):"")+w.code.replace("Key","").replace("Bracket","[").replace("Semicolon",";").replace("Quote","'").replace("Comma",",").replace("Period",".").replace("Slash","/"):"";
-  tr.innerHTML="<td>"+(i+1)+"</td><td class='kh'></td><td></td><td><div class='bar2' style='width:"+(100*r[1]/max)+"%'></div></td>";
-  tr.children[1].textContent=disp(r[0]);tr.children[2].textContent=keyname;ft.appendChild(tr);
-});
-$("freq").appendChild(ft);
+function renderAbout(){
+  var I=L.info, M=I.metrics||{};
+  $("about").textContent="Layout \""+I.name+"\": "+(I.note||"")+". Data: "+I.source+(I.bigramSource?"; bigrams from "+I.bigramSource:"")+
+    ". Coeng pair keys ("+I.pairs.length+"): "+(I.pairs.join(" ")||"none")+"; other clusters are typed coeng key + consonant. "+
+    "Modelled metrics (assumption-dependent, not measured on people): "+M.keystrokesPerUnit+" keystrokes per Khmer unit, "+
+    M.sameFingerPct+"% same-finger bigrams, "+M.handAlternationPct+"% hand alternation, keystrokes on base/Shift/AltGr "+
+    (M.layerPct||[]).join("/")+"%. This is an experimental layout, not an official or standard one.";
+  var fr=$("freq"); fr.innerHTML="";
+  var ft=document.createElement("table"), max=L.ranking[0][1];
+  ft.innerHTML="<tr><th>#</th><th>unit</th><th>key</th><th style='width:45%'>weight</th></tr>";
+  L.ranking.slice(0,30).forEach(function(r,i){
+    var w=where[r[0]], tr=document.createElement("tr");
+    var keyname=w?(w.layer?(w.layer===1?"Shift+":"AltGr+"):"")+w.code.replace("Key","").replace("Bracket","[").replace("Semicolon",";").replace("Quote","'").replace("Comma",",").replace("Period",".").replace("Slash","/"):"";
+    tr.innerHTML="<td>"+(i+1)+"</td><td class='kh'></td><td></td><td><div class='bar2' style='width:"+(100*r[1]/max)+"%'></div></td>";
+    tr.children[1].textContent=disp(r[0]);tr.children[2].textContent=keyname;ft.appendChild(tr);
+  });
+  fr.appendChild(ft);
+}
 
-loadLesson(0);
+function applyLayout(name){
+  layoutName=name; L=LAYOUTS[name]; K=L.keys; lsel.value=name; store("layout",name);
+  buildTables(); renderKeyboard(); fillLessons(); renderAbout(); setMod(false,false); loadLesson(0);
+}
+var saved=store("layout");
+applyLayout(saved&&LAYOUTS[saved]?saved:window.LAYOUT_DEFAULT);
 })();
 </script>
 </body>
