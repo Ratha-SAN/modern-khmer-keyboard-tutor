@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Derive a cluster-frequency Khmer keyboard layout and the tutor's data files.
+"""[SUPERSEDED by optimize_layout.py: writes the old single-layout format]
+Derive a cluster-frequency Khmer keyboard layout and the tutor's data files.
 
 Input : data/corpus-unit-counts.json (from corpus_convergence.py) for unit frequencies, if present;
         otherwise a CSV with columns `word,sessions` (data/source-freq.csv).

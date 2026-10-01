@@ -46,11 +46,12 @@ The tutor has a layout selector and an **Export log (CSV)** button (every keystr
 ## Rebuild the layout
 
 ```
-curl -o data/source-freq.csv https://raw.githubusercontent.com/Manethpak/type-kor/main/src/data/khmer-search-frequency.csv
-python3 tools/build_layout.py   # writes docs/layout.js (and docs/words.js if the word CSV is present)
+python3 tools/corpus_convergence.py khmer_corpus_v5.txt.gz   # -> data/corpus-unit-counts.json (unit + bigram counts)
+pip install numpy
+python3 tools/optimize_layout.py                              # -> docs/layout.js (refined, clusters, unigram)
 ```
 
-Method: split words into units (single code points, including ៖, plus the 12 most frequent coeng+consonant pairs), rank by weighted frequency, assign greedily to the lowest-cost (key, layer) slots. Layers: base, Shift, AltGr/Option. Number row: Khmer digits, Shift for ASCII digits.
+`tools/build_layout.py` is the v1 greedy generator (single-layout `window.LAYOUT` format). It is superseded: running it overwrites `docs/layout.js` in a format the tutor no longer reads. Its helpers are still imported by the optimiser.
 
 ## Tutor
 
