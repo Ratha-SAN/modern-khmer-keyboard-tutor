@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Derive a cluster-frequency Khmer keyboard layout and the tutor's data files.
 
-Input : a CSV with columns `word,sessions` (word-usage counts), default data/source-freq.csv
+Input : data/corpus-unit-counts.json (from corpus_convergence.py) for unit frequencies, if present;
+        otherwise a CSV with columns `word,sessions` (data/source-freq.csv).
+        The word CSV (if present) is also used for the tutor's practice words.
 Output: docs/layout.js (layout + unit ranking) and docs/words.js (practice words)
 
 Method
@@ -18,7 +20,8 @@ import csv, json, sys, collections, os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-SRC = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "data", "source-freq.csv")
+SRC = os.path.join(ROOT, "data", "source-freq.csv")
+COUNTS = os.path.join(ROOT, "data", "corpus-unit-counts.json")
 OUT = os.path.join(ROOT, "docs")
 PAIR_COUNT = 12
 WORDS_KEPT = 3000
@@ -66,26 +69,42 @@ def split_units(word, pairs):
 
 def main():
     rows = []
-    with open(SRC, encoding="utf-8") as f:
-        for r in csv.DictReader(f):
-            w = r["word"].strip()
-            if w and all(0x1780 <= ord(c) <= 0x17FF for c in w):
-                rows.append((w, int(r["sessions"])))
+    if os.path.exists(SRC):
+        with open(SRC, encoding="utf-8") as f:
+            for r in csv.DictReader(f):
+                w = r["word"].strip()
+                if w and all(0x1780 <= ord(c) <= 0x17FF for c in w):
+                    rows.append((w, int(r["sessions"])))
 
-    # coeng pair frequencies
-    pair_freq = collections.Counter()
-    for w, n in rows:
-        for i in range(len(w) - 1):
-            if w[i] == COENG:
-                pair_freq[w[i:i + 2]] += n
-    pairs = [p for p, _ in pair_freq.most_common(PAIR_COUNT)]
-    pairset = set(pairs)
-
-    freq = collections.Counter()
+    if os.path.exists(COUNTS):
+        with open(COUNTS, encoding="utf-8") as f:
+            cj = json.load(f)
+        raw = collections.Counter({u: n for u, n in cj["counts"]})
+        pair_freq = collections.Counter({u: n for u, n in raw.items() if len(u) == 2 and u[0] == COENG})
+        pairs = [p for p, _ in pair_freq.most_common(PAIR_COUNT)]
+        pairset = set(pairs)
+        freq = collections.Counter({u: n for u, n in raw.items() if len(u) == 1})
+        for p, n in pair_freq.items():
+            if p in pairset:
+                freq[p] = n
+            else:                      # typed as coeng key + consonant key
+                freq[COENG] += n
+                freq[p[1]] += n
+        source = "%d Khmer units from a text corpus" % cj["total"]
+    else:
+        pair_freq = collections.Counter()
+        for w, n in rows:
+            for i in range(len(w) - 1):
+                if w[i] == COENG:
+                    pair_freq[w[i:i + 2]] += n
+        pairs = [p for p, _ in pair_freq.most_common(PAIR_COUNT)]
+        pairset = set(pairs)
+        freq = collections.Counter()
+        for w, n in rows:
+            for u in split_units(w, pairset):
+                freq[u] += n
+        source = "word-usage counts from %d Khmer words" % len(rows)
     total_pairs = sum(pair_freq.values())
-    for w, n in rows:
-        for u in split_units(w, pairset):
-            freq[u] += n
     uni = universe() + pairs
     ranked = sorted(uni, key=lambda u: (-freq[u], uni.index(u)))
 
@@ -110,7 +129,7 @@ def main():
     mean_cost = sum(freq[u] * where[u][2] for u in uni) / total
     info = {
         "name": "Cluster-Frequency Khmer (experimental)",
-        "source": "word-usage counts from %d Khmer words" % len(rows),
+        "source": source,
         "pairs": pairs,
         "layerShare": [round(x, 4) for x in by_layer],
         "meanCost": round(mean_cost, 3),
@@ -120,7 +139,7 @@ def main():
 
     # practice words: only those fully typable, most frequent first
     typable = set(uni)
-    words = []
+    words = None if not rows else []
     for w, n in sorted(rows, key=lambda x: -x[1]):
         if all(u in typable for u in split_units(w, pairset)):
             words.append(w)
@@ -132,10 +151,11 @@ def main():
         f.write("window.LAYOUT=" + json.dumps(
             {"info": info, "rows": ROWS, "digits": DIGIT_CODES, "keys": keymap, "ranking": ranking},
             ensure_ascii=False, separators=(",", ":")) + ";\n")
-    with open(os.path.join(OUT, "words.js"), "w", encoding="utf-8") as f:
-        f.write("window.WORDS=" + json.dumps(words, ensure_ascii=False, separators=(",", ":")) + ";\n")
+    if words is not None:   # keep the committed words.js when the word CSV is absent
+        with open(os.path.join(OUT, "words.js"), "w", encoding="utf-8") as f:
+            f.write("window.WORDS=" + json.dumps(words, ensure_ascii=False, separators=(",", ":")) + ";\n")
     print(json.dumps(info, ensure_ascii=False, indent=1))
-    print("units:", len(uni), "words kept:", len(words))
+    print("units:", len(uni), "words kept:", None if words is None else len(words))
 
 
 if __name__ == "__main__":
