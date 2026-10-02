@@ -56,7 +56,11 @@ button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);borde
 .k.press{outline:2px solid var(--accent)}
 .k.f0{background:var(--f0)}.k.f1{background:var(--f1)}.k.f2{background:var(--f2)}.k.f3{background:var(--f3)}
 .k.f4{background:var(--f4)}.k.f5{background:var(--f5)}.k.f6{background:var(--f6)}.k.f7{background:var(--f7)}
-.k.hint{background:var(--hint)}
+.k.home{background:color-mix(in srgb,var(--accent) 30%,var(--key));border:2px solid var(--accent)}
+.k.bump::after{content:"";position:absolute;left:50%;bottom:5px;width:40%;height:3px;margin-left:-20%;border-radius:2px;background:var(--accent)}
+.k.hint{background:var(--hint);border-color:var(--hint)}
+.legend{display:flex;gap:14px;justify-content:center;align-items:center;font-size:.8rem;color:var(--muted);margin-top:8px;flex-wrap:wrap}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:5px;background:color-mix(in srgb,var(--accent) 30%,var(--key));border:2px solid var(--accent)}
 .mods{display:flex;gap:8px;justify-content:center;margin-top:8px}
 .mods button{min-width:84px}
 .mods button.need{outline:2px solid var(--hint)}
@@ -165,6 +169,7 @@ details summary{cursor:pointer;font-weight:600}
       <button id="mshift" aria-pressed="false">Shift</button>
       <button id="maltgr" aria-pressed="false">AltGr / Option</button>
     </div>
+    <div class="legend"><span><i></i>Home keys (resting position; the bar marks F and J)</span><span>Other colours = finger</span></div>
     <p class="note" style="text-align:center;margin:8px 0 0">Small top-right glyph = Shift layer, bottom-right = AltGr (Option on Mac). Number row: Khmer digits, Shift for 0–9.</p>
   </section>
 
@@ -195,6 +200,8 @@ function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localSto
 var FINGER={KeyQ:0,KeyA:0,KeyZ:0,KeyW:1,KeyS:1,KeyX:1,KeyE:2,KeyD:2,KeyC:2,KeyR:3,KeyF:3,KeyV:3,KeyT:3,KeyG:3,KeyB:3,
   KeyY:4,KeyH:4,KeyN:4,KeyU:4,KeyJ:4,KeyM:4,KeyI:5,KeyK:5,Comma:5,KeyO:6,KeyL:6,Period:6,
   KeyP:7,Semicolon:7,Slash:7,BracketLeft:7,BracketRight:7,Quote:7};
+
+var HOME={KeyA:1,KeyS:1,KeyD:1,KeyF:1,KeyJ:1,KeyK:1,KeyL:1,Semicolon:1};
 
 // ---- unit lookup: unit string -> {code, layer}   (rebuilt whenever the layout changes)
 var where, rank, pairSet, lessons;
@@ -251,7 +258,7 @@ function buildItems(les){
 var kbEl=$("kb"), keyEls={};
 function mkKey(code,label){
   var b=document.createElement("button");
-  b.className="k f"+(FINGER[code]!==undefined?FINGER[code]:0);
+  b.className="k f"+(FINGER[code]!==undefined?FINGER[code]:0)+(HOME[code]?" home":"")+(code==="KeyF"||code==="KeyJ"?" bump":"");
   b.type="button"; b.dataset.code=code;
   var k=K[code]||["","",""];
   b.innerHTML='<span class="b"></span><span class="s"></span><span class="a"></span>';
