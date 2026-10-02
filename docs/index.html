@@ -7,12 +7,11 @@
 <meta name="description" content="Typing tutor for an experimental Khmer keyboard layout derived from letter and coeng-cluster frequency.">
 <style>
 /* Layout: app bar with mode switch, one practice card (single-line text strip), keyboard deck below.
-   Type: Kantumruy Pro for interface, Noto Sans Khmer for practice text and keycaps. */
-@font-face{font-family:"Kantumruy Pro";src:url(fonts/KantumruyPro-latin-400.woff2) format("woff2");font-weight:400;font-display:swap;unicode-range:U+0000-00FF,U+2000-206F,U+2190-2193,U+2212,U+25CC}
-@font-face{font-family:"Kantumruy Pro";src:url(fonts/KantumruyPro-latin-600.woff2) format("woff2");font-weight:600;font-display:swap;unicode-range:U+0000-00FF,U+2000-206F,U+2190-2193,U+2212,U+25CC}
-@font-face{font-family:"Kantumruy Pro";src:url(fonts/KantumruyPro-khmer-400.woff2) format("woff2");font-weight:400;font-display:swap;unicode-range:U+1780-17FF,U+19E0-19FF,U+200C-200D}
-@font-face{font-family:"Kantumruy Pro";src:url(fonts/KantumruyPro-khmer-600.woff2) format("woff2");font-weight:600;font-display:swap;unicode-range:U+1780-17FF,U+19E0-19FF,U+200C-200D}
-@font-face{font-family:"Noto Sans Khmer";src:url(fonts/NotoSansKhmer-Regular.woff2) format("woff2");font-weight:400;font-style:normal;font-display:swap}
+   Type: Noto Serif Khmer for all Khmer text; Kantumruy Pro (Latin subset) for Latin interface text. */
+@font-face{font-family:"UI Latin";src:url(fonts/KantumruyPro-latin-400.woff2) format("woff2");font-weight:400;font-display:swap;unicode-range:U+0000-00FF,U+2000-206F,U+2190-2193,U+2212}
+@font-face{font-family:"UI Latin";src:url(fonts/KantumruyPro-latin-600.woff2) format("woff2");font-weight:600;font-display:swap;unicode-range:U+0000-00FF,U+2000-206F,U+2190-2193,U+2212}
+@font-face{font-family:"Noto Serif Khmer";src:url(fonts/NotoSerifKhmer-400.woff2) format("woff2");font-weight:400;font-display:swap;unicode-range:U+1780-17FF,U+19E0-19FF,U+200C-200D,U+25CC}
+@font-face{font-family:"Noto Serif Khmer";src:url(fonts/NotoSerifKhmer-600.woff2) format("woff2");font-weight:600;font-display:swap;unicode-range:U+1780-17FF,U+19E0-19FF,U+200C-200D,U+25CC}
 :root{
   --bg:#eef1f5; --panel:#ffffff; --raise:#f6f8fb; --ink:#10151c; --muted:#5b6574; --line:#dde3eb;
   --accent:#0d8a6e; --accent-ink:#ffffff; --accent-soft:#d9f2ea;
@@ -20,8 +19,8 @@
   --key:#ffffff; --key-edge:#c7cfda; --sky:#e6edf3;
   --f0:#e5484d; --f1:#f08c2e; --f2:#d4a90b; --f3:#30a46c; --f4:#12a594; --f5:#0090ff; --f6:#6e56cf; --f7:#d6409f;
   --shadow:0 1px 2px rgba(16,21,28,.06),0 10px 30px -18px rgba(16,21,28,.35);
-  --ui:"Kantumruy Pro",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --text:"Noto Sans Khmer","Khmer OS","Leelawadee UI","Khmer UI",sans-serif;
+  --ui:"UI Latin","Noto Serif Khmer",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --text:"Noto Serif Khmer","Khmer OS Siemreap","Khmer OS","Khmer UI",serif;
   --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
@@ -51,7 +50,8 @@ section[id]{scroll-margin-top:72px}
 .navlinks{display:flex;gap:4px 18px;flex-wrap:wrap}
 .navlinks a{color:var(--muted);text-decoration:none;font-weight:600;font-size:.9rem;padding:6px 0}
 .navlinks a:hover{color:var(--ink)}
-.seg.lang button{padding:5px 12px;font-size:.85rem}
+.langbtn{border-radius:999px;padding:6px 16px;font-weight:600;font-size:.88rem;background:var(--panel);border:1px solid var(--line)}
+.langbtn:hover{border-color:var(--accent);color:var(--accent)}
 .gh{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:6px 14px;color:var(--ink);text-decoration:none;font-weight:600;font-size:.85rem;background:var(--panel)}
 /* hero */
 .hero{padding-block:56px 44px}
@@ -90,6 +90,9 @@ section[id]{scroll-margin-top:72px}
 .caveat{margin-top:16px;padding:14px 16px;border-radius:14px;background:color-mix(in srgb,var(--hint) 16%,var(--panel));color:var(--ink);font-size:.88rem}
 footer{padding-block:28px 40px;color:var(--muted);font-size:.85rem}
 footer .wrap{display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between}
+.herokeys p{font-family:var(--ui)}
+html[lang="km"] h1,html[lang="km"] h2,html[lang="km"] h3{line-height:1.5;letter-spacing:0}
+html[lang="km"] .lede,html[lang="km"] .shead p,html[lang="km"] .card p{line-height:1.75}
 @media (max-width:860px){.hero .wrap,.split{grid-template-columns:1fr}.hero{padding-block:36px 28px}.herokeys{max-width:420px}}
 a{color:var(--accent)}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -223,7 +226,7 @@ label.field select{min-width:0;flex:1 1 auto;text-overflow:ellipsis}
       <a href="#layout">The layout</a>
       <a href="#about">How it was made</a>
     </nav>
-    <div class="seg lang" role="group" aria-label="Language"><button id="langEn" aria-pressed="true" lang="en">EN</button><button id="langKm" aria-pressed="false" lang="km">ខ្មែរ</button></div>
+    <button id="langBtn" class="langbtn" type="button" lang="en" aria-label="Switch to English">English</button>
   </div>
 </header>
 <main id="top">
@@ -379,7 +382,7 @@ label.field select{min-width:0;flex:1 1 auto;text-overflow:ellipsis}
 <footer>
   <div class="wrap">
     <span>Experimental layout, not an official Khmer standard.</span>
-    <span>Fonts: Noto Sans Khmer and Kantumruy Pro (SIL Open Font License) · <a href="https://github.com/Ratha-SAN/modern-khmer-keyboard-tutor">Source on GitHub</a></span>
+    <span>Fonts: Noto Serif Khmer and Kantumruy Pro (SIL Open Font License) · <a href="https://github.com/Ratha-SAN/modern-khmer-keyboard-tutor">Source on GitHub</a></span>
   </div>
 </footer>
 <script src="layout.js"></script>
@@ -805,7 +808,7 @@ document.querySelectorAll('a[href="#practice"]').forEach(function(a){a.addEventL
 
 // ---- language (English / Khmer)
 var KM_NAMES={"Cluster-Frequency Khmer v2 (model-optimal)": "ប្លង់ខ្មែរតាមប្រេកង់ v2 (ល្អបំផុតតាមម៉ូដែល)", "Cluster keys v2 (12 pair keys)": "គ្រាប់ចុចជើងអក្សរ v2 (១២ គ្រាប់)", "Frequency-only baseline (v1)": "មូលដ្ឋានតាមប្រេកង់តែប៉ុណ្ណោះ (v1)"};
-var KM={"Modern Khmer Typing Tutor": "កម្មវិធីហាត់វាយអក្សរខ្មែរទំនើប", "Practice": "ហាត់វាយ", "Word Rain": "ពាក្យធ្លាក់", "The layout": "ប្លង់ក្ដារចុច", "How it was made": "របៀបបង្កើត", "Experimental Khmer keyboard": "ក្ដារចុចខ្មែរសាកល្បង", "Type Khmer on a layout built from": "វាយអក្សរខ្មែរលើប្លង់ដែលបង្កើតចេញពី", "real Khmer text": "អត្ថបទខ្មែរពិតៗ", ".": "។", "Key positions come from letter and coeng-cluster counts in a large Khmer corpus, plus letter-pair statistics. Learn it a few keys at a time, then test yourself in Word Rain.": "ទីតាំងគ្រាប់ចុចផ្អែកលើការរាប់អក្សរ និងជើងអក្សរ ក្នុងសំណុំអត្ថបទខ្មែរដ៏ធំមួយ រួមទាំងស្ថិតិគូអក្សរ។ រៀនម្ដងបន្តិចៗ រួចសាកល្បងសមត្ថភាពក្នុងល្បែងពាក្យធ្លាក់។", "Start practising": "ចាប់ផ្ដើមហាត់", "Play Word Rain": "លេងល្បែងពាក្យធ្លាក់", "Lessons add eight keys at a time in frequency order. Type on a physical keyboard (QWERTY positions) or tap the keys.": "មេរៀននីមួយៗបន្ថែមគ្រាប់ចុចប្រាំបី តាមលំដាប់ប្រេកង់។ វាយលើក្ដារចុចពិត (ទីតាំង QWERTY) ឬចុចលើគ្រាប់ចុចខាងក្រោម។", "Lessons": "មេរៀន", "Layout": "ប្លង់", "Lesson": "មេរៀន", "Restart": "ចាប់ផ្ដើមឡើងវិញ", "Export log": "នាំចេញកំណត់ត្រា", "WPM": "ពាក្យ/នាទី", "Accuracy": "ភាពត្រឹមត្រូវ", "Best": "ល្អបំផុត", "Typed": "បានវាយ", "Keystroke log (CSV). If the download did not start, copy it from here.": "កំណត់ត្រាការចុច (CSV)។ បើការទាញយកមិនចាប់ផ្ដើម សូមចម្លងពីទីនេះ។", "Copy CSV": "ចម្លង CSV", "Again": "ម្ដងទៀត", "Next lesson": "មេរៀនបន្ទាប់", "Keys": "គ្រាប់ចុច", "Start": "ចាប់ផ្ដើម", "Score": "ពិន្ទុ", "Lives": "ជីវិត", "Speed": "ល្បឿន", "Type each falling word before it reaches the red line. Enter starts, Esc pauses, Backspace drops your current word.": "វាយពាក្យនីមួយៗ មុនពេលវាធ្លាក់ដល់បន្ទាត់ក្រហម។ Enter ចាប់ផ្ដើម, Esc ផ្អាក, Backspace បោះបង់ពាក្យដែលកំពុងវាយ។", "Ready?": "ត្រៀមរួចហើយឬនៅ?", "Words fall from the top. Type them on the keys you chose.": "ពាក្យធ្លាក់ពីលើ។ វាយវាដោយប្រើគ្រាប់ចុចដែលអ្នកបានជ្រើស។", "Start (Enter)": "ចាប់ផ្ដើម (Enter)", "Paused": "បានផ្អាក", "Press Esc or Enter to continue.": "ចុច Esc ឬ Enter ដើម្បីបន្ត។", "Resume": "បន្ត", "Play again (Enter)": "លេងម្ដងទៀត (Enter)", "Home keys (bar marks F and J)": "គ្រាប់ចុចគោល (សញ្ញារបារលើ F និង J)", "Top stripe = finger": "ឆ្នូតខាងលើ = ម្រាមដៃ", "Small glyphs: top = Shift, bottom = AltGr (Option on Mac)": "តួអក្សរតូច៖ ខាងលើ = Shift, ខាងក្រោម = AltGr (Option លើ Mac)", "Three layouts ship with the tutor so you can compare them. The numbers below come from the effort model, not from timing real typists.": "កម្មវិធីនេះមានប្លង់បី ដើម្បីឱ្យអ្នកប្រៀបធៀប។ តួលេខខាងក្រោមបានមកពីម៉ូដែលគណនាកម្លាំង មិនមែនពីការវាស់ល្បឿនអ្នកវាយពិតៗទេ។", "Bigram figures currently use word-list statistics as an interim estimate. Re-running the optimiser on corpus bigrams may change the layout.": "តួលេខគូអក្សរ បច្ចុប្បន្នប្រើស្ថិតិពីបញ្ជីពាក្យ ជាការប៉ាន់ស្មានបណ្ដោះអាសន្ន។ ការគណនាឡើងវិញលើគូអក្សរពីសំណុំអត្ថបទ អាចផ្លាស់ប្ដូរប្លង់។", "Most frequent keys in the selected layout": "គ្រាប់ចុចដែលប្រើញឹកញាប់បំផុត ក្នុងប្លង់ដែលបានជ្រើស", "The method in four steps. The code and data are in the GitHub repository.": "វិធីសាស្ត្រជាបួនជំហាន។ កូដ និងទិន្នន័យមាននៅក្នុងឃ្លាំង GitHub។", "Count real text": "រាប់អត្ថបទពិត", "About 212 million Khmer letters and coeng clusters were counted from a text corpus. Split-half checks show the ranking is stable from roughly one million letters.": "អក្សរខ្មែរ និងជើងអក្សរប្រហែល ២១២ លាន ត្រូវបានរាប់ពីសំណុំអត្ថបទ។ ការត្រួតពិនិត្យដោយបែងចែកជាពីរពាក់កណ្ដាល បង្ហាញថាលំដាប់មានស្ថិរភាពចាប់ពីប្រហែលមួយលានអក្សរ។", "Model the effort": "គណនាកម្លាំង", "Each key has a reach cost. Shift and AltGr add a penalty, and letter pairs are scored for same-finger repeats, rolls and hand alternation. Fingers have load caps.": "គ្រាប់ចុចនីមួយៗមានតម្លៃចម្ងាយលាតម្រាមដៃ។ Shift និង AltGr បន្ថែមការពិន័យ ហើយគូអក្សរត្រូវបានវាយតម្លៃលើការប្រើម្រាមដៃដដែល ការរំកិលម្រាមដៃ និងការឆ្លាស់ដៃ។ ម្រាមដៃនីមួយៗមានកម្រិតបន្ទុក។", "Search for the best fit": "ស្វែងរកប្លង់ល្អបំផុត", "Simulated annealing tries over a million key swaps. Dedicated cluster keys like ្រ did not lower effort with only 33 base keys, so the default layout types them as coeng + consonant.": "វិធី Simulated annealing សាកល្បងប្ដូរគ្រាប់ចុចជាងមួយលានដង។ គ្រាប់ចុចជើងអក្សរដាច់ដោយឡែក ដូចជា ្រ មិនបានកាត់បន្ថយកម្លាំងទេ ព្រោះមានគ្រាប់ចុចមូលដ្ឋានតែ ៣៣ ដូច្នេះប្លង់លំនាំដើមវាយវាជា ជើង + ព្យញ្ជនៈ។", "Make it learnable, then measure": "ធ្វើឱ្យងាយរៀន រួចវាស់វែង", "Paired letters such as ក / គ sit on the same or neighbouring keys. Export your keystroke log to compare layouts with real typists.": "អក្សរគូ ដូចជា ក / គ ស្ថិតនៅលើគ្រាប់ចុចតែមួយ ឬជាប់គ្នា។ នាំចេញកំណត់ត្រាការចុចរបស់អ្នក ដើម្បីប្រៀបធៀបប្លង់ជាមួយអ្នកវាយពិតៗ។", "Experimental layout, not an official Khmer standard.": "ប្លង់សាកល្បង មិនមែនជាស្តង់ដារខ្មែរផ្លូវការទេ។", "Fonts: Noto Sans Khmer and Kantumruy Pro (SIL Open Font License) ·": "ពុម្ពអក្សរ៖ Noto Sans Khmer និង Kantumruy Pro (SIL Open Font License) ·", "Source on GitHub": "កូដប្រភពនៅលើ GitHub", "Hints on": "ជំនួយ៖ បើក", "Hints off": "ជំនួយ៖ បិទ", "New keys: ": "គ្រាប់ចុចថ្មី៖ ", "All keys in play.": "ប្រើគ្រាប់ចុចទាំងអស់។", "Next: ": "បន្ទាប់៖ ", "  (hold Shift)": "  (សង្កត់ Shift)", "  (hold AltGr / Option)": "  (សង្កត់ AltGr / Option)", "All keys, common words": "គ្រាប់ចុចទាំងអស់ ពាក្យប្រើញឹកញាប់", "Game over": "ចប់ល្បែង", " – new best!": " – ពិន្ទុខ្ពស់ថ្មី!", "Modelled metric": "រង្វាស់តាមម៉ូដែល", "Optimised v2": "បង្កើនប្រសិទ្ធភាព v2", "Cluster keys": "គ្រាប់ចុចជើងអក្សរ", "Frequency only": "តាមប្រេកង់តែប៉ុណ្ណោះ", "Keystrokes per Khmer letter": "ចំនួនចុចក្នុងមួយអក្សរ", "Same-finger letter pairs": "គូអក្សរវាយដោយម្រាមដៃដដែល", "Hand alternation": "ការឆ្លាស់ដៃ", "Keystrokes on the base layer": "ការចុចលើស្រទាប់មូលដ្ឋាន", "Modelled effort per letter": "កម្លាំងក្នុងមួយអក្សរ (ម៉ូដែល)", "Khmer letters analysed": "អក្សរខ្មែរដែលបានវិភាគ", "keystrokes without Shift (modelled)": "ការចុចដោយមិនប្រើ Shift (ម៉ូដែល)", "layouts to compare": "ប្លង់សម្រាប់ប្រៀបធៀប", "unit": "អក្សរ", "key": "គ្រាប់ចុច", "weight": "ទម្ងន់"}, lang="en", I18N_NODES=[];
+var KM={"Modern Khmer Typing Tutor": "កម្មវិធីហាត់វាយអក្សរខ្មែរទំនើប", "Practice": "ហាត់វាយ", "Word Rain": "ពាក្យធ្លាក់", "The layout": "ប្លង់ក្ដារចុច", "How it was made": "របៀបបង្កើត", "Experimental Khmer keyboard": "ក្ដារចុចខ្មែរសាកល្បង", "Type Khmer on a layout built from": "វាយអក្សរខ្មែរលើប្លង់ដែលបង្កើតចេញពី", "real Khmer text": "អត្ថបទខ្មែរពិតៗ", ".": "។", "Key positions come from letter and coeng-cluster counts in a large Khmer corpus, plus letter-pair statistics. Learn it a few keys at a time, then test yourself in Word Rain.": "ទីតាំងគ្រាប់ចុចផ្អែកលើការរាប់អក្សរ និងជើងអក្សរ ក្នុងសំណុំអត្ថបទខ្មែរដ៏ធំមួយ រួមទាំងស្ថិតិគូអក្សរ។ រៀនម្ដងបន្តិចៗ រួចសាកល្បងសមត្ថភាពក្នុងល្បែងពាក្យធ្លាក់។", "Start practising": "ចាប់ផ្ដើមហាត់", "Play Word Rain": "លេងល្បែងពាក្យធ្លាក់", "Lessons add eight keys at a time in frequency order. Type on a physical keyboard (QWERTY positions) or tap the keys.": "មេរៀននីមួយៗបន្ថែមគ្រាប់ចុចប្រាំបី តាមលំដាប់ប្រេកង់។ វាយលើក្ដារចុចពិត (ទីតាំង QWERTY) ឬចុចលើគ្រាប់ចុចខាងក្រោម។", "Lessons": "មេរៀន", "Layout": "ប្លង់", "Lesson": "មេរៀន", "Restart": "ចាប់ផ្ដើមឡើងវិញ", "Export log": "នាំចេញកំណត់ត្រា", "WPM": "ពាក្យ/នាទី", "Accuracy": "ភាពត្រឹមត្រូវ", "Best": "ល្អបំផុត", "Typed": "បានវាយ", "Keystroke log (CSV). If the download did not start, copy it from here.": "កំណត់ត្រាការចុច (CSV)។ បើការទាញយកមិនចាប់ផ្ដើម សូមចម្លងពីទីនេះ។", "Copy CSV": "ចម្លង CSV", "Again": "ម្ដងទៀត", "Next lesson": "មេរៀនបន្ទាប់", "Keys": "គ្រាប់ចុច", "Start": "ចាប់ផ្ដើម", "Score": "ពិន្ទុ", "Lives": "ជីវិត", "Speed": "ល្បឿន", "Type each falling word before it reaches the red line. Enter starts, Esc pauses, Backspace drops your current word.": "វាយពាក្យនីមួយៗ មុនពេលវាធ្លាក់ដល់បន្ទាត់ក្រហម។ Enter ចាប់ផ្ដើម, Esc ផ្អាក, Backspace បោះបង់ពាក្យដែលកំពុងវាយ។", "Ready?": "ត្រៀមរួចហើយឬនៅ?", "Words fall from the top. Type them on the keys you chose.": "ពាក្យធ្លាក់ពីលើ។ វាយវាដោយប្រើគ្រាប់ចុចដែលអ្នកបានជ្រើស។", "Start (Enter)": "ចាប់ផ្ដើម (Enter)", "Paused": "បានផ្អាក", "Press Esc or Enter to continue.": "ចុច Esc ឬ Enter ដើម្បីបន្ត។", "Resume": "បន្ត", "Play again (Enter)": "លេងម្ដងទៀត (Enter)", "Home keys (bar marks F and J)": "គ្រាប់ចុចគោល (សញ្ញារបារលើ F និង J)", "Top stripe = finger": "ឆ្នូតខាងលើ = ម្រាមដៃ", "Small glyphs: top = Shift, bottom = AltGr (Option on Mac)": "តួអក្សរតូច៖ ខាងលើ = Shift, ខាងក្រោម = AltGr (Option លើ Mac)", "Three layouts ship with the tutor so you can compare them. The numbers below come from the effort model, not from timing real typists.": "កម្មវិធីនេះមានប្លង់បី ដើម្បីឱ្យអ្នកប្រៀបធៀប។ តួលេខខាងក្រោមបានមកពីម៉ូដែលគណនាកម្លាំង មិនមែនពីការវាស់ល្បឿនអ្នកវាយពិតៗទេ។", "Bigram figures currently use word-list statistics as an interim estimate. Re-running the optimiser on corpus bigrams may change the layout.": "តួលេខគូអក្សរ បច្ចុប្បន្នប្រើស្ថិតិពីបញ្ជីពាក្យ ជាការប៉ាន់ស្មានបណ្ដោះអាសន្ន។ ការគណនាឡើងវិញលើគូអក្សរពីសំណុំអត្ថបទ អាចផ្លាស់ប្ដូរប្លង់។", "Most frequent keys in the selected layout": "គ្រាប់ចុចដែលប្រើញឹកញាប់បំផុត ក្នុងប្លង់ដែលបានជ្រើស", "The method in four steps. The code and data are in the GitHub repository.": "វិធីសាស្ត្រជាបួនជំហាន។ កូដ និងទិន្នន័យមាននៅក្នុងឃ្លាំង GitHub។", "Count real text": "រាប់អត្ថបទពិត", "About 212 million Khmer letters and coeng clusters were counted from a text corpus. Split-half checks show the ranking is stable from roughly one million letters.": "អក្សរខ្មែរ និងជើងអក្សរប្រហែល ២១២ លាន ត្រូវបានរាប់ពីសំណុំអត្ថបទ។ ការត្រួតពិនិត្យដោយបែងចែកជាពីរពាក់កណ្ដាល បង្ហាញថាលំដាប់មានស្ថិរភាពចាប់ពីប្រហែលមួយលានអក្សរ។", "Model the effort": "គណនាកម្លាំង", "Each key has a reach cost. Shift and AltGr add a penalty, and letter pairs are scored for same-finger repeats, rolls and hand alternation. Fingers have load caps.": "គ្រាប់ចុចនីមួយៗមានតម្លៃចម្ងាយលាតម្រាមដៃ។ Shift និង AltGr បន្ថែមការពិន័យ ហើយគូអក្សរត្រូវបានវាយតម្លៃលើការប្រើម្រាមដៃដដែល ការរំកិលម្រាមដៃ និងការឆ្លាស់ដៃ។ ម្រាមដៃនីមួយៗមានកម្រិតបន្ទុក។", "Search for the best fit": "ស្វែងរកប្លង់ល្អបំផុត", "Simulated annealing tries over a million key swaps. Dedicated cluster keys like ្រ did not lower effort with only 33 base keys, so the default layout types them as coeng + consonant.": "វិធី Simulated annealing សាកល្បងប្ដូរគ្រាប់ចុចជាងមួយលានដង។ គ្រាប់ចុចជើងអក្សរដាច់ដោយឡែក ដូចជា ្រ មិនបានកាត់បន្ថយកម្លាំងទេ ព្រោះមានគ្រាប់ចុចមូលដ្ឋានតែ ៣៣ ដូច្នេះប្លង់លំនាំដើមវាយវាជា ជើង + ព្យញ្ជនៈ។", "Make it learnable, then measure": "ធ្វើឱ្យងាយរៀន រួចវាស់វែង", "Paired letters such as ក / គ sit on the same or neighbouring keys. Export your keystroke log to compare layouts with real typists.": "អក្សរគូ ដូចជា ក / គ ស្ថិតនៅលើគ្រាប់ចុចតែមួយ ឬជាប់គ្នា។ នាំចេញកំណត់ត្រាការចុចរបស់អ្នក ដើម្បីប្រៀបធៀបប្លង់ជាមួយអ្នកវាយពិតៗ។", "Experimental layout, not an official Khmer standard.": "ប្លង់សាកល្បង មិនមែនជាស្តង់ដារខ្មែរផ្លូវការទេ។", "Fonts: Noto Serif Khmer and Kantumruy Pro (SIL Open Font License) ·": "ពុម្ពអក្សរ៖ Noto Serif Khmer និង Kantumruy Pro (SIL Open Font License) ·", "Source on GitHub": "កូដប្រភពនៅលើ GitHub", "Hints on": "ជំនួយ៖ បើក", "Hints off": "ជំនួយ៖ បិទ", "New keys: ": "គ្រាប់ចុចថ្មី៖ ", "All keys in play.": "ប្រើគ្រាប់ចុចទាំងអស់។", "Next: ": "បន្ទាប់៖ ", "  (hold Shift)": "  (សង្កត់ Shift)", "  (hold AltGr / Option)": "  (សង្កត់ AltGr / Option)", "All keys, common words": "គ្រាប់ចុចទាំងអស់ ពាក្យប្រើញឹកញាប់", "Game over": "ចប់ល្បែង", " – new best!": " – ពិន្ទុខ្ពស់ថ្មី!", "Modelled metric": "រង្វាស់តាមម៉ូដែល", "Optimised v2": "បង្កើនប្រសិទ្ធភាព v2", "Cluster keys": "គ្រាប់ចុចជើងអក្សរ", "Frequency only": "តាមប្រេកង់តែប៉ុណ្ណោះ", "Keystrokes per Khmer letter": "ចំនួនចុចក្នុងមួយអក្សរ", "Same-finger letter pairs": "គូអក្សរវាយដោយម្រាមដៃដដែល", "Hand alternation": "ការឆ្លាស់ដៃ", "Keystrokes on the base layer": "ការចុចលើស្រទាប់មូលដ្ឋាន", "Modelled effort per letter": "កម្លាំងក្នុងមួយអក្សរ (ម៉ូដែល)", "Khmer letters analysed": "អក្សរខ្មែរដែលបានវិភាគ", "keystrokes without Shift (modelled)": "ការចុចដោយមិនប្រើ Shift (ម៉ូដែល)", "layouts to compare": "ប្លង់សម្រាប់ប្រៀបធៀប", "unit": "អក្សរ", "key": "គ្រាប់ចុច", "weight": "ទម្ងន់"}, lang="en", I18N_NODES=[];
 function T(en){return lang==="km"&&(KM[en]!=null||KM_NAMES[en]!=null)?(KM[en]!=null?KM[en]:KM_NAMES[en]):en}
 function L2(en,km){return lang==="km"?km:en}
 function kmNum(n){return lang==="km"?String(n).replace(/[0-9]/g,function(d){return String.fromCharCode(0x17E0+(+d))}):String(n)}
@@ -818,7 +821,7 @@ function kmNum(n){return lang==="km"?String(n).replace(/[0-9]/g,function(d){retu
 })();
 function setLang(l){
   lang=l==="km"?"km":"en";store("lang",lang);document.documentElement.lang=lang;
-  $("langEn").setAttribute("aria-pressed",lang==="en");$("langKm").setAttribute("aria-pressed",lang==="km");
+  var lb=$("langBtn");lb.textContent=lang==="km"?"English":"ខ្មែរ";lb.lang=lang==="km"?"en":"km";lb.setAttribute("aria-label",lang==="km"?"Switch to English":"ប្ដូរទៅភាសាខ្មែរ");
   I18N_NODES.forEach(function(r){var k=r.en.trim();r.n.nodeValue=lang==="km"?r.en.replace(k,KM[k]):r.en});
   if(!L)return;
   var lv=sel.value;fillLessons();sel.value=lv;
@@ -829,13 +832,12 @@ function setLang(l){
   if(!gRunning&&!gDone)gOverlayShow(T("Ready?"),T("Words fall from the top. Type them on the keys you chose."),T("Start (Enter)"));
   else if(gPaused)gOverlayShow(T("Paused"),T("Press Esc or Enter to continue."),T("Resume"));
 }
-$("langEn").onclick=function(){setLang("en")};
-$("langKm").onclick=function(){setLang("km")};
+$("langBtn").onclick=function(){setLang(lang==="km"?"en":"km")};
 renderCompare();
 var saved=store("layout");
 applyLayout(saved&&LAYOUTS[saved]?saved:window.LAYOUT_DEFAULT);
 if(location.hash==="#game"||store("mode")==="game")setMode("game");
-setLang(store("lang")||"en");
+setLang(store("lang")||"km");
 })();
 </script>
 </body>
