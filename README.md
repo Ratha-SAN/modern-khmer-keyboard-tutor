@@ -39,6 +39,10 @@ Modelled comparison (interim bigrams, see caveats): same-finger bigrams 9.4% (v1
 
 The tutor has a layout selector and an **Export log (CSV)** button (every keystroke: expected unit, typed unit, physical key, layer, correct, ms since previous key). Compare layouts on speed, error rate and learning curve with the same participants and lessons. Counterbalance the order, since a second layout benefits from practice on the first.
 
+## Firebase Hosting
+
+Every push to `main` deploys `docs/` to Firebase Hosting via `.github/workflows/firebase-hosting.yml`. It needs the repository secret `FIREBASE_SERVICE_ACCOUNT` (the JSON key of a Firebase service account); the project ID is read from that key. GitHub Pages keeps serving the same files.
+
 ## Installing on Linux (no pair keys only)
 
 `python3 tools/export_xkb.py refined` writes `exports/khmer-cluster-refined.xkb`. It compiles with `xkbcomp`, but I have not tested it on a live desktop. Copy it to `~/.xkb/symbols/khcluster` and load it with `setxkbmap -I ~/.xkb khcluster` on X11 (Wayland setups differ). AltGr = Right Alt. Windows and macOS layouts are not generated. Pair-key layouts need an IME or software keyboard because OS key layouts emit one character per key level.
