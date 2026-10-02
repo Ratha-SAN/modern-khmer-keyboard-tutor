@@ -51,6 +51,7 @@ section[id]{scroll-margin-top:72px}
 .navlinks{display:flex;gap:4px 18px;flex-wrap:wrap}
 .navlinks a{color:var(--muted);text-decoration:none;font-weight:600;font-size:.9rem;padding:6px 0}
 .navlinks a:hover{color:var(--ink)}
+.seg.lang button{padding:5px 12px;font-size:.85rem}
 .gh{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:6px 14px;color:var(--ink);text-decoration:none;font-weight:600;font-size:.85rem;background:var(--panel)}
 /* hero */
 .hero{padding-block:56px 44px}
@@ -222,7 +223,7 @@ label.field select{min-width:0;flex:1 1 auto;text-overflow:ellipsis}
       <a href="#layout">The layout</a>
       <a href="#about">How it was made</a>
     </nav>
-    <a class="gh" href="https://github.com/Ratha-SAN/modern-khmer-keyboard-tutor">GitHub ↗</a>
+    <div class="seg lang" role="group" aria-label="Language"><button id="langEn" aria-pressed="true" lang="en">EN</button><button id="langKm" aria-pressed="false" lang="km">ខ្មែរ</button></div>
   </div>
 </header>
 <main id="top">
@@ -415,10 +416,10 @@ function buildTables(){
   var NLESS=Math.min(MAXL,Math.ceil(rank.length/PER_LESSON));
   lessons=[];
   for(var i=1;i<=NLESS;i++){
-    lessons.push({name:"Lesson "+i+" – keys "+((i-1)*PER_LESSON+1)+"–"+Math.min(i*PER_LESSON,rank.length),
+    lessons.push({num:i,from:(i-1)*PER_LESSON+1,to:Math.min(i*PER_LESSON,rank.length),
       learned:rank.slice(0,i*PER_LESSON), fresh:rank.slice((i-1)*PER_LESSON,i*PER_LESSON)});
   }
-  lessons.push({name:"Final – all keys, common words",learned:null,fresh:[]});
+  lessons.push({final:true,learned:null,fresh:[]});
 }
 function splitUnits(w){
   var out=[],i=0;
@@ -487,7 +488,7 @@ function loadLesson(i){
   cur=i; items=buildItems(lessons[i]); buildTrack(); idx=0; typed=""; correct=0; errors=0; t0=0; done=false;
   $("result").classList.remove("show");
   var f=lessons[i].fresh;
-  $("newkeys").innerHTML="";$("newkeys").appendChild(document.createTextNode(f.length?"New keys: ":"All keys in play."));if(f.length){var nk=document.createElement("span");nk.className="kh";nk.textContent=f.map(disp).join("  ");$("newkeys").appendChild(nk)}
+  setNewKeys();
   renderTarget(); renderStats(); updateHint();
   var b=store("best"+layoutName+"_"+i); $("best").textContent=b?b:"–";
 }
@@ -498,6 +499,11 @@ function buildTrack(){
     sp.appendChild(document.createTextNode(w));sp.appendChild(document.createElement("i"));
     targetEl.appendChild(sp);
   });
+}
+function setNewKeys(){
+  var f=lessons[cur]?lessons[cur].fresh:[];
+  $("newkeys").innerHTML="";$("newkeys").appendChild(document.createTextNode(T(f.length?"New keys: ":"All keys in play.")));
+  if(f.length){var nk=document.createElement("span");nk.className="kh";nk.textContent=f.map(disp).join("  ");$("newkeys").appendChild(nk)}
 }
 function renderTarget(){
   var ws=targetEl.children;
@@ -537,7 +543,7 @@ function updateHint(){
   if(el){el.classList.add("hint"); if(w.layer===1)el.classList.add("hl-s"); if(w.layer===2)el.classList.add("hl-a");}
   if(w.layer===1)$("mshift").classList.add("need");
   if(w.layer===2)$("maltgr").classList.add("need");
-  hl.textContent="Next: "+disp(u)+(w.layer===1?"  (hold Shift)":w.layer===2?"  (hold AltGr / Option)":"");
+  hl.textContent=T("Next: ")+disp(u)+(w.layer===1?T("  (hold Shift)"):w.layer===2?T("  (hold AltGr / Option)"):"");
 }
 var LOG=[], lastT=0;
 function press(unit,code,layer){
@@ -561,7 +567,7 @@ function finish(){
   var mins=(Date.now()-t0)/60000, wpm=Math.round(correct/5/mins), acc=Math.round(100*correct/(correct+errors));
   var prev=+store("best"+layoutName+"_"+cur)||0;
   if(acc>=90&&wpm>prev){store("best"+layoutName+"_"+cur,String(wpm));$("best").textContent=wpm}
-  $("resulttext").textContent="Done: "+wpm+" WPM, "+acc+"% accuracy"+(acc<90?" (aim for 90%+ to record a best).":".");
+  $("resulttext").textContent=L2("Done: "+wpm+" WPM, "+acc+"% accuracy"+(acc<90?" (aim for 90%+ to record a best).":"."),"រួចរាល់៖ "+kmNum(wpm)+" ពាក្យ/នាទី, ភាពត្រឹមត្រូវ "+kmNum(acc)+"%"+(acc<90?" (ត្រូវបាន ៩០% ឡើងទៅ ដើម្បីកត់ត្រាលទ្ធផលល្អបំផុត)។":"។"));
   $("result").classList.add("show");
   $("next").style.display=cur<lessons.length-1?"":"none";
 }
@@ -596,11 +602,11 @@ $("mshift").onclick=function(){setMod(!stickyShift,false)};
 $("maltgr").onclick=function(){setMod(false,!stickyAlt)};
 $("restart").onclick=$("again").onclick=function(){loadLesson(cur)};
 $("next").onclick=function(){$("lesson").value=cur+1;loadLesson(cur+1)};
-$("showhint").onclick=function(){showHint=!showHint;this.setAttribute("aria-pressed",showHint);this.textContent=showHint?"Hints on":"Hints off";updateHint()};
+$("showhint").onclick=function(){showHint=!showHint;this.setAttribute("aria-pressed",showHint);this.textContent=T(showHint?"Hints on":"Hints off");updateHint()};
 var sel=$("lesson"), lsel=$("layout");
 function fillLessons(){
   sel.innerHTML="";
-  lessons.forEach(function(l,i){var o=document.createElement("option");o.value=i;o.textContent=l.name;sel.appendChild(o)});
+  lessons.forEach(function(l,i){var o=document.createElement("option");o.value=i;o.textContent=l.final?L2("Final – all keys, common words","ចុងក្រោយ – គ្រាប់ចុចទាំងអស់ ពាក្យប្រើញឹកញាប់"):L2("Lesson "+l.num+" – keys "+l.from+"–"+l.to,"មេរៀនទី "+kmNum(l.num)+" – គ្រាប់ចុច "+kmNum(l.from)+"–"+kmNum(l.to));sel.appendChild(o)});
 }
 sel.onchange=function(){loadLesson(+sel.value);sel.blur()};
 Object.keys(LAYOUTS).forEach(function(n){var o=document.createElement("option");o.value=n;o.textContent=LAYOUTS[n].info.name;lsel.appendChild(o)});
@@ -618,14 +624,14 @@ setInterval(function(){if(t0&&!done)renderStats()},500);
 // ---- about
 function renderAbout(){
   var I=L.info, M=I.metrics||{};
-  $("about").textContent="Layout \""+I.name+"\": "+(I.note||"")+". Data: "+I.source+(I.bigramSource?"; bigrams from "+I.bigramSource:"")+
+  $("about").textContent=lang==="km"?"តារាងខាងក្រោមបង្ហាញគ្រាប់ចុចដែលប្រើញឹកញាប់បំផុត ៣០ ក្នុងប្លង់ “"+T(I.name)+"” តាមលំដាប់ប្រេកង់។ ព័ត៌មានបច្ចេកទេសលម្អិតមានជាភាសាអង់គ្លេស។":"Layout \""+I.name+"\": "+(I.note||"")+". Data: "+I.source+(I.bigramSource?"; bigrams from "+I.bigramSource:"")+
     ". Coeng pair keys ("+I.pairs.length+"): "+(I.pairs.join(" ")||"none")+"; other clusters are typed coeng key + consonant. "+
     "Modelled metrics (assumption-dependent, not measured on people): "+M.keystrokesPerUnit+" keystrokes per Khmer unit, "+
     M.sameFingerPct+"% same-finger bigrams, "+M.handAlternationPct+"% hand alternation, keystrokes on base/Shift/AltGr "+
     (M.layerPct||[]).join("/")+"%. This is an experimental layout, not an official or standard one.";
   var fr=$("freq"); fr.innerHTML="";
   var ft=document.createElement("table"), max=L.ranking[0][1];
-  ft.innerHTML="<tr><th>#</th><th>unit</th><th>key</th><th style='width:45%'>weight</th></tr>";
+  ft.innerHTML="<tr><th>#</th><th>"+T("unit")+"</th><th>"+T("key")+"</th><th style='width:45%'>"+T("weight")+"</th></tr>";
   L.ranking.slice(0,30).forEach(function(r,i){
     var w=where[r[0]], tr=document.createElement("tr");
     var keyname=w?(w.layer?(w.layer===1?"Shift+":"AltGr+"):"")+w.code.replace("Key","").replace("Bracket","[").replace("Semicolon",";").replace("Quote","'").replace("Comma",",").replace("Period",".").replace("Slash","/"):"";
@@ -647,9 +653,9 @@ var G_MAXU=8, gField=$("gfield"), gOverlay=$("goverlay");
 function gBuildLevels(){
   var ls=$("glevel"),keep=ls.value;ls.innerHTML="";
   for(var i=1;i<=Math.min(MAXL,Math.ceil(rank.length/PER_LESSON));i++){
-    var o=document.createElement("option");o.value=i;o.textContent="Top "+Math.min(i*PER_LESSON,rank.length)+" keys";ls.appendChild(o);
+    var o=document.createElement("option");o.value=i;o.textContent=L2("Top "+Math.min(i*PER_LESSON,rank.length)+" keys","គ្រាប់ចុច "+kmNum(Math.min(i*PER_LESSON,rank.length))+" ដំបូង");ls.appendChild(o);
   }
-  var all=document.createElement("option");all.value=0;all.textContent="All keys, common words";ls.appendChild(all);
+  var all=document.createElement("option");all.value=0;all.textContent=T("All keys, common words");ls.appendChild(all);
   ls.value=keep&&ls.querySelector('option[value="'+keep+'"]')?keep:"1";
 }
 function gPoolFor(level){
@@ -668,7 +674,7 @@ function gClear(){gItems.forEach(function(w){w.el.remove()});gItems=[];gLocked=n
 function gStop(){gRunning=false;gDone=false;gPaused=false;cancelAnimationFrame(gRaf)}
 function gReset(){
   gStop();gClear();
-  gOverlayShow("Ready?","Words fall from the top. Type them on the keys you chose.","Start (Enter)");
+  gOverlayShow(T("Ready?"),T("Words fall from the top. Type them on the keys you chose."),T("Start (Enter)"));
   var b=store("rain_"+layoutName+"_"+$("glevel").value);$("gbest").textContent=b||"–";
   if(mode==="game")clearHint();
 }
@@ -679,7 +685,7 @@ function gStart(){
 }
 function gPause(on){
   if(!gRunning)return;gPaused=on;
-  if(on)gOverlayShow("Paused","Press Esc or Enter to continue.","Resume");
+  if(on)gOverlayShow(T("Paused"),T("Press Esc or Enter to continue."),T("Resume"));
   else{gOverlay.classList.add("hide");gLast=0;gRaf=requestAnimationFrame(gFrame)}
 }
 function gSpawn(){
@@ -712,7 +718,7 @@ function gOver(){
   var mins=(Date.now()-gT0)/60000,acc=gKeys?Math.round(100*gHits/gKeys):100,wpm=mins>0?Math.round(gHits/5/mins):0;
   var bk="rain_"+layoutName+"_"+$("glevel").value,prev=+store(bk)||0,rec=gScore>prev;
   if(rec){store(bk,String(gScore));$("gbest").textContent=gScore}
-  gOverlayShow("Game over"+(rec&&gScore>0?" – new best!":""),"Score "+gScore+" · "+gWords+" words · "+acc+"% accuracy · "+wpm+" WPM (keys÷5)","Play again (Enter)");
+  gOverlayShow(T("Game over")+(rec&&gScore>0?T(" – new best!"):""),L2("Score "+gScore+" · "+gWords+" words · "+acc+"% accuracy · "+wpm+" WPM (keys÷5)","ពិន្ទុ "+kmNum(gScore)+" · "+kmNum(gWords)+" ពាក្យ · ត្រឹមត្រូវ "+kmNum(acc)+"% · "+kmNum(wpm)+" ពាក្យ/នាទី"),T("Play again (Enter)"));
 }
 function gLowest(pred){var b=null;gItems.forEach(function(it){if(pred(it)&&(!b||it.y>b.y))b=it});return b}
 function gType(u,code){
@@ -769,13 +775,13 @@ function renderCompare(){
     ["Hand alternation","handAlternationPct",function(v){return v.toFixed(0)+"%"},1],
     ["Keystrokes on the base layer","layerPct",function(v){return v[0].toFixed(0)+"%"},1],
     ["Modelled effort per letter","totalCostPerUnit",function(v){return v.toFixed(2)},-1]];
-  var t=$("compare"),h="<tr><th>Modelled metric</th>";
-  names.forEach(function(n){h+="<th>"+({refined:"Optimised v2",clusters:"Cluster keys",unigram:"Frequency only"}[n]||n)+"</th>"});
+  var t=$("compare"),h="<tr><th>"+T("Modelled metric")+"</th>";
+  names.forEach(function(n){h+="<th>"+T({refined:"Optimised v2",clusters:"Cluster keys",unigram:"Frequency only"}[n]||n)+"</th>"});
   t.innerHTML=h+"</tr>";
   rows.forEach(function(r){
     var vals=names.map(function(n){var m=LAYOUTS[n].info.metrics||{};return m[r[1]]});
     var nums=vals.map(function(v){return Array.isArray(v)?v[0]:v}),best=r[3]>0?Math.max.apply(null,nums):Math.min.apply(null,nums);
-    var tr=document.createElement("tr"),td=document.createElement("td");td.textContent=r[0];tr.appendChild(td);
+    var tr=document.createElement("tr"),td=document.createElement("td");td.textContent=T(r[0]);tr.appendChild(td);
     vals.forEach(function(v,i){var c=document.createElement("td");c.textContent=v==null?"–":r[2](v);if(nums[i]===best)c.className="best";tr.appendChild(c)});
     t.appendChild(tr);
   });
@@ -787,19 +793,49 @@ function renderHero(){
     var sm=document.createElement("small");sm.textContent=c.replace("Key","").replace("Semicolon",";");
     d.appendChild(sm);d.appendChild(document.createTextNode(K[c]&&K[c][0]?disp(K[c][0]):""));hk.appendChild(d);
   });
-  var p=document.createElement("p");p.textContent="Home row of “"+L.info.name+"”";hk.appendChild(p);
+  var p=document.createElement("p");p.textContent=L2("Home row of “"+L.info.name+"”","ជួរគ្រាប់ចុចគោលនៃ “"+T(L.info.name)+"”");hk.appendChild(p);
   var R=LAYOUTS.refined||L,M=(R.info.metrics)||{},n=parseInt(R.info.source,10);
   $("facts").innerHTML="";
   [[isNaN(n)?"–":Math.round(n/1e6)+"M","Khmer letters analysed"],[(M.layerPct||[0])[0]+"%","keystrokes without Shift (modelled)"],[Object.keys(LAYOUTS).length,"layouts to compare"]].forEach(function(f){
-    var d=document.createElement("div"),b=document.createElement("b"),sp=document.createElement("span");b.textContent=f[0];sp.textContent=f[1];d.appendChild(b);d.appendChild(sp);$("facts").appendChild(d);
+    var d=document.createElement("div"),b=document.createElement("b"),sp=document.createElement("span");b.textContent=f[0];sp.textContent=T(f[1]);d.appendChild(b);d.appendChild(sp);$("facts").appendChild(d);
   });
 }
 document.querySelectorAll('a[href="#game"]').forEach(function(a){a.addEventListener("click",function(e){e.preventDefault();setMode("game");$("practice").scrollIntoView({behavior:"smooth"})})});
 document.querySelectorAll('a[href="#practice"]').forEach(function(a){a.addEventListener("click",function(){if(mode!=="lessons")setMode("lessons")})});
+
+// ---- language (English / Khmer)
+var KM_NAMES={"Cluster-Frequency Khmer v2 (model-optimal)": "ប្លង់ខ្មែរតាមប្រេកង់ v2 (ល្អបំផុតតាមម៉ូដែល)", "Cluster keys v2 (12 pair keys)": "គ្រាប់ចុចជើងអក្សរ v2 (១២ គ្រាប់)", "Frequency-only baseline (v1)": "មូលដ្ឋានតាមប្រេកង់តែប៉ុណ្ណោះ (v1)"};
+var KM={"Khmer Typing Tutor": "កម្មវិធីហាត់វាយអក្សរខ្មែរ", "Practice": "ហាត់វាយ", "Word Rain": "ពាក្យធ្លាក់", "The layout": "ប្លង់ក្ដារចុច", "How it was made": "របៀបបង្កើត", "Experimental Khmer keyboard": "ក្ដារចុចខ្មែរសាកល្បង", "Type Khmer on a layout built from": "វាយអក្សរខ្មែរលើប្លង់ដែលបង្កើតចេញពី", "real Khmer text": "អត្ថបទខ្មែរពិតៗ", ".": "។", "Key positions come from letter and coeng-cluster counts in a large Khmer corpus, plus letter-pair statistics. Learn it a few keys at a time, then test yourself in Word Rain.": "ទីតាំងគ្រាប់ចុចផ្អែកលើការរាប់អក្សរ និងជើងអក្សរ ក្នុងសំណុំអត្ថបទខ្មែរដ៏ធំមួយ រួមទាំងស្ថិតិគូអក្សរ។ រៀនម្ដងបន្តិចៗ រួចសាកល្បងសមត្ថភាពក្នុងល្បែងពាក្យធ្លាក់។", "Start practising": "ចាប់ផ្ដើមហាត់", "Play Word Rain": "លេងល្បែងពាក្យធ្លាក់", "Lessons add eight keys at a time in frequency order. Type on a physical keyboard (QWERTY positions) or tap the keys.": "មេរៀននីមួយៗបន្ថែមគ្រាប់ចុចប្រាំបី តាមលំដាប់ប្រេកង់។ វាយលើក្ដារចុចពិត (ទីតាំង QWERTY) ឬចុចលើគ្រាប់ចុចខាងក្រោម។", "Lessons": "មេរៀន", "Layout": "ប្លង់", "Lesson": "មេរៀន", "Restart": "ចាប់ផ្ដើមឡើងវិញ", "Export log": "នាំចេញកំណត់ត្រា", "WPM": "ពាក្យ/នាទី", "Accuracy": "ភាពត្រឹមត្រូវ", "Best": "ល្អបំផុត", "Typed": "បានវាយ", "Keystroke log (CSV). If the download did not start, copy it from here.": "កំណត់ត្រាការចុច (CSV)។ បើការទាញយកមិនចាប់ផ្ដើម សូមចម្លងពីទីនេះ។", "Copy CSV": "ចម្លង CSV", "Again": "ម្ដងទៀត", "Next lesson": "មេរៀនបន្ទាប់", "Keys": "គ្រាប់ចុច", "Start": "ចាប់ផ្ដើម", "Score": "ពិន្ទុ", "Lives": "ជីវិត", "Speed": "ល្បឿន", "Type each falling word before it reaches the red line. Enter starts, Esc pauses, Backspace drops your current word.": "វាយពាក្យនីមួយៗ មុនពេលវាធ្លាក់ដល់បន្ទាត់ក្រហម។ Enter ចាប់ផ្ដើម, Esc ផ្អាក, Backspace បោះបង់ពាក្យដែលកំពុងវាយ។", "Ready?": "ត្រៀមរួចហើយឬនៅ?", "Words fall from the top. Type them on the keys you chose.": "ពាក្យធ្លាក់ពីលើ។ វាយវាដោយប្រើគ្រាប់ចុចដែលអ្នកបានជ្រើស។", "Start (Enter)": "ចាប់ផ្ដើម (Enter)", "Paused": "បានផ្អាក", "Press Esc or Enter to continue.": "ចុច Esc ឬ Enter ដើម្បីបន្ត។", "Resume": "បន្ត", "Play again (Enter)": "លេងម្ដងទៀត (Enter)", "Home keys (bar marks F and J)": "គ្រាប់ចុចគោល (សញ្ញារបារលើ F និង J)", "Top stripe = finger": "ឆ្នូតខាងលើ = ម្រាមដៃ", "Small glyphs: top = Shift, bottom = AltGr (Option on Mac)": "តួអក្សរតូច៖ ខាងលើ = Shift, ខាងក្រោម = AltGr (Option លើ Mac)", "Three layouts ship with the tutor so you can compare them. The numbers below come from the effort model, not from timing real typists.": "កម្មវិធីនេះមានប្លង់បី ដើម្បីឱ្យអ្នកប្រៀបធៀប។ តួលេខខាងក្រោមបានមកពីម៉ូដែលគណនាកម្លាំង មិនមែនពីការវាស់ល្បឿនអ្នកវាយពិតៗទេ។", "Bigram figures currently use word-list statistics as an interim estimate. Re-running the optimiser on corpus bigrams may change the layout.": "តួលេខគូអក្សរ បច្ចុប្បន្នប្រើស្ថិតិពីបញ្ជីពាក្យ ជាការប៉ាន់ស្មានបណ្ដោះអាសន្ន។ ការគណនាឡើងវិញលើគូអក្សរពីសំណុំអត្ថបទ អាចផ្លាស់ប្ដូរប្លង់។", "Most frequent keys in the selected layout": "គ្រាប់ចុចដែលប្រើញឹកញាប់បំផុត ក្នុងប្លង់ដែលបានជ្រើស", "The method in four steps. The code and data are in the GitHub repository.": "វិធីសាស្ត្រជាបួនជំហាន។ កូដ និងទិន្នន័យមាននៅក្នុងឃ្លាំង GitHub។", "Count real text": "រាប់អត្ថបទពិត", "About 212 million Khmer letters and coeng clusters were counted from a text corpus. Split-half checks show the ranking is stable from roughly one million letters.": "អក្សរខ្មែរ និងជើងអក្សរប្រហែល ២១២ លាន ត្រូវបានរាប់ពីសំណុំអត្ថបទ។ ការត្រួតពិនិត្យដោយបែងចែកជាពីរពាក់កណ្ដាល បង្ហាញថាលំដាប់មានស្ថិរភាពចាប់ពីប្រហែលមួយលានអក្សរ។", "Model the effort": "គណនាកម្លាំង", "Each key has a reach cost. Shift and AltGr add a penalty, and letter pairs are scored for same-finger repeats, rolls and hand alternation. Fingers have load caps.": "គ្រាប់ចុចនីមួយៗមានតម្លៃចម្ងាយលាតម្រាមដៃ។ Shift និង AltGr បន្ថែមការពិន័យ ហើយគូអក្សរត្រូវបានវាយតម្លៃលើការប្រើម្រាមដៃដដែល ការរំកិលម្រាមដៃ និងការឆ្លាស់ដៃ។ ម្រាមដៃនីមួយៗមានកម្រិតបន្ទុក។", "Search for the best fit": "ស្វែងរកប្លង់ល្អបំផុត", "Simulated annealing tries over a million key swaps. Dedicated cluster keys like ្រ did not lower effort with only 33 base keys, so the default layout types them as coeng + consonant.": "វិធី Simulated annealing សាកល្បងប្ដូរគ្រាប់ចុចជាងមួយលានដង។ គ្រាប់ចុចជើងអក្សរដាច់ដោយឡែក ដូចជា ្រ មិនបានកាត់បន្ថយកម្លាំងទេ ព្រោះមានគ្រាប់ចុចមូលដ្ឋានតែ ៣៣ ដូច្នេះប្លង់លំនាំដើមវាយវាជា ជើង + ព្យញ្ជនៈ។", "Make it learnable, then measure": "ធ្វើឱ្យងាយរៀន រួចវាស់វែង", "Paired letters such as ក / គ sit on the same or neighbouring keys. Export your keystroke log to compare layouts with real typists.": "អក្សរគូ ដូចជា ក / គ ស្ថិតនៅលើគ្រាប់ចុចតែមួយ ឬជាប់គ្នា។ នាំចេញកំណត់ត្រាការចុចរបស់អ្នក ដើម្បីប្រៀបធៀបប្លង់ជាមួយអ្នកវាយពិតៗ។", "Experimental layout, not an official Khmer standard.": "ប្លង់សាកល្បង មិនមែនជាស្តង់ដារខ្មែរផ្លូវការទេ។", "Fonts: Noto Sans Khmer and Kantumruy Pro (SIL Open Font License) ·": "ពុម្ពអក្សរ៖ Noto Sans Khmer និង Kantumruy Pro (SIL Open Font License) ·", "Source on GitHub": "កូដប្រភពនៅលើ GitHub", "Hints on": "ជំនួយ៖ បើក", "Hints off": "ជំនួយ៖ បិទ", "New keys: ": "គ្រាប់ចុចថ្មី៖ ", "All keys in play.": "ប្រើគ្រាប់ចុចទាំងអស់។", "Next: ": "បន្ទាប់៖ ", "  (hold Shift)": "  (សង្កត់ Shift)", "  (hold AltGr / Option)": "  (សង្កត់ AltGr / Option)", "All keys, common words": "គ្រាប់ចុចទាំងអស់ ពាក្យប្រើញឹកញាប់", "Game over": "ចប់ល្បែង", " – new best!": " – ពិន្ទុខ្ពស់ថ្មី!", "Modelled metric": "រង្វាស់តាមម៉ូដែល", "Optimised v2": "បង្កើនប្រសិទ្ធភាព v2", "Cluster keys": "គ្រាប់ចុចជើងអក្សរ", "Frequency only": "តាមប្រេកង់តែប៉ុណ្ណោះ", "Keystrokes per Khmer letter": "ចំនួនចុចក្នុងមួយអក្សរ", "Same-finger letter pairs": "គូអក្សរវាយដោយម្រាមដៃដដែល", "Hand alternation": "ការឆ្លាស់ដៃ", "Keystrokes on the base layer": "ការចុចលើស្រទាប់មូលដ្ឋាន", "Modelled effort per letter": "កម្លាំងក្នុងមួយអក្សរ (ម៉ូដែល)", "Khmer letters analysed": "អក្សរខ្មែរដែលបានវិភាគ", "keystrokes without Shift (modelled)": "ការចុចដោយមិនប្រើ Shift (ម៉ូដែល)", "layouts to compare": "ប្លង់សម្រាប់ប្រៀបធៀប", "unit": "អក្សរ", "key": "គ្រាប់ចុច", "weight": "ទម្ងន់"}, lang="en", I18N_NODES=[];
+function T(en){return lang==="km"&&(KM[en]!=null||KM_NAMES[en]!=null)?(KM[en]!=null?KM[en]:KM_NAMES[en]):en}
+function L2(en,km){return lang==="km"?km:en}
+function kmNum(n){return lang==="km"?String(n).replace(/[0-9]/g,function(d){return String.fromCharCode(0x17E0+(+d))}):String(n)}
+(function(){
+  var skip={SCRIPT:1,STYLE:1,SELECT:1,OPTION:1,TEXTAREA:1};
+  var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{acceptNode:function(n){
+    for(var e=n.parentNode;e&&e!==document.body;e=e.parentNode){if(skip[e.tagName]||e.id==="kb"||e.id==="target"||e.id==="echo")return NodeFilter.FILTER_REJECT}
+    return KM[n.nodeValue.trim()]!=null?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_SKIP}});
+  for(var n;(n=w.nextNode());)I18N_NODES.push({n:n,en:n.nodeValue});
+})();
+function setLang(l){
+  lang=l==="km"?"km":"en";store("lang",lang);document.documentElement.lang=lang;
+  $("langEn").setAttribute("aria-pressed",lang==="en");$("langKm").setAttribute("aria-pressed",lang==="km");
+  I18N_NODES.forEach(function(r){var k=r.en.trim();r.n.nodeValue=lang==="km"?r.en.replace(k,KM[k]):r.en});
+  if(!L)return;
+  var lv=sel.value;fillLessons();sel.value=lv;
+  var gv=$("glevel").value;gBuildLevels();$("glevel").value=gv;
+  $("showhint").textContent=T(showHint?"Hints on":"Hints off");
+  Array.prototype.forEach.call(lsel.options,function(o){o.textContent=T(LAYOUTS[o.value].info.name)});
+  renderCompare();renderHero();renderAbout();setNewKeys();updateHint();
+  if(!gRunning&&!gDone)gOverlayShow(T("Ready?"),T("Words fall from the top. Type them on the keys you chose."),T("Start (Enter)"));
+  else if(gPaused)gOverlayShow(T("Paused"),T("Press Esc or Enter to continue."),T("Resume"));
+}
+$("langEn").onclick=function(){setLang("en")};
+$("langKm").onclick=function(){setLang("km")};
 renderCompare();
 var saved=store("layout");
 applyLayout(saved&&LAYOUTS[saved]?saved:window.LAYOUT_DEFAULT);
 if(location.hash==="#game"||store("mode")==="game")setMode("game");
+setLang(store("lang")||"en");
 })();
 </script>
 </body>
