@@ -50,7 +50,8 @@ section[id]{scroll-margin-top:72px}
 .navlinks{display:flex;gap:4px 18px;flex-wrap:wrap}
 .navlinks a{color:var(--muted);text-decoration:none;font-weight:600;font-size:.9rem;padding:6px 0}
 .navlinks a:hover{color:var(--ink)}
-.seg.lang button{padding:5px 12px;font-size:.85rem}
+.langbtn{border-radius:999px;padding:6px 16px;font-weight:600;font-size:.88rem;background:var(--panel);border:1px solid var(--line)}
+.langbtn:hover{border-color:var(--accent);color:var(--accent)}
 .gh{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:6px 14px;color:var(--ink);text-decoration:none;font-weight:600;font-size:.85rem;background:var(--panel)}
 /* hero */
 .hero{padding-block:56px 44px}
@@ -225,7 +226,7 @@ label.field select{min-width:0;flex:1 1 auto;text-overflow:ellipsis}
       <a href="#layout">The layout</a>
       <a href="#about">How it was made</a>
     </nav>
-    <div class="seg lang" role="group" aria-label="Language"><button id="langEn" aria-pressed="true" lang="en">EN</button><button id="langKm" aria-pressed="false" lang="km">ខ្មែរ</button></div>
+    <button id="langBtn" class="langbtn" type="button" lang="en" aria-label="Switch to English">English</button>
   </div>
 </header>
 <main id="top">
@@ -820,7 +821,7 @@ function kmNum(n){return lang==="km"?String(n).replace(/[0-9]/g,function(d){retu
 })();
 function setLang(l){
   lang=l==="km"?"km":"en";store("lang",lang);document.documentElement.lang=lang;
-  $("langEn").setAttribute("aria-pressed",lang==="en");$("langKm").setAttribute("aria-pressed",lang==="km");
+  var lb=$("langBtn");lb.textContent=lang==="km"?"English":"ខ្មែរ";lb.lang=lang==="km"?"en":"km";lb.setAttribute("aria-label",lang==="km"?"Switch to English":"ប្ដូរទៅភាសាខ្មែរ");
   I18N_NODES.forEach(function(r){var k=r.en.trim();r.n.nodeValue=lang==="km"?r.en.replace(k,KM[k]):r.en});
   if(!L)return;
   var lv=sel.value;fillLessons();sel.value=lv;
@@ -831,13 +832,12 @@ function setLang(l){
   if(!gRunning&&!gDone)gOverlayShow(T("Ready?"),T("Words fall from the top. Type them on the keys you chose."),T("Start (Enter)"));
   else if(gPaused)gOverlayShow(T("Paused"),T("Press Esc or Enter to continue."),T("Resume"));
 }
-$("langEn").onclick=function(){setLang("en")};
-$("langKm").onclick=function(){setLang("km")};
+$("langBtn").onclick=function(){setLang(lang==="km"?"en":"km")};
 renderCompare();
 var saved=store("layout");
 applyLayout(saved&&LAYOUTS[saved]?saved:window.LAYOUT_DEFAULT);
 if(location.hash==="#game"||store("mode")==="game")setMode("game");
-setLang(store("lang")||"en");
+setLang(store("lang")||"km");
 })();
 </script>
 </body>
