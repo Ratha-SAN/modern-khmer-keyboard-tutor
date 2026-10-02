@@ -13,7 +13,7 @@ Browser typing tutor for an **experimental** Khmer keyboard layout whose key ass
 - Stability (split-half on that corpus): rank correlation of the top-150 units is 0.9996 at 10M units and 0.9999 at 100M; base/Shift/AltGr tier agreement is 0.97–1.00 from 1M units up. The residual swaps are between units with near-equal frequency. Genre/source drift was not measured.
 - The effort model is a simple per-key cost plus Shift/AltGr penalties. It ignores hand alternation and bigram effort, and no typing-speed benefit has been measured.
 
-- Fonts: Noto Sans Khmer (practice text) and Kantumruy Pro (interface), both SIL OFL 1.1 (`docs/fonts/OFL*.txt`), are bundled, so Khmer renders without network access or a system Khmer font.
+- Fonts: Noto Serif Khmer (all Khmer text) and Kantumruy Pro (Latin interface text), both SIL OFL 1.1 (`docs/fonts/OFL*.txt`), are bundled, so Khmer renders without network access or a system Khmer font.
 
 ## Layout design (v2)
 
