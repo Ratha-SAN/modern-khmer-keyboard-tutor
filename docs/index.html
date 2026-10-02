@@ -6,115 +6,193 @@
 <title>Khmer Cluster-Frequency Typing Tutor</title>
 <meta name="description" content="Typing tutor for an experimental Khmer keyboard layout derived from letter and coeng-cluster frequency.">
 <style>
+/* Layout: app bar with mode switch, one practice card (single-line text strip), keyboard deck below.
+   Type: Kantumruy Pro for interface, Noto Sans Khmer for practice text and keycaps. */
+@font-face{font-family:"Kantumruy Pro";src:url(fonts/KantumruyPro-latin-400.woff2) format("woff2");font-weight:400;font-display:swap;unicode-range:U+0000-00FF,U+2000-206F,U+2190-2193,U+2212,U+25CC}
+@font-face{font-family:"Kantumruy Pro";src:url(fonts/KantumruyPro-latin-600.woff2) format("woff2");font-weight:600;font-display:swap;unicode-range:U+0000-00FF,U+2000-206F,U+2190-2193,U+2212,U+25CC}
+@font-face{font-family:"Kantumruy Pro";src:url(fonts/KantumruyPro-khmer-400.woff2) format("woff2");font-weight:400;font-display:swap;unicode-range:U+1780-17FF,U+19E0-19FF,U+200C-200D}
+@font-face{font-family:"Kantumruy Pro";src:url(fonts/KantumruyPro-khmer-600.woff2) format("woff2");font-weight:600;font-display:swap;unicode-range:U+1780-17FF,U+19E0-19FF,U+200C-200D}
 @font-face{font-family:"Noto Sans Khmer";src:url(fonts/NotoSansKhmer-Regular.woff2) format("woff2");font-weight:400;font-style:normal;font-display:swap}
 :root{
-  --bg:#f6f5f1; --panel:#fff; --ink:#1d1d1b; --muted:#6b6a64; --line:#dcdad2;
-  --accent:#1f6f5c; --accent-ink:#fff; --hint:#ffd84d; --bad:#c0392b; --good:#1f7a43;
-  --key:#f1efe8;
-  --sky:#eef3f1; --f0:#f6dede; --f1:#f8e8d2; --f2:#f6f1c9; --f3:#dcefd5; --f4:#dcefd5; --f5:#d3e7f4; --f6:#d3e7f4; --f7:#e6dcf4;
+  --bg:#eef1f5; --panel:#ffffff; --raise:#f6f8fb; --ink:#10151c; --muted:#5b6574; --line:#dde3eb;
+  --accent:#0d8a6e; --accent-ink:#ffffff; --accent-soft:#d9f2ea;
+  --hint:#ffbf2e; --hint-ink:#2a1d00; --bad:#e5484d; --good:#18794e;
+  --key:#ffffff; --key-edge:#c7cfda; --sky:#e6edf3;
+  --f0:#e5484d; --f1:#f08c2e; --f2:#d4a90b; --f3:#30a46c; --f4:#12a594; --f5:#0090ff; --f6:#6e56cf; --f7:#d6409f;
+  --shadow:0 1px 2px rgba(16,21,28,.06),0 10px 30px -18px rgba(16,21,28,.35);
+  --ui:"Kantumruy Pro",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --text:"Noto Sans Khmer","Khmer OS","Leelawadee UI","Khmer UI",sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
 }
-@media (prefers-color-scheme: dark){
-  :root{ --bg:#161614; --panel:#201f1d; --ink:#ecebe5; --muted:#a09f97; --line:#3a3935;
-    --accent:#4fbf9f; --accent-ink:#0d1f1a; --hint:#b38f00; --bad:#ef7566; --good:#6fd08e; --key:#2a2927; --sky:#1b2320;
-    --f0:#3c2626; --f1:#3d3224; --f2:#3a3820; --f3:#27391f; --f4:#27391f; --f5:#1f3340; --f6:#1f3340; --f7:#32283f; }
-}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0c0f13; --panel:#151a21; --raise:#1b212a; --ink:#e7ebf0; --muted:#8c97a6; --line:#262e39;
+  --accent:#2fd3a8; --accent-ink:#04221a; --accent-soft:#123b31;
+  --hint:#ffbf2e; --hint-ink:#2a1d00; --bad:#ff6b6f; --good:#4cc38a;
+  --key:#1e252f; --key-edge:#0a0d11; --sky:#11171e;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 14px 34px -20px rgba(0,0,0,.8); color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0c0f13; --panel:#151a21; --raise:#1b212a; --ink:#e7ebf0; --muted:#8c97a6; --line:#262e39;
+  --accent:#2fd3a8; --accent-ink:#04221a; --accent-soft:#123b31;
+  --hint:#ffbf2e; --hint-ink:#2a1d00; --bad:#ff6b6f; --good:#4cc38a;
+  --key:#1e252f; --key-edge:#0a0d11; --sky:#11171e;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 14px 34px -20px rgba(0,0,0,.8); color-scheme:dark }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI","Noto Sans Khmer",sans-serif}
-.kh{font-family:"Noto Sans Khmer","Khmer OS","Leelawadee UI","Khmer UI",sans-serif}
-main{max-width:980px;margin:0 auto;padding:16px}
-h1{font-size:1.25rem;margin:4px 0 2px}
-.sub{color:var(--muted);font-size:.9rem;margin:0 0 14px}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--ui);-webkit-font-smoothing:antialiased}
+.kh{font-family:var(--text)}
+main{max-width:1000px;margin:0 auto;padding-inline:16px;padding-block:20px 40px;display:flex;flex-direction:column;gap:16px}
 a{color:var(--accent)}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* app bar */
+.appbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px}
+.brand{display:flex;align-items:center;gap:12px;margin-right:auto;min-width:0}
+.mark{width:42px;height:42px;border-radius:12px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font:600 1.45rem/1 var(--text);flex:none;box-shadow:var(--shadow)}
+h1{font-size:1.15rem;font-weight:600;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--muted);font-size:.85rem;margin:0}
+.seg{display:inline-flex;background:var(--raise);border:1px solid var(--line);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;border-radius:999px;padding:7px 16px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed=true]{background:var(--panel);color:var(--ink);box-shadow:var(--shadow)}
+
+/* cards and controls */
+.panel{background:var(--panel);border-radius:18px;padding:18px;box-shadow:var(--shadow)}
 .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-select,button{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer}
-button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-.stats{display:flex;gap:18px;margin-left:auto;font-variant-numeric:tabular-nums}
-.stat b{display:block;font-size:1.2rem;line-height:1.1}
-.stat span{color:var(--muted);font-size:.75rem}
-#progress{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:12px}
-#bar{height:100%;width:0;background:var(--accent);transition:width .15s}
-#target{font-size:2rem;line-height:2.4;min-height:5rem;display:flex;flex-wrap:wrap;gap:0 18px;margin:8px 0}
-#target .w{color:var(--muted)}
-#target .w.done{opacity:.35}
-#target .w.cur{color:var(--ink);border-bottom:3px solid var(--accent)}
-#echo{font-size:1.6rem;min-height:2.6rem;border:1px dashed var(--line);border-radius:8px;padding:2px 12px}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+label.field{display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-size:.85rem}
+select,button,textarea{font:inherit;color:var(--ink)}
+select{background:var(--raise);border:1px solid var(--line);border-radius:10px;padding:7px 30px 7px 12px;max-width:100%;appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 15px) 52%,calc(100% - 10px) 52%;background-size:5px 5px;background-repeat:no-repeat}
+button{background:var(--raise);border:1px solid var(--line);border-radius:10px;padding:7px 14px;cursor:pointer;transition:background .15s,transform .05s}
+button:hover{border-color:var(--muted)}
+button:active{transform:translateY(1px)}
+button:disabled{opacity:.45;cursor:default}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent;font-weight:600}
+button.toggle[aria-pressed=true]{background:var(--accent-soft);border-color:transparent;color:var(--ink)}
+.stats{display:flex;gap:8px;margin-left:auto;font-variant-numeric:tabular-nums;flex-wrap:wrap}
+.stat{background:var(--raise);border-radius:12px;padding:6px 12px;min-width:72px}
+.stat b{display:block;font-size:1.15rem;line-height:1.2;font-weight:600}
+.stat span{color:var(--muted);font-size:.7rem;letter-spacing:.04em;text-transform:uppercase}
+#progress{height:4px;background:var(--raise);border-radius:2px;overflow:hidden;margin-top:14px}
+#bar{height:100%;width:0;background:var(--accent);transition:width .2s}
+.note{color:var(--muted);font-size:.85rem}
+
+/* single-line practice strip */
+#newkeys{margin:0 0 10px}
+#newkeys .kh{color:var(--ink);font-size:1.05rem;letter-spacing:.08em}
+.strip{position:relative;height:5.4rem;overflow:hidden;border-radius:14px;background:var(--raise);
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 9%,#000 88%,transparent)}
+#target{position:absolute;left:0;top:0;bottom:0;display:flex;align-items:center;gap:26px;white-space:nowrap;font-size:2.1rem;transition:transform .28s cubic-bezier(.2,.7,.2,1);will-change:transform}
+#target .w{position:relative;color:var(--muted);padding:0 4px;line-height:1.9;transition:color .2s,opacity .2s}
+#target .w.done{color:var(--good);opacity:.45}
+#target .w.cur{color:var(--ink);background:var(--panel);border-radius:12px;padding:0 14px;box-shadow:var(--shadow)}
+#target .w i{position:absolute;left:14px;right:14px;bottom:6px;height:3px;border-radius:2px;background:var(--line);overflow:hidden;display:none}
+#target .w.cur i{display:block}
+#target .w i::after{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--p,0%);background:var(--accent);transition:width .12s}
+.typed{display:flex;align-items:center;gap:10px;margin-top:12px}
+.typed span.lbl{color:var(--muted);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;flex:none}
+#echo{flex:1;min-width:0;font-size:1.5rem;min-height:2.6rem;line-height:2.4rem;padding:0 12px;border-radius:10px;border:1px solid var(--line);white-space:nowrap;overflow:hidden}
+#echo::after{content:"";display:inline-block;width:2px;height:1.4rem;background:var(--accent);vertical-align:-3px;margin-left:2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
 #echo.err{border-color:var(--bad);animation:shake .18s}
 @keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
-#hintline{color:var(--muted);font-size:.9rem;margin:6px 0 0;min-height:1.4rem}
-.kb{display:flex;flex-direction:column;gap:5px;align-items:center;user-select:none;touch-action:manipulation}
-.kr{display:flex;gap:5px}
-.k{position:relative;width:clamp(26px,7.2vw,62px);height:clamp(40px,9vw,66px);background:var(--key);border:1px solid var(--line);border-radius:7px;cursor:pointer;padding:0}
-.k .b{position:absolute;left:0;right:0;top:50%;transform:translateY(-58%);text-align:center;font-size:clamp(.95rem,2.6vw,1.45rem);color:var(--ink)}
-.k .s,.k .a{position:absolute;font-size:clamp(.5rem,1.5vw,.8rem);color:var(--muted)}
-.k .s{right:3px;top:1px}.k .a{right:3px;bottom:1px}
-.k .c{position:absolute;left:3px;top:1px;font:.55rem system-ui;color:var(--muted);opacity:.7}
-.k.hint{background:var(--hint);border-color:var(--hint)}
-.k.hint .b,.k.hint .s,.k.hint .a{color:#000}
-.k.hl-s .s,.k.hl-a .a{background:#000;color:#fff;border-radius:3px;padding:0 2px}
-.k.press{outline:2px solid var(--accent)}
-.k.f0{background:var(--f0)}.k.f1{background:var(--f1)}.k.f2{background:var(--f2)}.k.f3{background:var(--f3)}
-.k.f4{background:var(--f4)}.k.f5{background:var(--f5)}.k.f6{background:var(--f6)}.k.f7{background:var(--f7)}
-.k.home{background:color-mix(in srgb,var(--accent) 30%,var(--key));border:2px solid var(--accent)}
-.k.bump::after{content:"";position:absolute;left:50%;bottom:5px;width:40%;height:3px;margin-left:-20%;border-radius:2px;background:var(--accent)}
-.k.hint{background:var(--hint);border-color:var(--hint)}
-.legend{display:flex;gap:14px;justify-content:center;align-items:center;font-size:.8rem;color:var(--muted);margin-top:8px;flex-wrap:wrap}
-.legend i{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:5px;background:color-mix(in srgb,var(--accent) 30%,var(--key));border:2px solid var(--accent)}
-.mods{display:flex;gap:8px;justify-content:center;margin-top:8px}
-.mods button{min-width:84px}
-.mods button.need{outline:2px solid var(--hint)}
-table{border-collapse:collapse;width:100%;font-size:.9rem}
-td,th{padding:3px 8px;border-bottom:1px solid var(--line);text-align:left}
-.bar2{height:8px;background:var(--accent);border-radius:4px}
+#hintline{color:var(--muted);font-size:.85rem;margin:8px 0 0;min-height:1.3rem}
+
+/* keyboard deck */
+.deck{background:var(--panel)}
+.kb{display:flex;flex-direction:column;gap:6px;align-items:center;user-select:none;touch-action:manipulation;overflow-x:auto;padding:4px 0 8px}
+.kr{display:flex;gap:6px}
+.k{position:relative;width:clamp(25px,7vw,60px);height:clamp(40px,8.6vw,62px);background:var(--key);border:1px solid var(--line);border-bottom:3px solid var(--key-edge);border-radius:10px;cursor:pointer;padding:0;overflow:hidden;transition:transform .06s,background .15s}
+.k::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--fc,transparent);opacity:.85}
+.k.f0{--fc:var(--f0)}.k.f1{--fc:var(--f1)}.k.f2{--fc:var(--f2)}.k.f3{--fc:var(--f3)}.k.f4{--fc:var(--f4)}.k.f5{--fc:var(--f5)}.k.f6{--fc:var(--f6)}.k.f7{--fc:var(--f7)}
+.k .b{position:absolute;left:0;right:0;top:50%;transform:translateY(-55%);text-align:center;font-size:clamp(.95rem,2.5vw,1.4rem);color:var(--ink)}
+.k .s,.k .a{position:absolute;font-size:clamp(.5rem,1.4vw,.75rem);color:var(--muted)}
+.k .s{right:4px;top:3px}.k .a{right:4px;bottom:2px}
+.k.home{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 55%,transparent);border-bottom-color:var(--accent)}
+.k.bump::after{content:"";position:absolute;left:50%;bottom:5px;width:34%;height:3px;margin-left:-17%;border-radius:2px;background:var(--accent)}
+.k.hint{background:var(--hint);border-color:var(--hint);border-bottom-color:color-mix(in srgb,var(--hint) 60%,#000);box-shadow:0 0 0 4px color-mix(in srgb,var(--hint) 35%,transparent)}
+.k.hint .b,.k.hint .s,.k.hint .a{color:var(--hint-ink)}
+.k.hl-s .s,.k.hl-a .a{background:var(--hint-ink);color:var(--hint);border-radius:4px;padding:0 3px}
+.k.press{transform:translateY(2px);border-bottom-width:1px}
+.mods{display:flex;gap:8px;justify-content:center;margin-top:10px}
+.mods button{min-width:96px}
+.mods button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.mods button.need{box-shadow:0 0 0 3px var(--hint)}
+.legend{display:flex;gap:6px 16px;justify-content:center;align-items:center;font-size:.78rem;color:var(--muted);margin-top:12px;flex-wrap:wrap}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:6px;background:var(--accent-soft);border:1px solid var(--accent)}
+.legend .fingers{display:inline-flex;gap:3px;vertical-align:-1px;margin-right:6px}
+.legend .fingers b{width:10px;height:4px;border-radius:2px;display:inline-block}
+
+/* about */
 details summary{cursor:pointer;font-weight:600}
-.note{color:var(--muted);font-size:.85rem}
-.tabs{display:flex;gap:6px}
-.tabs button{padding:6px 14px;font-weight:600}
+details[open] summary{margin-bottom:8px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+td,th{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--muted);font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em}
+.bar2{height:6px;background:var(--accent);border-radius:3px}
+#csvtext{width:100%;font:12px/1.4 var(--mono);background:var(--raise);border:1px solid var(--line);border-radius:10px;padding:8px;margin:8px 0}
+
 [hidden]{display:none!important}
-#gfield{position:relative;height:min(58vh,420px);background:var(--sky);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:14px}
-#gfield::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--bad);opacity:.6}
-.rw{position:absolute;top:0;left:0;padding:2px 14px;border-radius:999px;background:var(--panel);border:2px solid var(--line);font-size:1.5rem;line-height:1.9;white-space:nowrap;will-change:transform}
-.rw.lock{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent)}
-.rw i{position:absolute;left:12px;bottom:3px;height:3px;width:0;background:var(--accent);border-radius:2px}
+/* Word Rain */
+#gfield{position:relative;height:min(56vh,420px);background:var(--sky);border-radius:18px;overflow:hidden;box-shadow:var(--shadow)}
+#gfield::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--bad);opacity:.7}
+.rw{position:absolute;top:0;left:0;padding:2px 16px;border-radius:999px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);font-size:1.5rem;line-height:1.9;white-space:nowrap;will-change:transform}
+.rw.lock{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 30%,transparent)}
+.rw i{position:absolute;left:14px;bottom:4px;height:3px;width:0;background:var(--accent);border-radius:2px}
 .rw.pop{animation:pop .25s forwards}
 @keyframes pop{to{opacity:0;transform:scale(1.3)}}
-#goverlay{position:absolute;inset:0;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;text-align:center;background:color-mix(in srgb,var(--panel) 82%,transparent);padding:16px}
+#goverlay{position:absolute;inset:0;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;text-align:center;background:color-mix(in srgb,var(--panel) 80%,transparent);backdrop-filter:blur(3px);padding:16px}
 #goverlay.hide{display:none}
-#goverlay h2{margin:0;font-size:1.3rem}
+#goverlay h2{margin:0;font-size:1.4rem;font-weight:600}
 #gflash{position:absolute;inset:0;pointer-events:none;background:var(--bad);opacity:0}
 #gflash.on{animation:fl .25s}
-@keyframes fl{from{opacity:.25}to{opacity:0}}
+@keyframes fl{from{opacity:.22}to{opacity:0}}
 #result{display:none}
 #result.show{display:block}
+#result b{font-size:1.05rem}
+label.field{max-width:100%;min-width:0}
+label.field select{min-width:0;flex:1 1 auto;text-overflow:ellipsis}
+@media (max-width:640px){
+  .stats{margin-left:0}.strip{height:4.6rem}#target{font-size:1.7rem}
+  .panel{padding:14px}
+  .kb{gap:4px}.kr{gap:3px}
+  .k{width:calc((100vw - 32px - 28px - 11*3px - 18px)/12);height:calc((100vw - 120px)/7);border-radius:7px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 <main>
-  <h1>Khmer Cluster-Frequency Typing Tutor</h1>
-  <p class="sub">Learn an <b>experimental</b> Khmer layout tuned from letter, bigram and coeng-cluster frequency (pick a layout to compare). Type on a physical keyboard (QWERTY key positions) or tap the keys below.</p>
-
-  <section class="panel">
-    <div class="row">
-      <div class="tabs" role="group" aria-label="Mode">
-        <button id="tabLessons" aria-pressed="true">Lessons</button>
-        <button id="tabGame" aria-pressed="false">Word Rain game</button>
+  <header class="appbar">
+    <div class="brand">
+      <div class="mark kh" aria-hidden="true">ក</div>
+      <div>
+        <h1>Khmer Cluster-Frequency Typing Tutor</h1>
+        <p class="sub">An experimental Khmer layout tuned from letter, bigram and coeng-cluster frequency.</p>
       </div>
-      <label>Layout <select id="layout"></select></label>
-      <button id="showhint" aria-pressed="true">Hints on</button>
     </div>
+    <div class="seg" role="group" aria-label="Mode">
+      <button id="tabLessons" aria-pressed="true">Lessons</button>
+      <button id="tabGame" aria-pressed="false">Word Rain</button>
+    </div>
+  </header>
+
+  <section class="panel toolbar">
+    <label class="field">Layout <select id="layout"></select></label>
+    <button id="showhint" class="toggle" aria-pressed="true">Hints on</button>
+    <span class="note" style="margin-left:auto">Type on a physical keyboard (QWERTY positions) or tap the keys.</span>
   </section>
 
-  <div id="lessonView">
+  <div id="lessonView" style="display:flex;flex-direction:column;gap:16px">
   <section class="panel">
     <div class="row">
-      <label>Lesson <select id="lesson"></select></label>
+      <label class="field">Lesson <select id="lesson"></select></label>
       <button id="restart">Restart</button>
-      <button id="export" disabled title="Per-keystroke log for comparing layouts with real typists">Export log (CSV)</button>
+      <button id="export" disabled title="Per-keystroke log for comparing layouts with real typists">Export log</button>
       <div class="stats">
-        <div class="stat"><b id="wpm">0</b><span>WPM (keys÷5)</span></div>
-        <div class="stat"><b id="acc">100%</b><span>accuracy</span></div>
-        <div class="stat"><b id="best">–</b><span>best WPM</span></div>
+        <div class="stat"><b id="wpm">0</b><span>WPM</span></div>
+        <div class="stat"><b id="acc">100%</b><span>Accuracy</span></div>
+        <div class="stat"><b id="best">–</b><span>Best</span></div>
       </div>
     </div>
     <div id="progress"><div id="bar"></div></div>
@@ -122,36 +200,36 @@ details summary{cursor:pointer;font-weight:600}
 
   <section class="panel">
     <div id="newkeys" class="note"></div>
-    <div id="target" class="kh" aria-live="off"></div>
-    <div id="echo" class="kh" aria-label="typed text"></div>
+    <div class="strip"><div id="target" class="kh" aria-live="off"></div></div>
+    <div class="typed"><span class="lbl">Typed</span><div id="echo" class="kh" aria-label="typed text"></div></div>
     <p id="hintline"></p>
   </section>
 
   <section id="csvbox" class="panel" hidden>
     <div class="note">Keystroke log (CSV). If the download did not start, copy it from here.</div>
-    <textarea id="csvtext" rows="5" readonly style="width:100%;font:12px/1.4 ui-monospace,monospace;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px"></textarea>
+    <textarea id="csvtext" rows="5" readonly></textarea>
     <button id="csvcopy">Copy CSV</button>
   </section>
 
   <section id="result" class="panel">
     <b id="resulttext"></b>
-    <div class="row" style="margin-top:8px"><button class="primary" id="again">Again</button><button id="next">Next lesson</button></div>
+    <div class="row" style="margin-top:10px"><button class="primary" id="again">Again</button><button id="next">Next lesson</button></div>
   </section>
   </div>
 
-  <div id="gameView" hidden>
+  <div id="gameView" style="display:flex;flex-direction:column;gap:16px" hidden>
   <section class="panel">
     <div class="row">
-      <label>Keys <select id="glevel"></select></label>
+      <label class="field">Keys <select id="glevel"></select></label>
       <button class="primary" id="gstart">Start</button>
       <div class="stats">
-        <div class="stat"><b id="gscore">0</b><span>score</span></div>
-        <div class="stat"><b id="glives">♥♥♥</b><span>lives</span></div>
-        <div class="stat"><b id="glvl">1</b><span>speed level</span></div>
-        <div class="stat"><b id="gbest">–</b><span>best</span></div>
+        <div class="stat"><b id="gscore">0</b><span>Score</span></div>
+        <div class="stat"><b id="glives">♥♥♥</b><span>Lives</span></div>
+        <div class="stat"><b id="glvl">1</b><span>Speed</span></div>
+        <div class="stat"><b id="gbest">–</b><span>Best</span></div>
       </div>
     </div>
-    <p class="note" style="margin:8px 0 0">Type each falling word before it reaches the red line. Enter starts, Esc pauses, Backspace drops your current word.</p>
+    <p class="note" style="margin:10px 0 0">Type each falling word before it reaches the red line. Enter starts, Esc pauses, Backspace drops your current word.</p>
   </section>
   <div id="gfield" class="kh" aria-label="Game area">
     <div id="gflash"></div>
@@ -163,21 +241,24 @@ details summary{cursor:pointer;font-weight:600}
   </div>
   </div>
 
-  <section class="panel">
+  <section class="panel deck">
     <div class="kb kh" id="kb"></div>
     <div class="mods">
       <button id="mshift" aria-pressed="false">Shift</button>
       <button id="maltgr" aria-pressed="false">AltGr / Option</button>
     </div>
-    <div class="legend"><span><i></i>Home keys (resting position; the bar marks F and J)</span><span>Other colours = finger</span></div>
-    <p class="note" style="text-align:center;margin:8px 0 0">Small top-right glyph = Shift layer, bottom-right = AltGr (Option on Mac). Number row: Khmer digits, Shift for 0–9.</p>
+    <div class="legend">
+      <span><i></i>Home keys (bar marks F and J)</span>
+      <span><span class="fingers"><b style="background:var(--f0)"></b><b style="background:var(--f1)"></b><b style="background:var(--f2)"></b><b style="background:var(--f3)"></b><b style="background:var(--f4)"></b><b style="background:var(--f5)"></b><b style="background:var(--f6)"></b><b style="background:var(--f7)"></b></span>Top stripe = finger</span>
+      <span>Small glyphs: top = Shift, bottom = AltGr (Option on Mac)</span>
+    </div>
   </section>
 
   <section class="panel">
     <details>
       <summary>About this layout &amp; how it was derived</summary>
       <p class="note" id="about"></p>
-      <div id="freq"></div>
+      <div id="freq" class="tablewrap"></div>
     </details>
   </section>
 </main>
@@ -272,7 +353,7 @@ function renderKeyboard(){
   kbEl.innerHTML=""; keyEls={};
   [L.digits].concat(L.rows).forEach(function(r,ri){
     var d=document.createElement("div");d.className="kr";
-    d.style.marginLeft=(ri*10)+"px";
+    d.style.marginLeft="calc("+ri+" * min(10px, 1.5vw))";
     r.forEach(function(c){d.appendChild(mkKey(c))});
     kbEl.appendChild(d);
   });
@@ -284,23 +365,34 @@ var showHint=true, stickyShift=false, stickyAlt=false;
 var targetEl=$("target"), echoEl=$("echo");
 
 function loadLesson(i){
-  cur=i; items=buildItems(lessons[i]); idx=0; typed=""; correct=0; errors=0; t0=0; done=false;
+  cur=i; items=buildItems(lessons[i]); buildTrack(); idx=0; typed=""; correct=0; errors=0; t0=0; done=false;
   $("result").classList.remove("show");
   var f=lessons[i].fresh;
-  $("newkeys").textContent=f.length?"New keys this lesson: "+f.map(disp).join("  "):"All keys.";
+  $("newkeys").innerHTML="";$("newkeys").appendChild(document.createTextNode(f.length?"New keys: ":"All keys in play."));if(f.length){var nk=document.createElement("span");nk.className="kh";nk.textContent=f.map(disp).join("  ");$("newkeys").appendChild(nk)}
   renderTarget(); renderStats(); updateHint();
   var b=store("best"+layoutName+"_"+i); $("best").textContent=b?b:"–";
 }
-function renderTarget(){
-  targetEl.innerHTML="";
-  items.forEach(function(w,i){
-    var s=document.createElement("span");
-    s.className="w"+(i<idx?" done":i===idx?" cur":"");
-    s.textContent=w; targetEl.appendChild(s);
+function buildTrack(){
+  targetEl.innerHTML="";targetEl.style.transition="none";
+  items.forEach(function(w){
+    var sp=document.createElement("span");sp.className="w";
+    sp.appendChild(document.createTextNode(w));sp.appendChild(document.createElement("i"));
+    targetEl.appendChild(sp);
   });
+}
+function renderTarget(){
+  var ws=targetEl.children;
+  for(var i=0;i<ws.length;i++){
+    ws[i].className="w"+(i<idx?" done":i===idx?" cur":"");
+    if(i===idx)ws[i].style.setProperty("--p",(100*typed.length/items[i].length)+"%");
+  }
+  var c=ws[Math.min(idx,ws.length-1)],strip=targetEl.parentNode;
+  if(c){targetEl.style.transform="translateX("+Math.round(strip.clientWidth*0.3-c.offsetLeft)+"px)"}
+  void targetEl.offsetWidth;targetEl.style.transition="";
   echoEl.textContent=typed;
   $("bar").style.width=(100*idx/items.length)+"%";
 }
+window.addEventListener("resize",function(){if(mode==="lessons")renderTarget()});
 function renderStats(){
   var mins=t0?(Date.now()-t0)/60000:0;
   $("wpm").textContent=mins>0.02?Math.round(correct/5/mins):0;
@@ -541,7 +633,7 @@ function setMode(m){
   mode=m;store("mode",m);
   $("lessonView").hidden=m!=="lessons";$("gameView").hidden=m!=="game";
   $("tabLessons").setAttribute("aria-pressed",m==="lessons");$("tabGame").setAttribute("aria-pressed",m==="game");
-  if(m==="game"){gReset()}else{gStop();updateHint()}
+  if(m==="game"){gReset()}else{gStop();renderTarget();updateHint()}
 }
 $("tabLessons").onclick=function(){setMode("lessons")};
 $("tabGame").onclick=function(){setMode("game")};
