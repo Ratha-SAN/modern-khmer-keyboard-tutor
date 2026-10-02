@@ -2,7 +2,16 @@
 <html lang="km">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#eef1f5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c0f13" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="វាយខ្មែរ">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <title>កម្មវិធីហាត់វាយអក្សរខ្មែរទំនើប</title>
 <meta name="description" content="Typing tutor for an experimental Khmer keyboard layout derived from letter and coeng-cluster frequency.">
 <style>
@@ -213,6 +222,59 @@ label.field select{min-width:0;flex:1 1 auto;text-overflow:ellipsis}
   .kb{gap:4px}.kr{gap:3px}
   .k{width:calc((100vw - 32px - 28px - 11*3px - 18px)/12);height:calc((100vw - 120px)/7);border-radius:7px}
 }
+/* ---- touch devices: iOS Safari and Android Chrome ---- */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+button,a,select,.k{-webkit-tap-highlight-color:transparent}
+.k{touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+/* when Shift / AltGr is latched, keycaps show that layer's glyph large (phone-keyboard style) */
+.kb.show-s .k .b,.kb.show-a .k .b{visibility:hidden}
+.kb.show-s .k .s,.kb.show-a .k .a{left:0;right:0;top:50%;bottom:auto;transform:translateY(-55%);text-align:center;font-size:clamp(.95rem,2.5vw,1.4rem);color:var(--ink);background:none;padding:0}
+.kb.show-s .k .a,.kb.show-a .k .s{visibility:hidden}
+#mback{display:none}
+body.mode-game #mback{display:inline-flex}
+@media (max-width:640px){
+  .wrap{padding-inline:12px}
+  .nav .wrap{min-height:54px;gap:4px 12px;padding-top:env(safe-area-inset-top,0px)}
+  .nav .brand b{font-size:.92rem}
+  .navlinks{order:3;width:100%;flex-wrap:nowrap;overflow-x:auto;gap:18px;padding-bottom:6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .navlinks::-webkit-scrollbar{display:none}
+  .navlinks a{white-space:nowrap;padding:4px 0}
+  section[id]{scroll-margin-top:96px}
+  .hero{padding-block:24px 20px}
+  .hero h2{font-size:clamp(1.7rem,8vw,2.2rem)}
+  .lede{font-size:1rem;margin-bottom:18px}
+  .cta .btn{flex:1;justify-content:center;padding:12px}
+  .facts{gap:16px;margin-top:20px;padding-top:16px}
+  .facts div b{font-size:1.25rem}
+  .herokeys{display:none}
+  .band{padding-block:24px}
+  .shead{margin-bottom:12px}.shead h2{font-size:1.35rem}
+  .seg{width:100%}.seg button{flex:1}
+  .app{gap:10px}
+  .panel{padding:12px;border-radius:14px}
+  .stats{width:100%}.stat{flex:1;min-width:0;padding:6px 8px}
+  .row>button,.row>label.field{flex:1 1 auto}
+  select,button{min-height:40px}
+  #csvtext{font-size:16px}
+  .strip{height:4.4rem}
+  #target{font-size:1.65rem;gap:18px}
+  #echo{font-size:1.25rem;min-height:2.3rem;line-height:2.1rem}
+  #hintline{margin-top:6px}
+  /* keyboard docks to the bottom of the screen while you practise */
+  .deck{position:sticky;bottom:0;z-index:20;margin-inline:-12px;border-radius:16px 16px 0 0;padding:8px 4px calc(8px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 24px -12px rgba(0,0,0,.35)}
+  .kb{gap:5px;padding:2px 0 4px;overflow:visible}
+  .kr{gap:3px}
+  .kr:first-child{display:none}
+  .k{width:calc((100vw - 8px - 33px) / 12);height:clamp(44px,12vw,52px);border-radius:7px;border-bottom-width:2px}
+  .k .b{font-size:clamp(1.05rem,5vw,1.3rem)}
+  .k .s,.k .a{font-size:.55rem}
+  .k.bump::after{bottom:3px}
+  .mods{margin-top:6px;gap:6px}
+  .mods button{min-width:0;flex:1;min-height:42px;padding:6px}
+  .legend{display:none}
+  #gfield{height:min(38vh,320px)}
+  .rw{font-size:1.25rem}
+}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -327,6 +389,7 @@ label.field select{min-width:0;flex:1 1 auto;text-overflow:ellipsis}
     <div class="mods">
       <button id="mshift" aria-pressed="false">Shift</button>
       <button id="maltgr" aria-pressed="false">AltGr / Option</button>
+      <button id="mback" aria-label="Drop current word">⌫</button>
     </div>
     <div class="legend">
       <span><i></i>Home keys (bar marks F and J)</span>
@@ -469,7 +532,8 @@ function mkKey(code,label){
   b.children[0].textContent=k[0]?disp(k[0]):"";
   b.children[1].textContent=k[1]?disp(k[1]):"";
   b.children[2].textContent=k[2]?disp(k[2]):"";
-  b.addEventListener("click",function(){virtual(code)});
+  b.addEventListener("pointerdown",function(e){if(e.pointerType==="mouse"&&e.button!==0)return;e.preventDefault();b._pd=Date.now();virtual(code)});
+  b.addEventListener("click",function(){if(Date.now()-(b._pd||0)>700)virtual(code)});  // keyboard / assistive activation only
   keyEls[code]=b;return b;
 }
 function renderKeyboard(){
@@ -561,7 +625,7 @@ function press(unit,code,layer){
       if(idx>=items.length){finish();return}}
     renderTarget();
   }else{
-    errors++; echoEl.classList.remove("err"); void echoEl.offsetWidth; echoEl.classList.add("err");
+    errors++; buzz(); echoEl.classList.remove("err"); void echoEl.offsetWidth; echoEl.classList.add("err");
   }
   renderStats(); updateHint();
 }
@@ -597,9 +661,11 @@ function virtual(code){
   if(u){if(mode==="game")gType(u,code);else press(u,code,layer)}
   setMod(false,false);
 }
+function buzz(){try{if(navigator.vibrate)navigator.vibrate(25)}catch(e){}}
 function setMod(s,a){
   stickyShift=s;stickyAlt=a;
   $("mshift").setAttribute("aria-pressed",s);$("maltgr").setAttribute("aria-pressed",a);
+  kbEl.classList.toggle("show-s",!!s);kbEl.classList.toggle("show-a",!!a);
 }
 $("mshift").onclick=function(){setMod(!stickyShift,false)};
 $("maltgr").onclick=function(){setMod(false,!stickyAlt)};
@@ -676,7 +742,7 @@ function gOverlayShow(t,txt,btn){$("gotitle").textContent=t;$("gotext").textCont
 function gClear(){gItems.forEach(function(w){w.el.remove()});gItems=[];gLocked=null;gScore=0;gLives=3;gSpeed=1;gHits=0;gKeys=0;gWords=0;gHud()}
 function gStop(){gRunning=false;gDone=false;gPaused=false;cancelAnimationFrame(gRaf)}
 function gReset(){
-  gStop();gClear();
+  gStop();gClear();gBtn();
   gOverlayShow(T("Ready?"),T("Words fall from the top. Type them on the keys you chose."),T("Start (Enter)"));
   var b=store("rain_"+layoutName+"_"+$("glevel").value);$("gbest").textContent=b||"–";
   if(mode==="game")clearHint();
@@ -684,10 +750,10 @@ function gReset(){
 function gStart(){
   if(gDone||!gRunning)gClear();
   gOverlay.classList.add("hide");gPool=gPoolFor($("glevel").value);
-  gRunning=true;gPaused=false;gDone=false;gLast=0;gT0=Date.now();gSpawnT=.4;cancelAnimationFrame(gRaf);gRaf=requestAnimationFrame(gFrame);
+  gRunning=true;gPaused=false;gDone=false;gLast=0;gT0=Date.now();gSpawnT=.4;cancelAnimationFrame(gRaf);gRaf=requestAnimationFrame(gFrame);gBtn();
 }
 function gPause(on){
-  if(!gRunning)return;gPaused=on;
+  if(!gRunning)return;gPaused=on;gBtn();
   if(on)gOverlayShow(T("Paused"),T("Press Esc or Enter to continue."),T("Resume"));
   else{gOverlay.classList.add("hide");gLast=0;gRaf=requestAnimationFrame(gFrame)}
 }
@@ -717,7 +783,7 @@ function gFrame(ts){
   gHint();gRaf=requestAnimationFrame(gFrame);
 }
 function gOver(){
-  gRunning=false;gDone=true;clearHint();
+  gRunning=false;gDone=true;clearHint();gBtn();
   var mins=(Date.now()-gT0)/60000,acc=gKeys?Math.round(100*gHits/gKeys):100,wpm=mins>0?Math.round(gHits/5/mins):0;
   var bk="rain_"+layoutName+"_"+$("glevel").value,prev=+store(bk)||0,rec=gScore>prev;
   if(rec){store(bk,String(gScore));$("gbest").textContent=gScore}
@@ -729,7 +795,7 @@ function gType(u,code){
   gKeys++;var el=keyEls[code];if(el){el.classList.add("press");setTimeout(function(){el.classList.remove("press")},120)}
   var tgt=gLocked||gLowest(function(it){return it.text.indexOf(u)===0});
   if(gLocked&&gLocked.text.substr(0,(gLocked.typed+u).length)!==gLocked.typed+u)tgt=null;
-  if(!tgt){if(gLocked)gLocked.clean=false;gFlash();return}
+  if(!tgt){if(gLocked)gLocked.clean=false;gFlash();buzz();return}
   if(!gLocked)gLocked=tgt;
   tgt.typed+=u;gHits++;
   tgt.bar.style.width=Math.min(100,100*tgt.typed.length/tgt.text.length)+"%";tgt.el.classList.add("lock");
@@ -758,6 +824,7 @@ function gHint(){
   if(el){el.classList.add("hint");if(w.layer===1)el.classList.add("hl-s");if(w.layer===2)el.classList.add("hl-a")}
 }
 function setMode(m){
+  document.body.classList.toggle("mode-game",m==="game");
   mode=m;store("mode",m);
   $("lessonView").hidden=m!=="lessons";$("gameView").hidden=m!=="game";
   $("tabLessons").setAttribute("aria-pressed",m==="lessons");$("tabGame").setAttribute("aria-pressed",m==="game");
@@ -765,7 +832,10 @@ function setMode(m){
 }
 $("tabLessons").onclick=function(){setMode("lessons")};
 $("tabGame").onclick=function(){setMode("game")};
-$("gstart").onclick=$("gstart2").onclick=function(){if(gPaused)gPause(false);else gStart()};
+$("gstart").onclick=function(){if(gRunning&&!gPaused)gPause(true);else if(gPaused)gPause(false);else gStart()};
+$("gstart2").onclick=function(){if(gPaused)gPause(false);else gStart()};
+$("mback").onclick=function(){gKey({key:"Backspace",preventDefault:function(){}})};
+function gBtn(){$("gstart").textContent=gRunning&&!gPaused?L2("Pause","ផ្អាក"):gPaused?T("Resume"):T("Start")}
 $("glevel").onchange=function(){gReset();this.blur()};
 document.addEventListener("visibilitychange",function(){if(document.hidden&&gRunning&&!gPaused)gPause(true)});
 window.__rain={items:function(){return gItems},state:function(){return{score:gScore,lives:gLives,running:gRunning,done:gDone}}};
@@ -803,8 +873,15 @@ function renderHero(){
     var d=document.createElement("div"),b=document.createElement("b"),sp=document.createElement("span");b.textContent=f[0];sp.textContent=T(f[1]);d.appendChild(b);d.appendChild(sp);$("facts").appendChild(d);
   });
 }
-document.querySelectorAll('a[href="#game"]').forEach(function(a){a.addEventListener("click",function(e){e.preventDefault();setMode("game");$("practice").scrollIntoView({behavior:"smooth"})})});
-document.querySelectorAll('a[href="#practice"]').forEach(function(a){a.addEventListener("click",function(){if(mode!=="lessons")setMode("lessons")})});
+function showWork(){
+  var deck=document.querySelector(".deck"),t=mode==="game"?$("gfield"):document.querySelector(".strip");
+  if(!t)return;
+  if(getComputedStyle(deck).position!=="sticky"){$("practice").scrollIntoView({behavior:"smooth"});return}
+  var y=t.getBoundingClientRect().bottom+scrollY-(innerHeight-deck.offsetHeight)+(mode==="game"?8:70);
+  scrollTo({top:Math.max(0,y),behavior:"smooth"});
+}
+document.querySelectorAll('a[href="#game"]').forEach(function(a){a.addEventListener("click",function(e){e.preventDefault();setMode("game");showWork()})});
+document.querySelectorAll('a[href="#practice"]').forEach(function(a){a.addEventListener("click",function(e){e.preventDefault();if(mode!=="lessons")setMode("lessons");showWork()})});
 
 // ---- language (English / Khmer)
 var KM_NAMES={"Cluster-Frequency Khmer v2 (model-optimal)": "ប្លង់ខ្មែរតាមប្រេកង់ v2 (ល្អបំផុតតាមម៉ូដែល)", "Cluster keys v2 (12 pair keys)": "គ្រាប់ចុចជើងអក្សរ v2 (១២ គ្រាប់)", "Frequency-only baseline (v1)": "មូលដ្ឋានតាមប្រេកង់តែប៉ុណ្ណោះ (v1)"};
@@ -828,7 +905,7 @@ function setLang(l){
   var gv=$("glevel").value;gBuildLevels();$("glevel").value=gv;
   $("showhint").textContent=T(showHint?"Hints on":"Hints off");
   Array.prototype.forEach.call(lsel.options,function(o){o.textContent=T(LAYOUTS[o.value].info.name)});
-  renderCompare();renderHero();renderAbout();setNewKeys();updateHint();
+  renderCompare();renderHero();renderAbout();setNewKeys();updateHint();gBtn();
   if(!gRunning&&!gDone)gOverlayShow(T("Ready?"),T("Words fall from the top. Type them on the keys you chose."),T("Start (Enter)"));
   else if(gPaused)gOverlayShow(T("Paused"),T("Press Esc or Enter to continue."),T("Resume"));
 }
