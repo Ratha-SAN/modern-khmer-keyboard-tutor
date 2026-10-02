@@ -39,12 +39,63 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--ui);-webkit-font-smoothing:antialiased}
 .kh{font-family:var(--text)}
-main{max-width:1000px;margin:0 auto;padding-inline:16px;padding-block:20px 40px;display:flex;flex-direction:column;gap:16px}
+main{display:block}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:20px}
+section[id]{scroll-margin-top:72px}
+/* site navigation */
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:color-mix(in srgb,var(--bg) 84%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;gap:6px 22px;min-height:62px;flex-wrap:wrap}
+.nav .brand{margin-right:auto;text-decoration:none;color:var(--ink)}
+.nav .brand b{font-weight:600;font-size:1rem}
+.nav .mark{width:34px;height:34px;border-radius:10px;font-size:1.15rem}
+.navlinks{display:flex;gap:4px 18px;flex-wrap:wrap}
+.navlinks a{color:var(--muted);text-decoration:none;font-weight:600;font-size:.9rem;padding:6px 0}
+.navlinks a:hover{color:var(--ink)}
+.gh{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:6px 14px;color:var(--ink);text-decoration:none;font-weight:600;font-size:.85rem;background:var(--panel)}
+/* hero */
+.hero{padding-block:56px 44px}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:40px;align-items:center}
+.eyebrow{color:var(--accent);font-weight:600;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;margin:0 0 12px}
+.hero h2{font-size:clamp(2rem,4.6vw,3.3rem);line-height:1.08;letter-spacing:-.025em;margin:0 0 16px;font-weight:600;text-wrap:balance}
+.hero h2 em{font-style:normal;color:var(--accent)}
+.lede{font-size:1.08rem;color:var(--muted);max-width:56ch;margin:0 0 26px}
+.cta{display:flex;gap:10px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:12px;padding:12px 20px;font-weight:600;text-decoration:none;border:1px solid var(--line);color:var(--ink);background:var(--panel)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.facts{display:flex;gap:28px;flex-wrap:wrap;margin-top:34px;padding-top:22px;border-top:1px solid var(--line)}
+.facts div b{display:block;font-size:1.6rem;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.facts div span{color:var(--muted);font-size:.8rem}
+.herokeys{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:22px;border-radius:24px;background:var(--panel);box-shadow:var(--shadow)}
+.herokeys .hk{aspect-ratio:1;max-width:100%;border-radius:16px;background:var(--key);border:1px solid var(--line);border-bottom:4px solid var(--key-edge);display:grid;place-items:center;font:2.1rem/1 var(--text);color:var(--ink);position:relative}
+.herokeys .hk small{position:absolute;left:8px;top:6px;font:600 .7rem/1 var(--ui);color:var(--muted)}
+.herokeys .hk.home{background:var(--accent-soft);border-bottom-color:var(--accent)}
+.herokeys p{grid-column:1/-1;margin:4px 0 0;color:var(--muted);font-size:.8rem;text-align:center}
+/* page sections */
+.band{padding-block:48px}
+.band.alt{background:var(--panel);border-block:1px solid var(--line)}
+.shead{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px}
+.shead h2{margin:0;font-size:1.65rem;font-weight:600;letter-spacing:-.015em}
+.shead p{margin:6px 0 0;color:var(--muted);max-width:60ch}
+.app{display:flex;flex-direction:column;gap:16px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+.card{background:var(--raise);border-radius:18px;padding:20px}
+.band:not(.alt) .card{background:var(--panel);box-shadow:var(--shadow)}
+.card .num{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--accent-soft);color:var(--accent);font-weight:600;font-size:.85rem;margin-bottom:12px}
+.card h3{margin:0 0 6px;font-size:1.02rem;font-weight:600}
+.card p{margin:0;color:var(--muted);font-size:.92rem}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+.compare th:not(:first-child),.compare td:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
+.compare td.best{color:var(--accent);font-weight:600}
+.caveat{margin-top:16px;padding:14px 16px;border-radius:14px;background:color-mix(in srgb,var(--hint) 16%,var(--panel));color:var(--ink);font-size:.88rem}
+footer{padding-block:28px 40px;color:var(--muted);font-size:.85rem}
+footer .wrap{display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between}
+@media (max-width:860px){.hero .wrap,.split{grid-template-columns:1fr}.hero{padding-block:36px 28px}.herokeys{max-width:420px}}
 a{color:var(--accent)}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 /* app bar */
 .appbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px}
+.apphead{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
 .brand{display:flex;align-items:center;gap:12px;margin-right:auto;min-width:0}
 .mark{width:42px;height:42px;border-radius:12px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font:600 1.45rem/1 var(--text);flex:none;box-shadow:var(--shadow)}
 h1{font-size:1.15rem;font-weight:600;margin:0;letter-spacing:-.01em;text-wrap:balance}
@@ -162,25 +213,51 @@ label.field select{min-width:0;flex:1 1 auto;text-overflow:ellipsis}
 </style>
 </head>
 <body>
-<main>
-  <header class="appbar">
-    <div class="brand">
-      <div class="mark kh" aria-hidden="true">ក</div>
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top"><span class="mark kh" aria-hidden="true">ក</span><b>Khmer Typing Tutor</b></a>
+    <nav class="navlinks" aria-label="Sections">
+      <a href="#practice">Practice</a>
+      <a href="#game">Word Rain</a>
+      <a href="#layout">The layout</a>
+      <a href="#about">How it was made</a>
+    </nav>
+    <a class="gh" href="https://github.com/Ratha-SAN/modern-khmer-keyboard-tutor">GitHub ↗</a>
+  </div>
+</header>
+<main id="top">
+  <section class="hero">
+    <div class="wrap">
       <div>
-        <h1>Khmer Cluster-Frequency Typing Tutor</h1>
-        <p class="sub">An experimental Khmer layout tuned from letter, bigram and coeng-cluster frequency.</p>
+        <p class="eyebrow">Experimental Khmer keyboard</p>
+        <h2>Type Khmer on a layout built from <em>real Khmer text</em>.</h2>
+        <p class="lede">Key positions come from letter and coeng-cluster counts in a large Khmer corpus, plus letter-pair statistics. Learn it a few keys at a time, then test yourself in Word Rain.</p>
+        <div class="cta">
+          <a class="btn primary" href="#practice">Start practising</a>
+          <a class="btn" href="#game">Play Word Rain</a>
+        </div>
+        <div class="facts" id="facts"></div>
       </div>
+      <div class="herokeys kh" id="herokeys" aria-label="Home row of the current layout"></div>
     </div>
-    <div class="seg" role="group" aria-label="Mode">
-      <button id="tabLessons" aria-pressed="true">Lessons</button>
-      <button id="tabGame" aria-pressed="false">Word Rain</button>
-    </div>
-  </header>
+  </section>
+
+  <section class="band alt" id="practice">
+    <div class="wrap app">
+      <div class="shead">
+        <div>
+          <h2>Practice</h2>
+          <p>Lessons add eight keys at a time in frequency order. Type on a physical keyboard (QWERTY positions) or tap the keys.</p>
+        </div>
+        <div class="seg" role="group" aria-label="Mode">
+          <button id="tabLessons" aria-pressed="true">Lessons</button>
+          <button id="tabGame" aria-pressed="false">Word Rain</button>
+        </div>
+      </div>
 
   <section class="panel toolbar">
     <label class="field">Layout <select id="layout"></select></label>
     <button id="showhint" class="toggle" aria-pressed="true">Hints on</button>
-    <span class="note" style="margin-left:auto">Type on a physical keyboard (QWERTY positions) or tap the keys.</span>
   </section>
 
   <div id="lessonView" style="display:flex;flex-direction:column;gap:16px">
@@ -254,14 +331,56 @@ label.field select{min-width:0;flex:1 1 auto;text-overflow:ellipsis}
     </div>
   </section>
 
-  <section class="panel">
-    <details>
-      <summary>About this layout &amp; how it was derived</summary>
-      <p class="note" id="about"></p>
-      <div id="freq" class="tablewrap"></div>
-    </details>
+    </div>
+  </section>
+
+  <section class="band" id="layout">
+    <div class="wrap">
+      <div class="shead">
+        <div>
+          <h2>The layout</h2>
+          <p>Three layouts ship with the tutor so you can compare them. The numbers below come from the effort model, not from timing real typists.</p>
+        </div>
+      </div>
+      <div class="split">
+        <div class="panel">
+          <div class="tablewrap"><table class="compare" id="compare"></table></div>
+          <div class="caveat">Bigram figures currently use word-list statistics as an interim estimate. Re-running the optimiser on corpus bigrams may change the layout.</div>
+        </div>
+        <div class="panel">
+          <details>
+            <summary>Most frequent keys in the selected layout</summary>
+            <p class="note" id="about"></p>
+            <div id="freq" class="tablewrap"></div>
+          </details>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band alt" id="about">
+    <div class="wrap">
+      <div class="shead">
+        <div>
+          <h2>How it was made</h2>
+          <p>The method in four steps. The code and data are in the GitHub repository.</p>
+        </div>
+      </div>
+      <div class="cards">
+        <article class="card"><span class="num">1</span><h3>Count real text</h3><p>About 212 million Khmer letters and coeng clusters were counted from a text corpus. Split-half checks show the ranking is stable from roughly one million letters.</p></article>
+        <article class="card"><span class="num">2</span><h3>Model the effort</h3><p>Each key has a reach cost. Shift and AltGr add a penalty, and letter pairs are scored for same-finger repeats, rolls and hand alternation. Fingers have load caps.</p></article>
+        <article class="card"><span class="num">3</span><h3>Search for the best fit</h3><p>Simulated annealing tries over a million key swaps. Dedicated cluster keys like ្រ did not lower effort with only 33 base keys, so the default layout types them as coeng + consonant.</p></article>
+        <article class="card"><span class="num">4</span><h3>Make it learnable, then measure</h3><p>Paired letters such as ក / គ sit on the same or neighbouring keys. Export your keystroke log to compare layouts with real typists.</p></article>
+      </div>
+    </div>
   </section>
 </main>
+<footer>
+  <div class="wrap">
+    <span>Experimental layout, not an official Khmer standard.</span>
+    <span>Fonts: Noto Sans Khmer and Kantumruy Pro (SIL Open Font License) · <a href="https://github.com/Ratha-SAN/modern-khmer-keyboard-tutor">Source on GitHub</a></span>
+  </div>
+</footer>
 <script src="layout.js"></script>
 <script src="words.js"></script>
 <script>
@@ -518,7 +637,7 @@ function renderAbout(){
 
 function applyLayout(name){
   layoutName=name; L=LAYOUTS[name]; K=L.keys; lsel.value=name; store("layout",name);
-  buildTables(); renderKeyboard(); fillLessons(); renderAbout(); setMod(false,false); loadLesson(0);
+  buildTables(); renderKeyboard(); fillLessons(); renderAbout(); renderHero(); setMod(false,false); loadLesson(0);
   gBuildLevels(); gReset();
 }
 
@@ -642,9 +761,45 @@ $("glevel").onchange=function(){gReset();this.blur()};
 document.addEventListener("visibilitychange",function(){if(document.hidden&&gRunning&&!gPaused)gPause(true)});
 window.__rain={items:function(){return gItems},state:function(){return{score:gScore,lives:gLives,running:gRunning,done:gDone}}};
 
+
+function renderCompare(){
+  var names=Object.keys(LAYOUTS),rows=[
+    ["Keystrokes per Khmer letter","keystrokesPerUnit",function(v){return v.toFixed(3)},-1],
+    ["Same-finger letter pairs","sameFingerPct",function(v){return v.toFixed(1)+"%"},-1],
+    ["Hand alternation","handAlternationPct",function(v){return v.toFixed(0)+"%"},1],
+    ["Keystrokes on the base layer","layerPct",function(v){return v[0].toFixed(0)+"%"},1],
+    ["Modelled effort per letter","totalCostPerUnit",function(v){return v.toFixed(2)},-1]];
+  var t=$("compare"),h="<tr><th>Modelled metric</th>";
+  names.forEach(function(n){h+="<th>"+({refined:"Optimised v2",clusters:"Cluster keys",unigram:"Frequency only"}[n]||n)+"</th>"});
+  t.innerHTML=h+"</tr>";
+  rows.forEach(function(r){
+    var vals=names.map(function(n){var m=LAYOUTS[n].info.metrics||{};return m[r[1]]});
+    var nums=vals.map(function(v){return Array.isArray(v)?v[0]:v}),best=r[3]>0?Math.max.apply(null,nums):Math.min.apply(null,nums);
+    var tr=document.createElement("tr"),td=document.createElement("td");td.textContent=r[0];tr.appendChild(td);
+    vals.forEach(function(v,i){var c=document.createElement("td");c.textContent=v==null?"–":r[2](v);if(nums[i]===best)c.className="best";tr.appendChild(c)});
+    t.appendChild(tr);
+  });
+}
+function renderHero(){
+  var hk=$("herokeys");hk.innerHTML="";
+  ["KeyA","KeyS","KeyD","KeyF","KeyJ","KeyK","KeyL","Semicolon"].forEach(function(c){
+    var d=document.createElement("div");d.className="hk home";
+    var sm=document.createElement("small");sm.textContent=c.replace("Key","").replace("Semicolon",";");
+    d.appendChild(sm);d.appendChild(document.createTextNode(K[c]&&K[c][0]?disp(K[c][0]):""));hk.appendChild(d);
+  });
+  var p=document.createElement("p");p.textContent="Home row of “"+L.info.name+"”";hk.appendChild(p);
+  var R=LAYOUTS.refined||L,M=(R.info.metrics)||{},n=parseInt(R.info.source,10);
+  $("facts").innerHTML="";
+  [[isNaN(n)?"–":Math.round(n/1e6)+"M","Khmer letters analysed"],[(M.layerPct||[0])[0]+"%","keystrokes without Shift (modelled)"],[Object.keys(LAYOUTS).length,"layouts to compare"]].forEach(function(f){
+    var d=document.createElement("div"),b=document.createElement("b"),sp=document.createElement("span");b.textContent=f[0];sp.textContent=f[1];d.appendChild(b);d.appendChild(sp);$("facts").appendChild(d);
+  });
+}
+document.querySelectorAll('a[href="#game"]').forEach(function(a){a.addEventListener("click",function(e){e.preventDefault();setMode("game");$("practice").scrollIntoView({behavior:"smooth"})})});
+document.querySelectorAll('a[href="#practice"]').forEach(function(a){a.addEventListener("click",function(){if(mode!=="lessons")setMode("lessons")})});
+renderCompare();
 var saved=store("layout");
 applyLayout(saved&&LAYOUTS[saved]?saved:window.LAYOUT_DEFAULT);
-if(store("mode")==="game")setMode("game");
+if(location.hash==="#game"||store("mode")==="game")setMode("game");
 })();
 </script>
 </body>
