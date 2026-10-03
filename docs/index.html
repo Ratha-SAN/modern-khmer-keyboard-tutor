@@ -28,7 +28,7 @@
   --key:#ffffff; --key-edge:#c7cfda; --sky:#e6edf3;
   --f0:#e5484d; --f1:#f08c2e; --f2:#d4a90b; --f3:#30a46c; --f4:#12a594; --f5:#0090ff; --f6:#6e56cf; --f7:#d6409f;
   --shadow:0 1px 2px rgba(16,21,28,.06),0 10px 30px -18px rgba(16,21,28,.35);
-  --krama-base:#ffffff; --krama-red:rgba(196,30,45,.30);
+  --krama-base:#ffffff; --krama-red:rgba(200,16,46,.62);
   --ui:"UI Latin","Noto Serif Khmer",system-ui,-apple-system,"Segoe UI",sans-serif;
   --text:"Noto Serif Khmer","Khmer OS Siemreap","Khmer OS","Khmer UI",serif;
   --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
@@ -38,13 +38,13 @@
   --accent:#2fd3a8; --accent-ink:#04221a; --accent-soft:#123b31;
   --hint:#ffbf2e; --hint-ink:#2a1d00; --bad:#ff6b6f; --good:#4cc38a;
   --key:#1e252f; --key-edge:#0a0d11; --sky:#11171e;
-  --shadow:0 1px 2px rgba(0,0,0,.4),0 14px 34px -20px rgba(0,0,0,.8); --krama-base:#1d2128; --krama-red:rgba(214,52,64,.38); color-scheme:dark } }
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 14px 34px -20px rgba(0,0,0,.8); --krama-base:#ffffff; --krama-red:rgba(200,16,46,.62); color-scheme:dark } }
 :root[data-theme="dark"]{
   --bg:#0c0f13; --panel:#151a21; --raise:#1b212a; --ink:#e7ebf0; --muted:#8c97a6; --line:#262e39;
   --accent:#2fd3a8; --accent-ink:#04221a; --accent-soft:#123b31;
   --hint:#ffbf2e; --hint-ink:#2a1d00; --bad:#ff6b6f; --good:#4cc38a;
   --key:#1e252f; --key-edge:#0a0d11; --sky:#11171e;
-  --shadow:0 1px 2px rgba(0,0,0,.4),0 14px 34px -20px rgba(0,0,0,.8); --krama-base:#1d2128; --krama-red:rgba(214,52,64,.38); color-scheme:dark }
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 14px 34px -20px rgba(0,0,0,.8); --krama-base:#ffffff; --krama-red:rgba(200,16,46,.62); color-scheme:dark }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--ui);-webkit-font-smoothing:antialiased}
 .kh{font-family:var(--text)}
@@ -56,13 +56,13 @@ section[id]{scroll-margin-top:72px}
   /* krama (Cambodian checked scarf): red and white checks drawn as the bar's own background, fading out from left to right */
   background-color:var(--krama-base);
   background-image:
-    linear-gradient(90deg,transparent 0%,color-mix(in srgb,var(--bg) 35%,transparent) 45%,color-mix(in srgb,var(--bg) 88%,transparent) 100%),
+    linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.2) 50%,rgba(255,255,255,.5) 100%),
     linear-gradient(90deg,var(--krama-red) 50%,transparent 50%),
     linear-gradient(var(--krama-red) 50%,transparent 50%);
   background-size:100% 100%,18px 18px,18px 18px;background-position:0 0,0 0,0 0}
 .nav .wrap{display:flex;align-items:center;gap:6px 22px;min-height:62px;flex-wrap:wrap}
 .nav .brand{margin-right:auto;text-decoration:none;color:var(--ink)}
-.nav .brand b{font-weight:600;font-size:1rem}
+.nav .brand b{font-weight:600;font-size:1.12rem;color:#10151c;-webkit-text-stroke:4px #ffffff;paint-order:stroke fill;letter-spacing:.01em;text-shadow:0 2px 6px rgba(120,0,20,.25)}
 .nav .mark{width:34px;height:34px;border-radius:10px;font-size:1.15rem}
 .navlinks{display:flex;gap:6px 8px;flex-wrap:wrap}
 /* top-bar menu: white chips, grey when hovered or for the section you are in */
@@ -255,7 +255,7 @@ body.mode-game #mback{display:inline-flex}
 @media (max-width:640px){
   .wrap{padding-inline:12px}
   .nav .wrap{min-height:54px;gap:4px 12px}
-  .nav .brand b{font-size:.92rem}
+  .nav .brand b{font-size:1rem;-webkit-text-stroke-width:3.5px}
   .navlinks{order:3;width:100%;flex-wrap:nowrap;overflow-x:auto;gap:6px;padding:2px 0 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
   .navlinks::-webkit-scrollbar{display:none}
   .navlinks a{white-space:nowrap;padding:5px 12px;flex:none}
