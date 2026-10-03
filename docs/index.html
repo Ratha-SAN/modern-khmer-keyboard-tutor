@@ -51,14 +51,12 @@ main{display:block}
 .wrap{max-width:1120px;margin:0 auto;padding-inline:20px}
 section[id]{scroll-margin-top:72px}
 /* site navigation */
-.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:color-mix(in srgb,var(--bg) 84%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.nav{position:sticky;top:0;padding-top:env(safe-area-inset-top,0px);z-index:30;background:color-mix(in srgb,var(--bg) 84%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
 /* krama (Cambodian checked scarf) pattern, kept dim so the bar stays readable */
 .nav::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:var(--krama-op,.13);
   background-color:#fff;
   background-image:linear-gradient(90deg,rgba(196,30,45,.55) 50%,transparent 50%),linear-gradient(rgba(196,30,45,.55) 50%,transparent 50%);
   background-size:18px 18px}
-.nav::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;pointer-events:none;opacity:.5;
-  background:repeating-linear-gradient(90deg,#c41e2d 0 9px,#fff 9px 18px)}
 .nav .wrap{display:flex;align-items:center;gap:6px 22px;min-height:62px;flex-wrap:wrap}
 .nav .brand{margin-right:auto;text-decoration:none;color:var(--ink)}
 .nav .brand b{font-weight:600;font-size:1rem}
@@ -253,7 +251,7 @@ button,a,select,.k{-webkit-tap-highlight-color:transparent}
 body.mode-game #mback{display:inline-flex}
 @media (max-width:640px){
   .wrap{padding-inline:12px}
-  .nav .wrap{min-height:54px;gap:4px 12px;padding-top:env(safe-area-inset-top,0px)}
+  .nav .wrap{min-height:54px;gap:4px 12px}
   .nav .brand b{font-size:.92rem}
   .navlinks{order:3;width:100%;flex-wrap:nowrap;overflow-x:auto;gap:18px;padding-bottom:6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
   .navlinks::-webkit-scrollbar{display:none}
