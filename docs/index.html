@@ -64,11 +64,11 @@ section[id]{scroll-margin-top:72px}
 .nav .brand{margin-right:auto;text-decoration:none;color:var(--ink)}
 .nav .brand b{font-weight:600;font-size:1rem}
 .nav .mark{width:34px;height:34px;border-radius:10px;font-size:1.15rem}
-.navlinks{display:flex;gap:4px 18px;flex-wrap:wrap}
-.navlinks a{color:var(--muted);text-decoration:none;font-weight:600;font-size:.9rem;padding:6px 0}
-.navlinks a:hover{color:var(--ink)}
-.langbtn{border-radius:999px;padding:6px 16px;font-weight:600;font-size:.88rem;background:var(--panel);border:1px solid var(--line)}
-.langbtn:hover{border-color:var(--accent);color:var(--accent)}
+.navlinks{display:flex;gap:6px 8px;flex-wrap:wrap}
+/* top-bar menu: white chips, grey when hovered or for the section you are in */
+.navlinks a,.langbtn{background:#ffffff;color:#10151c;border:0;border-radius:999px;padding:6px 14px;font-weight:600;font-size:.88rem;text-decoration:none;box-shadow:0 1px 2px rgba(16,21,28,.12);transition:background .15s}
+.navlinks a:hover,.navlinks a.active,.langbtn:hover{background:#d9dde3;color:#10151c}
+.navlinks a:focus-visible,.langbtn:focus-visible{outline:2px solid #10151c;outline-offset:2px}
 .gh{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:6px 14px;color:var(--ink);text-decoration:none;font-weight:600;font-size:.85rem;background:var(--panel)}
 /* hero */
 .hero{padding-block:56px 44px}
@@ -256,9 +256,9 @@ body.mode-game #mback{display:inline-flex}
   .wrap{padding-inline:12px}
   .nav .wrap{min-height:54px;gap:4px 12px}
   .nav .brand b{font-size:.92rem}
-  .navlinks{order:3;width:100%;flex-wrap:nowrap;overflow-x:auto;gap:18px;padding-bottom:6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .navlinks{order:3;width:100%;flex-wrap:nowrap;overflow-x:auto;gap:6px;padding:2px 0 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
   .navlinks::-webkit-scrollbar{display:none}
-  .navlinks a{white-space:nowrap;padding:4px 0}
+  .navlinks a{white-space:nowrap;padding:5px 12px;flex:none}
   section[id]{scroll-margin-top:96px}
   .hero{padding-block:24px 20px}
   .hero h2{font-size:clamp(1.7rem,8vw,2.2rem)}
@@ -317,7 +317,7 @@ body.mode-game #mback{display:inline-flex}
     <nav class="navlinks" aria-label="Sections">
       <a href="#practice">Practice</a>
       <a href="#game">Word Rain</a>
-      <a href="#layout">The layout</a>
+      <a href="#about-layout">The layout</a>
       <a href="#about">How it was made</a>
     </nav>
     <button id="langBtn" class="langbtn" type="button" lang="en" aria-label="Switch to English">English</button>
@@ -433,7 +433,7 @@ body.mode-game #mback{display:inline-flex}
     </div>
   </section>
 
-  <section class="band" id="layout">
+  <section class="band" id="about-layout">
     <div class="wrap">
       <div class="shead">
         <div>
@@ -894,6 +894,7 @@ function gHint(){
   if(el){el.classList.add("hint");if(w.layer===1)el.classList.add("hl-s");if(w.layer===2)el.classList.add("hl-a")}needMod(w.layer);
 }
 function setMode(m){
+  setTimeout(function(){if(typeof markNav==="function")markNav()},0);
   document.body.classList.toggle("mode-game",m==="game");
   mode=m;store("mode",m);
   $("lessonView").hidden=m!=="lessons";$("gameView").hidden=m!=="game";
@@ -981,6 +982,12 @@ function setLang(l){
   else if(gPaused)gOverlayShow(T("Paused"),T("Press Esc or Enter to continue."),T("Resume"));
 }
 $("langBtn").onclick=function(){setLang(lang==="km"?"en":"km")};
+function markNav(){
+  var cur=null;["practice","about-layout","about"].forEach(function(id){var r=$(id).getBoundingClientRect();if(r.top<140&&r.bottom>140)cur=id});
+  if(cur==="practice"&&mode==="game")cur="game";
+  document.querySelectorAll(".navlinks a").forEach(function(a){a.classList.toggle("active",cur!==null&&a.getAttribute("href")==="#"+cur)});
+}
+window.addEventListener("scroll",markNav,{passive:true});
 renderCompare();
 var saved=store("layout");
 applyLayout(saved&&LAYOUTS[saved]?saved:window.LAYOUT_DEFAULT);
