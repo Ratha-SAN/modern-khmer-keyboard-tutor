@@ -59,7 +59,7 @@ python3 tools/optimize_layout.py                              # -> docs/layout.j
 
 ## On phones (iOS and Android)
 
-On narrow screens the on-screen keyboard docks to the bottom (respecting the iPhone home-indicator area), keys respond on touch-down, latching Shift/AltGr shows that layer on the keycaps, Android vibrates briefly on a wrong key, and Word Rain gets Pause and ⌫ buttons. The site can be added to the home screen (`docs/manifest.webmanifest`, icons in `docs/icons/`).
+On narrow screens the on-screen keyboard docks to the bottom (respecting the iPhone home-indicator area), keys respond on touch-down, Shift (⇧), AltGr (⌥) and Backspace (⌫) are keys inside the keyboard like on a phone, latching Shift/AltGr shows that layer on the keycaps, Android vibrates briefly on a wrong key, and Word Rain gets Pause and ⌫ buttons. The site can be added to the home screen (`docs/manifest.webmanifest`, icons in `docs/icons/`).
 
 ## Word Rain game
 
