@@ -239,6 +239,7 @@ button,a,select,.k{-webkit-tap-highlight-color:transparent}
 .kb.show-s .k .s,.kb.show-a .k .a{left:0;right:0;top:50%;bottom:auto;transform:translateY(-55%);text-align:center;font-size:clamp(.95rem,2.5vw,1.4rem);color:var(--ink);background:none;padding:0}
 .kb.show-s .k .a,.kb.show-a .k .s{visibility:hidden}
 #mback{display:none}
+.k.mod{display:none}
 body.mode-game #mback{display:inline-flex}
 @media (max-width:640px){
   .wrap{padding-inline:12px}
@@ -277,6 +278,16 @@ body.mode-game #mback{display:inline-flex}
   .k .b{font-size:clamp(1.05rem,5vw,1.3rem)}
   .k .s,.k .a{font-size:.55rem}
   .k.bump::after{bottom:3px}
+  .kr{margin-left:0!important}
+  .k.mod{display:block;background:var(--raise);border-color:var(--line);border-bottom-color:var(--key-edge)}
+  .k.mod .mi{position:absolute;left:0;right:0;top:44%;transform:translateY(-50%);text-align:center;font:600 1.15rem/1 var(--ui);color:var(--ink)}
+  .k.mod .ml{position:absolute;left:0;right:0;bottom:3px;text-align:center;font:600 .5rem/1 var(--ui);color:var(--muted);letter-spacing:.02em}
+  .k.mod.on{background:var(--accent);border-color:transparent;border-bottom-color:color-mix(in srgb,var(--accent) 60%,#000)}
+  .k.mod.on .mi,.k.mod.on .ml{color:var(--accent-ink)}
+  .k.mod.need{box-shadow:0 0 0 3px var(--hint)}
+  body:not(.mode-game) #kback{opacity:.35}
+  .kb.show-s .k.mod .mi,.kb.show-a .k.mod .mi{visibility:visible}
+  .mods{display:none!important}
   .mods{margin-top:6px;gap:6px}
   .mods button{min-width:0;flex:1;min-height:42px;padding:6px}
   .legend{display:none}
@@ -562,6 +573,23 @@ function renderKeyboard(){
     r.forEach(function(c){d.appendChild(mkKey(c))});
     kbEl.appendChild(d);
   });
+  // phone-style modifier keys (shown on narrow screens): AltGr where Caps Lock sits, Shift and Backspace around the bottom row
+  var rows=kbEl.children;
+  rows[2].insertBefore(modKey("kalt","⌥","AltGr",function(){setMod(false,!stickyAlt)}),rows[2].firstChild);
+  rows[3].insertBefore(modKey("kshift","⇧","Shift",function(){setMod(!stickyShift,false)}),rows[3].firstChild);
+  rows[3].appendChild(modKey("kback","⌫","",function(){if(mode==="game")gKey({key:"Backspace",preventDefault:function(){}})}));
+  setMod(stickyShift,stickyAlt);
+}
+function modKey(id,icon,label,fn){
+  var b=document.createElement("button");b.type="button";b.id=id;b.className="k mod";b.setAttribute("aria-label",label||"Backspace");
+  b.innerHTML='<span class="mi"></span><span class="ml"></span>';b.children[0].textContent=icon;b.children[1].textContent=label;
+  b.addEventListener("pointerdown",function(e){if(e.pointerType==="mouse"&&e.button!==0)return;e.preventDefault();b._pd=Date.now();fn()});
+  b.addEventListener("click",function(){if(Date.now()-(b._pd||0)>700)fn()});
+  return b;
+}
+function needMod(layer){
+  ["mshift","kshift"].forEach(function(id){var e=$(id);if(e)e.classList.toggle("need",layer===1)});
+  ["maltgr","kalt"].forEach(function(id){var e=$(id);if(e)e.classList.toggle("need",layer===2)});
 }
 
 // ---- state
@@ -618,7 +646,7 @@ function nextUnit(){
 }
 function clearHint(){
   Object.keys(keyEls).forEach(function(c){keyEls[c].classList.remove("hint","hl-s","hl-a")});
-  $("mshift").classList.remove("need");$("maltgr").classList.remove("need");
+  needMod(0);
 }
 function updateHint(){
   if(mode==="game"){gHint();return}
@@ -626,8 +654,7 @@ function updateHint(){
   var u=nextUnit(); if(!u||!showHint)return;
   var w=where[u], el=keyEls[w.code];
   if(el){el.classList.add("hint"); if(w.layer===1)el.classList.add("hl-s"); if(w.layer===2)el.classList.add("hl-a");}
-  if(w.layer===1)$("mshift").classList.add("need");
-  if(w.layer===2)$("maltgr").classList.add("need");
+  needMod(w.layer);
   hl.textContent=T("Next: ")+disp(u)+(w.layer===1?T("  (hold Shift)"):w.layer===2?T("  (hold AltGr / Option)"):"");
 }
 var LOG=[], lastT=0;
@@ -684,6 +711,7 @@ function setMod(s,a){
   stickyShift=s;stickyAlt=a;
   $("mshift").setAttribute("aria-pressed",s);$("maltgr").setAttribute("aria-pressed",a);
   kbEl.classList.toggle("show-s",!!s);kbEl.classList.toggle("show-a",!!a);
+  if($("kshift")){$("kshift").classList.toggle("on",!!s);$("kalt").classList.toggle("on",!!a);$("kshift").setAttribute("aria-pressed",!!s);$("kalt").setAttribute("aria-pressed",!!a)}
 }
 $("mshift").onclick=function(){setMod(!stickyShift,false)};
 $("maltgr").onclick=function(){setMod(false,!stickyAlt)};
@@ -839,7 +867,7 @@ function gHint(){
   var rem=t.text.substr(t.typed.length),best=null;
   Object.keys(where).forEach(function(u){if(rem.indexOf(u)===0&&(!best||u.length>best.length))best=u});
   if(!best)return;var w=where[best],el=keyEls[w.code];
-  if(el){el.classList.add("hint");if(w.layer===1)el.classList.add("hl-s");if(w.layer===2)el.classList.add("hl-a")}
+  if(el){el.classList.add("hint");if(w.layer===1)el.classList.add("hl-s");if(w.layer===2)el.classList.add("hl-a")}needMod(w.layer);
 }
 function setMode(m){
   document.body.classList.toggle("mode-game",m==="game");
