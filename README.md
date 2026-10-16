@@ -78,6 +78,8 @@ On narrow screens the on-screen keyboard docks to the bottom (respecting the iPh
   - Healing: every 10-hit combo heals 10 HP, a green ✚ letter heals 20 HP when shot, and clearing a wave heals 5 HP.
   - Waves have 15 letters each and get faster.
   - On the main page the letter set follows the "Keys" level; on the NiDA page it is home row / no Shift / Shift / everything.
+- **Look:** the archer is a Khmer foot soldier modelled on the Bayon bas-reliefs. He wears a krama headcloth, a short sampot, a leather baldric and a quiver, and holds a recurve bow with gold naga-curl tips. He stands on a carved sandstone terrace with a *kbach* frieze, in front of a moonlit Angkor Wat and sugar palms, under a temple-lintel border. Letters fall inside lotus rosettes, and healing letters are pink lotus flowers. Word Rain and Key Hunt use the same skyline.
+- **Sound:** lessons play a soft key click, a lower click for Space, an error tone and a finishing chime. One 🔊/🔇 setting (`localStorage` `sfx`) covers lessons and games on both pages.
 - **Word Rain** (both pages): score is multiplied by the combo, landed words explode, and every 5-word combo gives back a life (up to 5).
 - **Key Hunt**: combo multiplier on points; every 10-hit combo adds 3 seconds.
 - **Sprint**: a combo counts words typed with no mistakes; every 5 clean words add 2 seconds.
