@@ -69,6 +69,19 @@ On narrow screens the on-screen keyboard docks to the bottom (respecting the iPh
 - Every letter key is the same in both maps. They differ in 10 rarely used AltGr/Option symbols.
 - Not verified: Windows' plain "Khmer" keyboard (KBDKHMR) and Apple's built-in "Khmer" layout may differ from NiDA. The setup guide on the page says so.
 
+## Arcade games
+
+`docs/arcade.js` is a small shared engine used by both pages. It provides particle bursts, explosions, screen shake, floating score text, a combo meter, synthesised sound effects (🔊 toggle, remembered), and the **Archer** game.
+
+- **Archer** (on both pages): Khmer letters fall toward an archer. Type a letter to shoot an arrow at the lowest copy of it. A letter that reaches the ground explodes and costs 15–25 HP; it costs more the closer it lands to the archer.
+  - Combo multiplier: ×2 at 5 hits, ×3 at 15, ×4 at 30, ×5 at 50.
+  - Healing: every 10-hit combo heals 10 HP, a green ✚ letter heals 20 HP when shot, and clearing a wave heals 5 HP.
+  - Waves have 15 letters each and get faster.
+  - On the main page the letter set follows the "Keys" level; on the NiDA page it is home row / no Shift / Shift / everything.
+- **Word Rain** (both pages): score is multiplied by the combo, landed words explode, and every 5-word combo gives back a life (up to 5).
+- **Key Hunt**: combo multiplier on points; every 10-hit combo adds 3 seconds.
+- **Sprint**: a combo counts words typed with no mistakes; every 5 clean words add 2 seconds.
+
 ## Word Rain game
 
 The **Word Rain game** is a tab in `docs/index.html` next to the lessons: Khmer words fall; type each before it hits the red line. Choose the layout and how many keys (top 8/16/…/all) are in play, so it doubles as practice for the lessons. Three lives, speed rises every 8 words, Backspace drops the current word lock, Esc pauses, best score is stored per layout and key set in `localStorage`.
