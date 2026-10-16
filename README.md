@@ -61,6 +61,14 @@ python3 tools/optimize_layout.py                              # -> docs/layout.j
 
 On narrow screens the on-screen keyboard docks to the bottom (respecting the iPhone home-indicator area), keys respond on touch-down, Shift (⇧), AltGr (⌥) and Backspace (⌫) are keys inside the keyboard like on a phone, latching Shift/AltGr shows that layer on the keycaps, Android vibrates briefly on a wrong key, and Word Rain gets Pause and ⌫ buttons. The site can be added to the home screen (`docs/manifest.webmanifest`, icons in `docs/icons/`).
 
+## Standard NiDA keyboard (Windows and Mac)
+
+`docs/nida.html` teaches the keyboard most Khmer typists already use: the NiDA "Khmer Unicode" layout, with a Windows/Mac switch. It has 10 lessons (home, top and bottom rows; the same rows with Shift; subscripts; digits and punctuation; common words; long words) and three games (Key Hunt, a 60-second Sprint and Word Rain). The on-screen keyboard follows the real Windows or Mac key shapes, with AltGr or ⌥ Option for the third layer.
+
+- Key maps are in `docs/nida-layouts.js`. Windows comes from XKB `symbols/kh` (the same layout as Windows "Khmer (NIDA)", KBDKNI). Mac comes from the "Khmer Unicode" keylayout in [socheatsok78/khmer-unicode-keyboard-for-macos](https://github.com/socheatsok78/khmer-unicode-keyboard-for-macos).
+- Every letter key is the same in both maps. They differ in 10 rarely used AltGr/Option symbols.
+- Not verified: Windows' plain "Khmer" keyboard (KBDKHMR) and Apple's built-in "Khmer" layout may differ from NiDA. The setup guide on the page says so.
+
 ## Word Rain game
 
 The **Word Rain game** is a tab in `docs/index.html` next to the lessons: Khmer words fall; type each before it hits the red line. Choose the layout and how many keys (top 8/16/…/all) are in play, so it doubles as practice for the lessons. Three lives, speed rises every 8 words, Backspace drops the current word lock, Esc pauses, best score is stored per layout and key set in `localStorage`.
