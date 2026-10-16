@@ -71,6 +71,42 @@ section[id]{scroll-margin-top:72px}
 .navlinks a:hover,.navlinks a.active,.langbtn:hover{background:#d9dde3;color:#10151c}
 .navlinks a:focus-visible,.langbtn:focus-visible{outline:2px solid #10151c;outline-offset:2px}
 .gh{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:6px 14px;color:var(--ink);text-decoration:none;font-weight:600;font-size:.85rem;background:var(--panel)}
+/* arcade kit (arcade.js) */
+.arc-fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
+.arc-shake{animation:arcShake .3s}
+@keyframes arcShake{20%{transform:translate(-6px,3px)}40%{transform:translate(5px,-4px)}60%{transform:translate(-4px,2px)}80%{transform:translate(3px,-2px)}}
+.arc-flash{position:absolute;inset:0;pointer-events:none;z-index:6;animation:arcFlash .26s forwards}
+@keyframes arcFlash{to{opacity:0}}
+.arc-banner{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);z-index:7;pointer-events:none;font:900 clamp(1.5rem,6vw,2.6rem)/1.3 var(--ui);letter-spacing:.05em;color:#ffe58a;-webkit-text-stroke:2px #7a1020;paint-order:stroke fill;text-shadow:0 0 18px rgba(255,180,60,.8);white-space:nowrap;animation:arcBan 1.1s forwards}
+.arc-banner.mult{color:#7af0ff;top:30%;text-shadow:0 0 18px rgba(80,220,255,.8)}
+@keyframes arcBan{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}15%{transform:translate(-50%,-50%) scale(1.15);opacity:1}30%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{transform:translate(-50%,-75%);opacity:0}}
+.arc-combo{position:absolute;right:10px;top:50px;z-index:7;display:grid;grid-template-columns:auto auto;align-items:center;gap:2px 8px;padding:6px 10px;border-radius:12px;background:rgba(10,8,24,.75);color:#fff;font:700 .78rem/1.3 var(--ui);opacity:0;transition:opacity .2s;pointer-events:none}
+.arc-combo.on{opacity:1}
+.arc-combo b{grid-row:span 2;font:900 1.5rem/1 var(--ui);color:#ffe58a;text-shadow:0 0 10px rgba(255,200,60,.7)}
+.arc-combo[data-m="3"] b{color:#7af0ff}.arc-combo[data-m="4"] b{color:#ff8af0}.arc-combo[data-m="5"] b{color:#5dff9b}
+.arc-combo i{display:block;width:84px;height:4px;border-radius:2px;background:rgba(255,255,255,.18);overflow:hidden}
+.arc-combo u{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffb347,#ff5a36);transition:width .15s}
+.arc-combo.pop b{animation:arcPop .2s}
+.arc-combo.broke{animation:arcShake .3s}
+@keyframes arcPop{50%{transform:scale(1.35)}}
+.arc-mute{border:1px solid var(--line);background:var(--raise);border-radius:999px;padding:4px 10px;font-size:1rem;line-height:1.4;cursor:pointer}
+.arc-sky{position:relative;background:radial-gradient(ellipse at 50% 125%,#4a1d4f 0%,#1a1236 50%,#0a0a18 100%)!important;color:#fff}
+.arc-sky .rw{background:#2a1838;color:#fff;border:2px solid rgba(255,211,77,.45);box-shadow:0 0 14px rgba(255,180,60,.25)}
+.arc-sky .rw.lock{border-color:#ffd34d;box-shadow:0 0 0 3px rgba(255,211,77,.35),0 0 18px rgba(255,211,77,.5)}
+.arc-sky .rw i{background:#ffd34d}
+.arc-archer{position:relative;height:clamp(260px,52vh,440px);border-radius:16px;overflow:hidden;background:radial-gradient(ellipse at 50% 125%,#4a1d4f 0%,#1a1236 50%,#0a0a18 100%);color:#fff;touch-action:manipulation}
+.arc-stage{position:absolute;inset:0;width:100%;height:100%;display:block}
+.arc-ov{position:absolute;inset:0;z-index:8;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;text-align:center;padding:18px;background:rgba(8,6,20,.62);color:#fff}
+.arc-ov[hidden]{display:none}
+.arc-ov h4,.arc-sky .overlay h4,.arc-sky #goverlay h2{margin:0;font:900 clamp(1.4rem,5vw,2.2rem)/1.3 var(--ui);letter-spacing:.06em;color:#ffe58a;-webkit-text-stroke:2px #7a1020;paint-order:stroke fill}
+.arc-ov p{margin:0;max-width:34em;color:#ddd;font-size:.92rem}
+.arc-sky .overlay,.arc-sky #goverlay{z-index:8;background:rgba(8,6,20,.62);color:#fff}
+.arc-sky .overlay .note,.arc-sky #goverlay .note{color:#ddd}
+.arc-sky .glyph{color:#fff;text-shadow:0 0 22px rgba(255,211,77,.55)}
+.arc-sky .sub{color:#c9c3e6}
+.arc-archer .arc-combo{right:auto;left:10px;top:36px}
+@media (max-width:640px){.arc-archer{height:min(40vh,320px)}.arc-combo{top:44px;padding:4px 8px}.arc-combo b{font-size:1.2rem}}
+#gfield .arc-combo{top:12px}
 /* hero */
 .hero{padding-block:56px 44px}
 .hero .wrap{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:40px;align-items:center}
@@ -398,18 +434,22 @@ body.mode-game #mback{display:inline-flex}
   <div id="gameView" style="display:flex;flex-direction:column;gap:16px" hidden>
   <section class="panel">
     <div class="row">
+      <div class="seg" id="gpick" role="group" aria-label="Game"><button id="pickRain" type="button" aria-pressed="true">Word Rain</button><button id="pickArch" type="button" aria-pressed="false">Archer</button></div>
       <label class="field">Keys <select id="glevel"></select></label>
       <button class="primary" id="gstart">Start</button>
-      <div class="stats">
+      <span id="muteSlot"></span>
+      <div class="stats" id="gstats">
         <div class="stat"><b id="gscore">0</b><span>Score</span></div>
         <div class="stat"><b id="glives">♥♥♥</b><span>Lives</span></div>
         <div class="stat"><b id="glvl">1</b><span>Speed</span></div>
         <div class="stat"><b id="gbest">–</b><span>Best</span></div>
       </div>
     </div>
-    <p class="note" style="margin:10px 0 0">Type each falling word before it reaches the red line. Enter starts, Esc pauses, Backspace drops your current word.</p>
+    <p class="note" id="anote" style="margin:10px 0 0" hidden>Shoot each falling letter by typing it. Letters that land explode and hurt the archer. Every 10-hit combo heals; green ✚ letters heal more. Enter starts, Esc pauses.</p>
+    <p class="note" id="rnote" style="margin:10px 0 0">Type each falling word before it reaches the red line. Enter starts, Esc pauses, Backspace drops your current word.</p>
   </section>
-  <div id="gfield" class="kh" aria-label="Game area">
+  <div id="afield" class="kh" aria-label="Archer game" hidden></div>
+  <div id="gfield" class="kh arc-sky" aria-label="Game area">
     <div id="gflash"></div>
     <div id="goverlay">
       <h2 id="gotitle">Ready?</h2>
@@ -495,6 +535,7 @@ body.mode-game #mback{display:inline-flex}
 </footer>
 <script src="layout.js"></script>
 <script src="words.js"></script>
+<script src="arcade.js"></script>
 <script>
 (function(){
 "use strict";
@@ -792,6 +833,23 @@ function applyLayout(name){
 // ---- Word Rain game
 var gItems=[],gLocked=null,gScore=0,gLives=3,gSpeed=1,gSpawnT=0,gRunning=false,gPaused=false,gDone=false,gLast=0,gHits=0,gKeys=0,gWords=0,gT0=0,gRaf=0,gPool=[];
 var G_MAXU=8, gField=$("gfield"), gOverlay=$("goverlay");
+var AR=window.Arcade,ARCH=null,gGame=store("game")==="archer"?"archer":"rain",aState={running:false,paused:false,over:false};
+var FXg=AR.fx(gField),CBg=AR.combo(gField,{healEvery:5,label:function(){return L2("COMBO","ជាប់ៗ")},num:kmNum,
+  onMult:function(m){AR.banner(gField,"×"+m,"mult")},
+  onHeal:function(){if(gRunning&&!gPaused&&gLives<5){gLives++;gHud();FXg.text(gField.clientWidth/2,gField.clientHeight-50,"+♥","#5dff9b",26);AR.play("heal")}}});
+$("muteSlot").appendChild(AR.sfxButton());
+function aPool(){var lv=+$("glevel").value,us=lv?rank.slice(0,lv*PER_LESSON):rank.slice();return us.filter(function(x){return where[x]&&!/^[\s\u200b-\u200d]+$/.test(x)})}
+function aHint(u){clearHint();if(!showHint||!u)return;var w=where[u];if(!w)return;var el=keyEls[w.code];if(el){el.classList.add("hint");if(w.layer===1)el.classList.add("hl-s");if(w.layer===2)el.classList.add("hl-a")}needMod(w.layer)}
+function aBestKey(){return "archer_"+layoutName+"_"+$("glevel").value}
+function ensureArcher(){if(!ARCH)ARCH=AR.archer($("afield"),{pool:aPool,disp:disp,hint:aHint,t:function(km,en){return L2(en,km)},num:kmNum,buzz:buzz,
+  best:function(){return +store(aBestKey())||0},saveBest:function(n){store(aBestKey(),String(n))},onState:function(st){aState=st;gBtn()}});return ARCH}
+function pickGame(g){
+  gStop();gGame=g;store("game",g);
+  $("pickRain").setAttribute("aria-pressed",g==="rain");$("pickArch").setAttribute("aria-pressed",g==="archer");
+  $("gfield").hidden=g!=="rain";$("afield").hidden=g!=="archer";$("gstats").hidden=g!=="rain";$("rnote").hidden=g!=="rain";$("anote").hidden=g!=="archer";
+  if(mode==="game")gReset();
+}
+$("pickRain").onclick=function(){pickGame("rain")};$("pickArch").onclick=function(){pickGame("archer")};
 function gBuildLevels(){
   var ls=$("glevel"),keep=ls.value;ls.innerHTML="";
   for(var i=1;i<=Math.min(MAXL,Math.ceil(rank.length/PER_LESSON));i++){
@@ -812,10 +870,11 @@ function gHud(){
   $("gscore").textContent=gScore;$("glives").textContent=new Array(gLives+1).join("♥")||"–";$("glvl").textContent=gSpeed;
 }
 function gOverlayShow(t,txt,btn){$("gotitle").textContent=t;$("gotext").textContent=txt;$("gstart2").textContent=btn;gOverlay.classList.remove("hide")}
-function gClear(){gItems.forEach(function(w){w.el.remove()});gItems=[];gLocked=null;gScore=0;gLives=3;gSpeed=1;gHits=0;gKeys=0;gWords=0;gHud()}
-function gStop(){gRunning=false;gDone=false;gPaused=false;cancelAnimationFrame(gRaf)}
+function gClear(){gItems.forEach(function(w){w.el.remove()});gItems=[];gLocked=null;gScore=0;gLives=3;gSpeed=1;gHits=0;gKeys=0;gWords=0;gHud();CBg.reset();FXg.clear()}
+function gStop(){gRunning=false;gDone=false;gPaused=false;cancelAnimationFrame(gRaf);if(ARCH)ARCH.stop()}
 function gReset(){
   gStop();gClear();gBtn();
+  if(gGame==="archer"){ensureArcher().menu();if(mode==="game")clearHint();return}
   gOverlayShow(T("Ready?"),T("Words fall from the top. Type them on the keys you chose."),T("Start (Enter)"));
   var b=store("rain_"+layoutName+"_"+$("glevel").value);$("gbest").textContent=b||"–";
   if(mode==="game")clearHint();
@@ -823,7 +882,7 @@ function gReset(){
 function gStart(){
   if(gDone||!gRunning)gClear();
   gOverlay.classList.add("hide");gPool=gPoolFor($("glevel").value);
-  gRunning=true;gPaused=false;gDone=false;gLast=0;gT0=Date.now();gSpawnT=.4;cancelAnimationFrame(gRaf);gRaf=requestAnimationFrame(gFrame);gBtn();
+  gRunning=true;gPaused=false;gDone=false;gLast=0;gT0=Date.now();gSpawnT=.4;AR.banner(gField,"GO!");AR.play("up");cancelAnimationFrame(gRaf);gRaf=requestAnimationFrame(gFrame);gBtn();
 }
 function gPause(on){
   if(!gRunning)return;gPaused=on;gBtn();
@@ -849,14 +908,14 @@ function gFrame(ts){
     var it=gItems[i];it.y+=v*dt;gPlace(it);
     if(it.y+it.el.offsetHeight>=H){
       if(gLocked===it)gLocked=null;
-      it.el.remove();gItems.splice(i,1);gLives--;gHud();gFlash();
+      it.el.remove();gItems.splice(i,1);gLives--;gHud();gFlash();FXg.boom(it.x+it.w/2,H-4);FXg.shake(320);CBg.miss();AR.play("boom");buzz();
       if(gLives<=0){gOver();return}
     }
   }
   gHint();gRaf=requestAnimationFrame(gFrame);
 }
 function gOver(){
-  gRunning=false;gDone=true;clearHint();gBtn();
+  gRunning=false;gDone=true;AR.play("over");clearHint();gBtn();
   var mins=(Date.now()-gT0)/60000,acc=gKeys?Math.round(100*gHits/gKeys):100,wpm=mins>0?Math.round(gHits/5/mins):0;
   var bk="rain_"+layoutName+"_"+$("glevel").value,prev=+store(bk)||0,rec=gScore>prev;
   if(rec){store(bk,String(gScore));$("gbest").textContent=gScore}
@@ -864,23 +923,26 @@ function gOver(){
 }
 function gLowest(pred){var b=null;gItems.forEach(function(it){if(pred(it)&&(!b||it.y>b.y))b=it});return b}
 function gType(u,code){
+  if(gGame==="archer"){if(ARCH)ARCH.input(u);return}
   if(!gRunning||gPaused)return;
   gKeys++;var el=keyEls[code];if(el){el.classList.add("press");setTimeout(function(){el.classList.remove("press")},120)}
   var tgt=gLocked||gLowest(function(it){return it.text.indexOf(u)===0});
   if(gLocked&&gLocked.text.substr(0,(gLocked.typed+u).length)!==gLocked.typed+u)tgt=null;
-  if(!tgt){if(gLocked)gLocked.clean=false;gFlash();buzz();return}
+  if(!tgt){if(gLocked)gLocked.clean=false;gFlash();buzz();CBg.miss();AR.play("bad");return}
   if(!gLocked)gLocked=tgt;
   tgt.typed+=u;gHits++;
-  tgt.bar.style.width=Math.min(100,100*tgt.typed.length/tgt.text.length)+"%";tgt.el.classList.add("lock");
+  tgt.bar.style.width=Math.min(100,100*tgt.typed.length/tgt.text.length)+"%";tgt.el.classList.add("lock");FXg.burst(tgt.x+tgt.w/2,tgt.y+tgt.el.offsetHeight/2,"#ffd34d",5);
   if(tgt.typed===tgt.text){
-    var len=splitUnits(tgt.text).length;gScore+=len*10+(tgt.clean?5*len:0);gWords++;
-    if(gWords%8===0)gSpeed++;
+    var len=splitUnits(tgt.text).length,mu=CBg.hit(),pts=(len*10+(tgt.clean?5*len:0))*mu,cx=tgt.x+tgt.w/2,cy=tgt.y+tgt.el.offsetHeight/2;gScore+=pts;gWords++;
+    FXg.burst(cx,cy,"#ffd34d",26);FXg.text(cx,cy,"+"+kmNum(pts),"#ffe58a",20);AR.play("word");
+    if(gWords%8===0){gSpeed++;AR.banner(gField,L2("SPEED ","ល្បឿន ")+kmNum(gSpeed))}
     tgt.el.classList.add("pop");(function(n){setTimeout(function(){n.remove()},250)})(tgt.el);
     gItems.splice(gItems.indexOf(tgt),1);gLocked=null;gHud();
   }
   gHint();
 }
 function gKey(e){   // returns true when the key was handled by the game
+  if(gGame==="archer"){if(ARCH&&ARCH.key(e)){e.preventDefault();return true}if(e.key==="Backspace"){e.preventDefault();return true}return false}
   if(e.key==="Enter"||(e.key===" "&&!gRunning)){
     e.preventDefault();if(gPaused)gPause(false);else if(!gRunning)gStart();return true;
   }
@@ -906,10 +968,10 @@ function setMode(m){
 }
 $("tabLessons").onclick=function(){setMode("lessons")};
 $("tabGame").onclick=function(){setMode("game")};
-$("gstart").onclick=function(){if(gRunning&&!gPaused)gPause(true);else if(gPaused)gPause(false);else gStart()};
+$("gstart").onclick=function(){if(gGame==="archer"){var a=ensureArcher();if(aState.running)a.pause(true);else if(aState.paused)a.pause(false);else a.start();return}if(gRunning&&!gPaused)gPause(true);else if(gPaused)gPause(false);else gStart()};
 $("gstart2").onclick=function(){if(gPaused)gPause(false);else gStart()};
 $("mback").onclick=function(){gKey({key:"Backspace",preventDefault:function(){}})};
-function gBtn(){$("gstart").textContent=gRunning&&!gPaused?L2("Pause","ផ្អាក"):gPaused?T("Resume"):T("Start")}
+function gBtn(){if(gGame==="archer"){$("gstart").textContent=aState.running?L2("Pause","ផ្អាក"):aState.paused?T("Resume"):T("Start");return}$("gstart").textContent=gRunning&&!gPaused?L2("Pause","ផ្អាក"):gPaused?T("Resume"):T("Start")}
 $("glevel").onchange=function(){gReset();this.blur()};
 document.addEventListener("visibilitychange",function(){if(document.hidden&&gRunning&&!gPaused)gPause(true)});
 window.__rain={items:function(){return gItems},state:function(){return{score:gScore,lives:gLives,running:gRunning,done:gDone}}};
@@ -959,7 +1021,7 @@ document.querySelectorAll('a[href="#practice"]').forEach(function(a){a.addEventL
 
 // ---- language (English / Khmer)
 var KM_NAMES={"Cluster-Frequency Khmer v2 (model-optimal)": "ប្លង់ខ្មែរតាមប្រេកង់ v2 (ល្អបំផុតតាមម៉ូដែល)", "Cluster keys v2 (12 pair keys)": "គ្រាប់ចុចជើងអក្សរ v2 (១២ គ្រាប់)", "Frequency-only baseline (v1)": "មូលដ្ឋានតាមប្រេកង់តែប៉ុណ្ណោះ (v1)"};
-var KM={"Modern Khmer Typing Tutor": "កម្មវិធីហាត់វាយអក្សរខ្មែរទំនើប", "Practice": "ហាត់វាយ", "Word Rain": "ពាក្យធ្លាក់", "The layout": "ប្លង់ក្ដារចុច", "How it was made": "របៀបបង្កើត", "Experimental Khmer keyboard": "ក្ដារចុចខ្មែរសាកល្បង", "Type Khmer on a layout built from": "វាយអក្សរខ្មែរលើប្លង់ដែលបង្កើតចេញពី", "real Khmer text": "អត្ថបទខ្មែរពិតៗ", ".": "។", "Key positions come from letter and coeng-cluster counts in a large Khmer corpus, plus letter-pair statistics. Learn it a few keys at a time, then test yourself in Word Rain.": "ទីតាំងគ្រាប់ចុចផ្អែកលើការរាប់អក្សរ និងជើងអក្សរ ក្នុងសំណុំអត្ថបទខ្មែរដ៏ធំមួយ រួមទាំងស្ថិតិគូអក្សរ។ រៀនម្ដងបន្តិចៗ រួចសាកល្បងសមត្ថភាពក្នុងល្បែងពាក្យធ្លាក់។", "Start practising": "ចាប់ផ្ដើមហាត់", "Play Word Rain": "លេងល្បែងពាក្យធ្លាក់", "Lessons add eight keys at a time in frequency order. Type on a physical keyboard (QWERTY positions) or tap the keys.": "មេរៀននីមួយៗបន្ថែមគ្រាប់ចុចប្រាំបី តាមលំដាប់ប្រេកង់។ វាយលើក្ដារចុចពិត (ទីតាំង QWERTY) ឬចុចលើគ្រាប់ចុចខាងក្រោម។", "Lessons": "មេរៀន", "Layout": "ប្លង់", "Lesson": "មេរៀន", "Restart": "ចាប់ផ្ដើមឡើងវិញ", "Export log": "នាំចេញកំណត់ត្រា", "WPM": "ពាក្យ/នាទី", "Accuracy": "ភាពត្រឹមត្រូវ", "Best": "ល្អបំផុត", "Typed": "បានវាយ", "Keystroke log (CSV). If the download did not start, copy it from here.": "កំណត់ត្រាការចុច (CSV)។ បើការទាញយកមិនចាប់ផ្ដើម សូមចម្លងពីទីនេះ។", "Copy CSV": "ចម្លង CSV", "Again": "ម្ដងទៀត", "Next lesson": "មេរៀនបន្ទាប់", "Keys": "គ្រាប់ចុច", "Start": "ចាប់ផ្ដើម", "Score": "ពិន្ទុ", "Lives": "ជីវិត", "Speed": "ល្បឿន", "Type each falling word before it reaches the red line. Enter starts, Esc pauses, Backspace drops your current word.": "វាយពាក្យនីមួយៗ មុនពេលវាធ្លាក់ដល់បន្ទាត់ក្រហម។ Enter ចាប់ផ្ដើម, Esc ផ្អាក, Backspace បោះបង់ពាក្យដែលកំពុងវាយ។", "Ready?": "ត្រៀមរួចហើយឬនៅ?", "Words fall from the top. Type them on the keys you chose.": "ពាក្យធ្លាក់ពីលើ។ វាយវាដោយប្រើគ្រាប់ចុចដែលអ្នកបានជ្រើស។", "Start (Enter)": "ចាប់ផ្ដើម (Enter)", "Paused": "បានផ្អាក", "Press Esc or Enter to continue.": "ចុច Esc ឬ Enter ដើម្បីបន្ត។", "Resume": "បន្ត", "Play again (Enter)": "លេងម្ដងទៀត (Enter)", "Home keys (bar marks F and J)": "គ្រាប់ចុចគោល (សញ្ញារបារលើ F និង J)", "Top stripe = finger": "ឆ្នូតខាងលើ = ម្រាមដៃ", "Small glyphs: top = Shift, bottom = AltGr (Option on Mac)": "តួអក្សរតូច៖ ខាងលើ = Shift, ខាងក្រោម = AltGr (Option លើ Mac)", "Three layouts ship with the tutor so you can compare them. The numbers below come from the effort model, not from timing real typists.": "កម្មវិធីនេះមានប្លង់បី ដើម្បីឱ្យអ្នកប្រៀបធៀប។ តួលេខខាងក្រោមបានមកពីម៉ូដែលគណនាកម្លាំង មិនមែនពីការវាស់ល្បឿនអ្នកវាយពិតៗទេ។", "Bigram figures currently use word-list statistics as an interim estimate. Re-running the optimiser on corpus bigrams may change the layout.": "តួលេខគូអក្សរ បច្ចុប្បន្នប្រើស្ថិតិពីបញ្ជីពាក្យ ជាការប៉ាន់ស្មានបណ្ដោះអាសន្ន។ ការគណនាឡើងវិញលើគូអក្សរពីសំណុំអត្ថបទ អាចផ្លាស់ប្ដូរប្លង់។", "Most frequent keys in the selected layout": "គ្រាប់ចុចដែលប្រើញឹកញាប់បំផុត ក្នុងប្លង់ដែលបានជ្រើស", "The method in four steps. The code and data are in the GitHub repository.": "វិធីសាស្ត្រជាបួនជំហាន។ កូដ និងទិន្នន័យមាននៅក្នុងឃ្លាំង GitHub។", "Count real text": "រាប់អត្ថបទពិត", "About 212 million Khmer letters and coeng clusters were counted from a text corpus. Split-half checks show the ranking is stable from roughly one million letters.": "អក្សរខ្មែរ និងជើងអក្សរប្រហែល ២១២ លាន ត្រូវបានរាប់ពីសំណុំអត្ថបទ។ ការត្រួតពិនិត្យដោយបែងចែកជាពីរពាក់កណ្ដាល បង្ហាញថាលំដាប់មានស្ថិរភាពចាប់ពីប្រហែលមួយលានអក្សរ។", "Model the effort": "គណនាកម្លាំង", "Each key has a reach cost. Shift and AltGr add a penalty, and letter pairs are scored for same-finger repeats, rolls and hand alternation. Fingers have load caps.": "គ្រាប់ចុចនីមួយៗមានតម្លៃចម្ងាយលាតម្រាមដៃ។ Shift និង AltGr បន្ថែមការពិន័យ ហើយគូអក្សរត្រូវបានវាយតម្លៃលើការប្រើម្រាមដៃដដែល ការរំកិលម្រាមដៃ និងការឆ្លាស់ដៃ។ ម្រាមដៃនីមួយៗមានកម្រិតបន្ទុក។", "Search for the best fit": "ស្វែងរកប្លង់ល្អបំផុត", "Simulated annealing tries over a million key swaps. Dedicated cluster keys like ្រ did not lower effort with only 33 base keys, so the default layout types them as coeng + consonant.": "វិធី Simulated annealing សាកល្បងប្ដូរគ្រាប់ចុចជាងមួយលានដង។ គ្រាប់ចុចជើងអក្សរដាច់ដោយឡែក ដូចជា ្រ មិនបានកាត់បន្ថយកម្លាំងទេ ព្រោះមានគ្រាប់ចុចមូលដ្ឋានតែ ៣៣ ដូច្នេះប្លង់លំនាំដើមវាយវាជា ជើង + ព្យញ្ជនៈ។", "Make it learnable, then measure": "ធ្វើឱ្យងាយរៀន រួចវាស់វែង", "Paired letters such as ក / គ sit on the same or neighbouring keys. Export your keystroke log to compare layouts with real typists.": "អក្សរគូ ដូចជា ក / គ ស្ថិតនៅលើគ្រាប់ចុចតែមួយ ឬជាប់គ្នា។ នាំចេញកំណត់ត្រាការចុចរបស់អ្នក ដើម្បីប្រៀបធៀបប្លង់ជាមួយអ្នកវាយពិតៗ។", "Experimental layout, not an official Khmer standard.": "ប្លង់សាកល្បង មិនមែនជាស្តង់ដារខ្មែរផ្លូវការទេ។", "Fonts: Noto Serif Khmer and Kantumruy Pro (SIL Open Font License) ·": "ពុម្ពអក្សរ៖ Noto Serif Khmer និង Kantumruy Pro (SIL Open Font License) ·", "Source on GitHub": "កូដប្រភពនៅលើ GitHub", "Hints on": "ជំនួយ៖ បើក", "Hints off": "ជំនួយ៖ បិទ", "New keys: ": "គ្រាប់ចុចថ្មី៖ ", "All keys in play.": "ប្រើគ្រាប់ចុចទាំងអស់។", "Next: ": "បន្ទាប់៖ ", "  (hold Shift)": "  (សង្កត់ Shift)", "  (hold AltGr / Option)": "  (សង្កត់ AltGr / Option)", "All keys, common words": "គ្រាប់ចុចទាំងអស់ ពាក្យប្រើញឹកញាប់", "Game over": "ចប់ល្បែង", " – new best!": " – ពិន្ទុខ្ពស់ថ្មី!", "Modelled metric": "រង្វាស់តាមម៉ូដែល", "Optimised v2": "បង្កើនប្រសិទ្ធភាព v2", "Cluster keys": "គ្រាប់ចុចជើងអក្សរ", "Frequency only": "តាមប្រេកង់តែប៉ុណ្ណោះ", "Keystrokes per Khmer letter": "ចំនួនចុចក្នុងមួយអក្សរ", "Same-finger letter pairs": "គូអក្សរវាយដោយម្រាមដៃដដែល", "Hand alternation": "ការឆ្លាស់ដៃ", "Keystrokes on the base layer": "ការចុចលើស្រទាប់មូលដ្ឋាន", "Modelled effort per letter": "កម្លាំងក្នុងមួយអក្សរ (ម៉ូដែល)", "Khmer letters analysed": "អក្សរខ្មែរដែលបានវិភាគ", "keystrokes without Shift (modelled)": "ការចុចដោយមិនប្រើ Shift (ម៉ូដែល)", "layouts to compare": "ប្លង់សម្រាប់ប្រៀបធៀប", "unit": "អក្សរ", "key": "គ្រាប់ចុច", "weight": "ទម្ងន់", "Letters and clusters counted": "អក្សរ និងជើងអក្សរដែលបានរាប់", "in the Khmer text corpus; this sets each key's frequency": "ក្នុងសំណុំអត្ថបទខ្មែរ ដែលកំណត់ប្រេកង់របស់គ្រាប់ចុចនីមួយៗ", "Coeng clusters": "ជើងអក្សរ", "subscript consonants among them, in 35 cluster types": "ក្នុងចំណោមនោះ មាន ៣៥ ប្រភេទជើង", "Units ranked": "ឯកតាដែលបានចាត់លំដាប់", "distinct letters, vowels, signs and clusters given a key position": "អក្សរ ស្រៈ សញ្ញា និងជើង ដែលបានផ្ដល់ទីតាំងគ្រាប់ចុច", "Words for letter pairs": "ពាក្យសម្រាប់គូអក្សរ", "from a search-word list (478,195 weighted uses), giving 2,613 distinct letter pairs": "ពីបញ្ជីពាក្យស្វែងរក (ប្រើ ៤៧៨,១៩៥ ដង) ផ្ដល់គូអក្សរខុសគ្នា ២,៦១៣", "Practice words": "ពាក្យសម្រាប់ហាត់", "the most common words that every layout can type": "ពាក្យប្រើញឹកញាប់បំផុត ដែលប្លង់ទាំងអស់អាចវាយបាន", "Ranking stability": "ស្ថិរភាពនៃលំដាប់", "agreement between two halves of the corpus at 10 million letters": "ភាពស៊ីគ្នារវាងពាក់កណ្ដាលទាំងពីរនៃសំណុំអត្ថបទ នៅ ១០ លានអក្សរ", "Data behind the layout": "ទិន្នន័យដែលប្រើក្នុងការបង្កើតប្លង់", "The number of words in the corpus was not counted; key frequencies come from letter and cluster counts, not word counts.": "មិនបានរាប់ចំនួនពាក្យក្នុងសំណុំអត្ថបទទេ។ ប្រេកង់គ្រាប់ចុចបានមកពីការរាប់អក្សរ និងជើងអក្សរ មិនមែនពីការរាប់ពាក្យទេ។", "Space": "ដកឃ្លា", "Standard keyboard": "ក្ដារចុចស្តង់ដារ", "Learn the standard keyboard": "រៀនក្ដារចុចស្តង់ដារ"}, lang="en", I18N_NODES=[];
+var KM={"Modern Khmer Typing Tutor": "កម្មវិធីហាត់វាយអក្សរខ្មែរទំនើប", "Practice": "ហាត់វាយ", "Word Rain": "ពាក្យធ្លាក់", "The layout": "ប្លង់ក្ដារចុច", "How it was made": "របៀបបង្កើត", "Experimental Khmer keyboard": "ក្ដារចុចខ្មែរសាកល្បង", "Type Khmer on a layout built from": "វាយអក្សរខ្មែរលើប្លង់ដែលបង្កើតចេញពី", "real Khmer text": "អត្ថបទខ្មែរពិតៗ", ".": "។", "Key positions come from letter and coeng-cluster counts in a large Khmer corpus, plus letter-pair statistics. Learn it a few keys at a time, then test yourself in Word Rain.": "ទីតាំងគ្រាប់ចុចផ្អែកលើការរាប់អក្សរ និងជើងអក្សរ ក្នុងសំណុំអត្ថបទខ្មែរដ៏ធំមួយ រួមទាំងស្ថិតិគូអក្សរ។ រៀនម្ដងបន្តិចៗ រួចសាកល្បងសមត្ថភាពក្នុងល្បែងពាក្យធ្លាក់។", "Start practising": "ចាប់ផ្ដើមហាត់", "Play Word Rain": "លេងល្បែងពាក្យធ្លាក់", "Lessons add eight keys at a time in frequency order. Type on a physical keyboard (QWERTY positions) or tap the keys.": "មេរៀននីមួយៗបន្ថែមគ្រាប់ចុចប្រាំបី តាមលំដាប់ប្រេកង់។ វាយលើក្ដារចុចពិត (ទីតាំង QWERTY) ឬចុចលើគ្រាប់ចុចខាងក្រោម។", "Lessons": "មេរៀន", "Layout": "ប្លង់", "Lesson": "មេរៀន", "Restart": "ចាប់ផ្ដើមឡើងវិញ", "Export log": "នាំចេញកំណត់ត្រា", "WPM": "ពាក្យ/នាទី", "Accuracy": "ភាពត្រឹមត្រូវ", "Best": "ល្អបំផុត", "Typed": "បានវាយ", "Keystroke log (CSV). If the download did not start, copy it from here.": "កំណត់ត្រាការចុច (CSV)។ បើការទាញយកមិនចាប់ផ្ដើម សូមចម្លងពីទីនេះ។", "Copy CSV": "ចម្លង CSV", "Again": "ម្ដងទៀត", "Next lesson": "មេរៀនបន្ទាប់", "Keys": "គ្រាប់ចុច", "Start": "ចាប់ផ្ដើម", "Score": "ពិន្ទុ", "Lives": "ជីវិត", "Speed": "ល្បឿន", "Type each falling word before it reaches the red line. Enter starts, Esc pauses, Backspace drops your current word.": "វាយពាក្យនីមួយៗ មុនពេលវាធ្លាក់ដល់បន្ទាត់ក្រហម។ Enter ចាប់ផ្ដើម, Esc ផ្អាក, Backspace បោះបង់ពាក្យដែលកំពុងវាយ។", "Ready?": "ត្រៀមរួចហើយឬនៅ?", "Words fall from the top. Type them on the keys you chose.": "ពាក្យធ្លាក់ពីលើ។ វាយវាដោយប្រើគ្រាប់ចុចដែលអ្នកបានជ្រើស។", "Start (Enter)": "ចាប់ផ្ដើម (Enter)", "Paused": "បានផ្អាក", "Press Esc or Enter to continue.": "ចុច Esc ឬ Enter ដើម្បីបន្ត។", "Resume": "បន្ត", "Play again (Enter)": "លេងម្ដងទៀត (Enter)", "Home keys (bar marks F and J)": "គ្រាប់ចុចគោល (សញ្ញារបារលើ F និង J)", "Top stripe = finger": "ឆ្នូតខាងលើ = ម្រាមដៃ", "Small glyphs: top = Shift, bottom = AltGr (Option on Mac)": "តួអក្សរតូច៖ ខាងលើ = Shift, ខាងក្រោម = AltGr (Option លើ Mac)", "Three layouts ship with the tutor so you can compare them. The numbers below come from the effort model, not from timing real typists.": "កម្មវិធីនេះមានប្លង់បី ដើម្បីឱ្យអ្នកប្រៀបធៀប។ តួលេខខាងក្រោមបានមកពីម៉ូដែលគណនាកម្លាំង មិនមែនពីការវាស់ល្បឿនអ្នកវាយពិតៗទេ។", "Bigram figures currently use word-list statistics as an interim estimate. Re-running the optimiser on corpus bigrams may change the layout.": "តួលេខគូអក្សរ បច្ចុប្បន្នប្រើស្ថិតិពីបញ្ជីពាក្យ ជាការប៉ាន់ស្មានបណ្ដោះអាសន្ន។ ការគណនាឡើងវិញលើគូអក្សរពីសំណុំអត្ថបទ អាចផ្លាស់ប្ដូរប្លង់។", "Most frequent keys in the selected layout": "គ្រាប់ចុចដែលប្រើញឹកញាប់បំផុត ក្នុងប្លង់ដែលបានជ្រើស", "The method in four steps. The code and data are in the GitHub repository.": "វិធីសាស្ត្រជាបួនជំហាន។ កូដ និងទិន្នន័យមាននៅក្នុងឃ្លាំង GitHub។", "Count real text": "រាប់អត្ថបទពិត", "About 212 million Khmer letters and coeng clusters were counted from a text corpus. Split-half checks show the ranking is stable from roughly one million letters.": "អក្សរខ្មែរ និងជើងអក្សរប្រហែល ២១២ លាន ត្រូវបានរាប់ពីសំណុំអត្ថបទ។ ការត្រួតពិនិត្យដោយបែងចែកជាពីរពាក់កណ្ដាល បង្ហាញថាលំដាប់មានស្ថិរភាពចាប់ពីប្រហែលមួយលានអក្សរ។", "Model the effort": "គណនាកម្លាំង", "Each key has a reach cost. Shift and AltGr add a penalty, and letter pairs are scored for same-finger repeats, rolls and hand alternation. Fingers have load caps.": "គ្រាប់ចុចនីមួយៗមានតម្លៃចម្ងាយលាតម្រាមដៃ។ Shift និង AltGr បន្ថែមការពិន័យ ហើយគូអក្សរត្រូវបានវាយតម្លៃលើការប្រើម្រាមដៃដដែល ការរំកិលម្រាមដៃ និងការឆ្លាស់ដៃ។ ម្រាមដៃនីមួយៗមានកម្រិតបន្ទុក។", "Search for the best fit": "ស្វែងរកប្លង់ល្អបំផុត", "Simulated annealing tries over a million key swaps. Dedicated cluster keys like ្រ did not lower effort with only 33 base keys, so the default layout types them as coeng + consonant.": "វិធី Simulated annealing សាកល្បងប្ដូរគ្រាប់ចុចជាងមួយលានដង។ គ្រាប់ចុចជើងអក្សរដាច់ដោយឡែក ដូចជា ្រ មិនបានកាត់បន្ថយកម្លាំងទេ ព្រោះមានគ្រាប់ចុចមូលដ្ឋានតែ ៣៣ ដូច្នេះប្លង់លំនាំដើមវាយវាជា ជើង + ព្យញ្ជនៈ។", "Make it learnable, then measure": "ធ្វើឱ្យងាយរៀន រួចវាស់វែង", "Paired letters such as ក / គ sit on the same or neighbouring keys. Export your keystroke log to compare layouts with real typists.": "អក្សរគូ ដូចជា ក / គ ស្ថិតនៅលើគ្រាប់ចុចតែមួយ ឬជាប់គ្នា។ នាំចេញកំណត់ត្រាការចុចរបស់អ្នក ដើម្បីប្រៀបធៀបប្លង់ជាមួយអ្នកវាយពិតៗ។", "Experimental layout, not an official Khmer standard.": "ប្លង់សាកល្បង មិនមែនជាស្តង់ដារខ្មែរផ្លូវការទេ។", "Fonts: Noto Serif Khmer and Kantumruy Pro (SIL Open Font License) ·": "ពុម្ពអក្សរ៖ Noto Serif Khmer និង Kantumruy Pro (SIL Open Font License) ·", "Source on GitHub": "កូដប្រភពនៅលើ GitHub", "Hints on": "ជំនួយ៖ បើក", "Hints off": "ជំនួយ៖ បិទ", "New keys: ": "គ្រាប់ចុចថ្មី៖ ", "All keys in play.": "ប្រើគ្រាប់ចុចទាំងអស់។", "Next: ": "បន្ទាប់៖ ", "  (hold Shift)": "  (សង្កត់ Shift)", "  (hold AltGr / Option)": "  (សង្កត់ AltGr / Option)", "All keys, common words": "គ្រាប់ចុចទាំងអស់ ពាក្យប្រើញឹកញាប់", "Game over": "ចប់ល្បែង", " – new best!": " – ពិន្ទុខ្ពស់ថ្មី!", "Modelled metric": "រង្វាស់តាមម៉ូដែល", "Optimised v2": "បង្កើនប្រសិទ្ធភាព v2", "Cluster keys": "គ្រាប់ចុចជើងអក្សរ", "Frequency only": "តាមប្រេកង់តែប៉ុណ្ណោះ", "Keystrokes per Khmer letter": "ចំនួនចុចក្នុងមួយអក្សរ", "Same-finger letter pairs": "គូអក្សរវាយដោយម្រាមដៃដដែល", "Hand alternation": "ការឆ្លាស់ដៃ", "Keystrokes on the base layer": "ការចុចលើស្រទាប់មូលដ្ឋាន", "Modelled effort per letter": "កម្លាំងក្នុងមួយអក្សរ (ម៉ូដែល)", "Khmer letters analysed": "អក្សរខ្មែរដែលបានវិភាគ", "keystrokes without Shift (modelled)": "ការចុចដោយមិនប្រើ Shift (ម៉ូដែល)", "layouts to compare": "ប្លង់សម្រាប់ប្រៀបធៀប", "unit": "អក្សរ", "key": "គ្រាប់ចុច", "weight": "ទម្ងន់", "Letters and clusters counted": "អក្សរ និងជើងអក្សរដែលបានរាប់", "in the Khmer text corpus; this sets each key's frequency": "ក្នុងសំណុំអត្ថបទខ្មែរ ដែលកំណត់ប្រេកង់របស់គ្រាប់ចុចនីមួយៗ", "Coeng clusters": "ជើងអក្សរ", "subscript consonants among them, in 35 cluster types": "ក្នុងចំណោមនោះ មាន ៣៥ ប្រភេទជើង", "Units ranked": "ឯកតាដែលបានចាត់លំដាប់", "distinct letters, vowels, signs and clusters given a key position": "អក្សរ ស្រៈ សញ្ញា និងជើង ដែលបានផ្ដល់ទីតាំងគ្រាប់ចុច", "Words for letter pairs": "ពាក្យសម្រាប់គូអក្សរ", "from a search-word list (478,195 weighted uses), giving 2,613 distinct letter pairs": "ពីបញ្ជីពាក្យស្វែងរក (ប្រើ ៤៧៨,១៩៥ ដង) ផ្ដល់គូអក្សរខុសគ្នា ២,៦១៣", "Practice words": "ពាក្យសម្រាប់ហាត់", "the most common words that every layout can type": "ពាក្យប្រើញឹកញាប់បំផុត ដែលប្លង់ទាំងអស់អាចវាយបាន", "Ranking stability": "ស្ថិរភាពនៃលំដាប់", "agreement between two halves of the corpus at 10 million letters": "ភាពស៊ីគ្នារវាងពាក់កណ្ដាលទាំងពីរនៃសំណុំអត្ថបទ នៅ ១០ លានអក្សរ", "Data behind the layout": "ទិន្នន័យដែលប្រើក្នុងការបង្កើតប្លង់", "The number of words in the corpus was not counted; key frequencies come from letter and cluster counts, not word counts.": "មិនបានរាប់ចំនួនពាក្យក្នុងសំណុំអត្ថបទទេ។ ប្រេកង់គ្រាប់ចុចបានមកពីការរាប់អក្សរ និងជើងអក្សរ មិនមែនពីការរាប់ពាក្យទេ។", "Space": "ដកឃ្លា", "Archer": "អ្នកបាញ់ព្រួញ", "Shoot each falling letter by typing it. Letters that land explode and hurt the archer. Every 10-hit combo heals; green ✚ letters heal more. Enter starts, Esc pauses.": "វាយអក្សរដែលធ្លាក់ ដើម្បីបាញ់វា។ អក្សរដែលធ្លាក់ដល់ដីនឹងផ្ទុះ ហើយធ្វើឱ្យអ្នកបាញ់របួស។ ជាប់ៗ ១០ ដង = ព្យាបាល; អក្សរពណ៌បៃតង ✚ ព្យាបាលបន្ថែម។ Enter ចាប់ផ្ដើម, Esc ផ្អាក។", "Standard keyboard": "ក្ដារចុចស្តង់ដារ", "Learn the standard keyboard": "រៀនក្ដារចុចស្តង់ដារ"}, lang="en", I18N_NODES=[];
 function T(en){return lang==="km"&&(KM[en]!=null||KM_NAMES[en]!=null)?(KM[en]!=null?KM[en]:KM_NAMES[en]):en}
 function L2(en,km){return lang==="km"?km:en}
 function kmNum(n){return lang==="km"?String(n).replace(/[0-9]/g,function(d){return String.fromCharCode(0x17E0+(+d))}):String(n)}
@@ -983,6 +1045,7 @@ function setLang(l){
   renderCompare();renderHero();renderAbout();setNewKeys();updateHint();gBtn();
   if(!gRunning&&!gDone)gOverlayShow(T("Ready?"),T("Words fall from the top. Type them on the keys you chose."),T("Start (Enter)"));
   else if(gPaused)gOverlayShow(T("Paused"),T("Press Esc or Enter to continue."),T("Resume"));
+  if(ARCH&&!aState.running&&!aState.paused)ARCH.menu();
 }
 $("langBtn").onclick=function(){setLang(lang==="km"?"en":"km")};
 function markNav(){
@@ -994,6 +1057,7 @@ window.addEventListener("scroll",markNav,{passive:true});
 renderCompare();
 var saved=store("layout");
 applyLayout(saved&&LAYOUTS[saved]?saved:window.LAYOUT_DEFAULT);
+pickGame(gGame);
 if(location.hash==="#game"||store("mode")==="game")setMode("game");
 setLang(store("lang")||"km");
 })();
