@@ -4,7 +4,7 @@ Browser typing tutor for an **experimental** Khmer keyboard layout whose key ass
 
 - Live page: serve the `docs/` folder (GitHub Pages: Settings → Pages → Deploy from branch → `main` / `/docs`).
 - Open `docs/index.html` locally to run it; no build step or server needed.
-- Pages: `docs/index.html` is the home page, which teaches the standard NiDA keyboard. `docs/lab.html` is the experimental layout tutor, with its research data in an ⓘ About sheet. `docs/nida.html` only redirects old links to the home page. `docs/ui.css` holds the shared design system: tokens, krama top bar, buttons, sheets and arcade styles.
+- Pages: `docs/index.html` is the home page, which teaches the standard NiDA keyboard. `docs/lab.html` is the experimental layout tutor, with its research data in an ⓘ About sheet. `docs/nida.html` only redirects old links to the home page. `docs/ui.css` holds the shared design system: tokens, krama top bar, buttons, sheets and arcade styles. `docs/visuals.js` draws the live pictures: a 3D keyboard that types Khmer words by itself (on both pages, following the Windows/Mac or layout choice), small looping previews of each game on the game cards, and mini key maps on the lesson tiles. They animate only while on screen, and `prefers-reduced-motion` shows still frames.
 - Works with physical key positions (QWERTY `event.code`), so it is independent of the OS layout. On-screen keys are clickable for touch devices.
 
 ## Important caveats

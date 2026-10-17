@@ -220,6 +220,66 @@ function scene(box){
   scenes.push(api);return api;
 }
 
+// ---------- the archer: a Khmer foot soldier after the Bayon bas-reliefs ----------
+function drawArcher(c,x,g,s,aim,drawn,hurt,t){
+ c.save();c.translate(x,g+(hurt?2:0));c.scale(s,s);
+  var skin=c.createLinearGradient(0,-90,0,0);skin.addColorStop(0,"#d9a06a");skin.addColorStop(1,"#8f5a30");
+  var body=hurt?"#ff8f7f":skin,leather="#5a3418",trim="#d8b071",dx=Math.cos(aim),dy=Math.sin(aim),px=-dy,py=dx,side=dx>=0?1:-1,br=Math.sin(t*1.7)*.5;
+  c.lineCap="round";c.lineJoin="round";
+  // quiver on the back, arrows showing over the shoulder
+  c.save();c.translate(-7*side,-62+br);c.rotate(.35*side);
+  c.strokeStyle="#e8d3a6";c.lineWidth=1.2;c.beginPath();[-2,0,2].forEach(function(o){c.moveTo(o,-4);c.lineTo(o,-13)});c.stroke();
+  c.fillStyle="#9b1c2c";[-2,0,2].forEach(function(o){c.beginPath();c.moveTo(o,-15);c.lineTo(o-1.6,-11);c.lineTo(o+1.6,-11);c.fill()});
+  c.fillStyle=leather;c.fillRect(-4,-5,8,24);c.fillStyle=trim;c.fillRect(-4,-5,8,1.6);c.fillRect(-4,8,8,1.2);c.restore();
+  // legs: wide, bent-knee fighting stance; knee wraps and bare feet
+  c.strokeStyle=body;c.lineWidth=6;c.beginPath();c.moveTo(-6,-36);c.lineTo(-17,-20);c.lineTo(-14,-3);c.moveTo(6,-36);c.lineTo(17,-20);c.lineTo(14,-3);c.stroke();
+  c.lineWidth=4;c.beginPath();c.moveTo(-14,-2);c.lineTo(-21,0);c.moveTo(14,-2);c.lineTo(21,0);c.stroke();
+  c.strokeStyle=leather;c.lineWidth=2.4;c.beginPath();c.moveTo(-19.5,-22);c.lineTo(-14.5,-18);c.moveTo(19.5,-22);c.lineTo(14.5,-18);c.stroke();
+  // short soldier's sampot, tucked up for running, with a cloth belt and hanging end
+  c.fillStyle="#6e2a22";c.beginPath();c.moveTo(-11,-50);c.lineTo(11,-50);c.lineTo(15,-37);c.quadraticCurveTo(8,-34,3,-37);c.lineTo(0,-41);c.lineTo(-3,-37);c.quadraticCurveTo(-8,-34,-15,-37);c.closePath();c.fill();
+  c.strokeStyle="rgba(0,0,0,.25)";c.lineWidth=.8;c.beginPath();c.moveTo(-7,-48);c.lineTo(-10,-38);c.moveTo(7,-48);c.lineTo(10,-38);c.stroke();
+  c.fillStyle="#3b2416";c.fillRect(-11.5,-51.5,23,3);c.beginPath();c.moveTo(-2.4,-49);c.lineTo(2.4,-49);c.lineTo(1.2,-39);c.lineTo(-1.2,-39);c.closePath();c.fill();
+  // bare torso with a leather baldric across the chest
+  c.fillStyle=body;c.beginPath();c.moveTo(-9,-50);c.quadraticCurveTo(-10,-59+br,-13,-66+br);c.quadraticCurveTo(0,-71+br,13,-66+br);c.quadraticCurveTo(10,-59+br,9,-50);c.closePath();c.fill();
+  c.strokeStyle=leather;c.lineWidth=2.6;c.beginPath();c.moveTo(-11*side,-66+br);c.lineTo(9*side,-50);c.stroke();
+  c.fillStyle=trim;c.beginPath();c.arc(-1*side,-58+br,1.4,0,6.283);c.fill();
+  // head with a krama wrapped as a headcloth, its ends flying behind
+  c.fillStyle=body;c.fillRect(-2.2,-74+br,4.4,5);c.beginPath();c.ellipse(0,-78+br,5.6,6.4,0,0,6.283);c.fill();
+  var hy=-81+br,fl=Math.sin(t*5)*1.6;
+  c.fillStyle="#b3262e";c.beginPath();c.moveTo(-6.2,hy+2);c.quadraticCurveTo(0,hy-7,6.2,hy+2);c.lineTo(5.6,hy+3.5);c.quadraticCurveTo(0,hy-1,-5.6,hy+3.5);c.closePath();c.fill();
+  c.strokeStyle="#f3efe6";c.lineWidth=.7;c.beginPath();for(var i=-4;i<=4;i+=2.6){c.moveTo(i,hy-2.5);c.lineTo(i+.6,hy+2.4)}c.stroke();
+  c.fillStyle="#b3262e";c.beginPath();c.moveTo(-5*side,hy+1);c.quadraticCurveTo(-11*side,hy-1+fl,-15*side,hy+3+fl);c.lineTo(-13*side,hy+5+fl);c.quadraticCurveTo(-10*side,hy+3,-5*side,hy+3.5);c.closePath();c.fill();
+  c.beginPath();c.moveTo(-5*side,hy+2.5);c.quadraticCurveTo(-10*side,hy+4-fl,-13*side,hy+9-fl);c.lineTo(-11*side,hy+10-fl);c.quadraticCurveTo(-9*side,hy+6,-5*side,hy+4);c.closePath();c.fill();
+  // arms: the bow arm reaches along the aim; the draw hand pulls the string to the cheek
+  var sF={x:12*side,y:-65+br},sR={x:-12*side,y:-65+br},hand={x:sF.x+dx*27,y:sF.y+dy*27},pull=drawn?24:9,nock={x:hand.x-dx*pull,y:hand.y-dy*pull};
+  var ex=nock.x-sR.x,ey=nock.y-sR.y,d=Math.sqrt(ex*ex+ey*ey),l=15,mxp=(sR.x+nock.x)/2,myp=(sR.y+nock.y)/2,hh=d<2*l?Math.sqrt(l*l-d*d/4):0,nx=-ey/(d||1),ny=ex/(d||1);
+  if(ny>0){nx=-nx;ny=-ny} // elbow up and out, as archers hold it
+  var elbow={x:mxp+nx*hh,y:myp+ny*hh};
+  c.strokeStyle=body;c.lineWidth=4.4;c.beginPath();c.moveTo(sR.x,sR.y);c.lineTo(elbow.x,elbow.y);c.lineTo(nock.x,nock.y);c.moveTo(sF.x,sF.y);c.lineTo(hand.x,hand.y);c.stroke();
+  c.strokeStyle=leather;c.lineWidth=3.2;c.beginPath(); // leather arm guards
+  [[sF,hand,.72],[sF,hand,.86],[sR,elbow,.5]].forEach(function(q){var ax0=q[0].x+(q[1].x-q[0].x)*q[2],ay0=q[0].y+(q[1].y-q[0].y)*q[2],vx=q[1].x-q[0].x,vy=q[1].y-q[0].y,vl=Math.sqrt(vx*vx+vy*vy)||1;c.moveTo(ax0-vy/vl*2.6,ay0+vx/vl*2.6);c.lineTo(ax0+vy/vl*2.6,ay0-vx/vl*2.6)});c.stroke();
+  // recurve bow with gold naga-curl tips
+  var L=31,t1={x:hand.x+px*L-dx*L*.3,y:hand.y+py*L-dy*L*.3},t2={x:hand.x-px*L-dx*L*.3,y:hand.y-py*L-dy*L*.3};
+  function limbs(){c.beginPath();c.moveTo(t1.x+dx*5+px*2,t1.y+dy*5+py*2);c.quadraticCurveTo(t1.x-dx*1,t1.y-dy*1,t1.x,t1.y);
+    c.quadraticCurveTo(hand.x+px*L*.8+dx*L*.18,hand.y+py*L*.8+dy*L*.18,hand.x,hand.y);c.quadraticCurveTo(hand.x-px*L*.8+dx*L*.18,hand.y-py*L*.8+dy*L*.18,t2.x,t2.y);
+    c.quadraticCurveTo(t2.x-dx*1,t2.y-dy*1,t2.x+dx*5-px*2,t2.y+dy*5-py*2);c.stroke()}
+  c.strokeStyle="#5b3416";c.lineWidth=4.2;limbs();c.strokeStyle="#f3cd72";c.lineWidth=1.5;limbs();
+  c.fillStyle="#f6d77c";[[t1,1],[t2,-1]].forEach(function(q){var cx0=q[0].x+dx*5+px*2*q[1],cy0=q[0].y+dy*5+py*2*q[1];c.beginPath();c.arc(cx0,cy0,2.3,0,6.283);c.fill()});
+  c.fillStyle="#9b1c2c";c.beginPath();c.arc(hand.x,hand.y,2.6,0,6.283);c.fill();
+  c.strokeStyle="rgba(255,250,232,.9)";c.lineWidth=.9;c.beginPath();c.moveTo(t1.x,t1.y);if(drawn)c.lineTo(nock.x,nock.y);c.lineTo(t2.x,t2.y);c.stroke();
+  if(drawn){c.strokeStyle="#e8c983";c.lineWidth=1.6;c.beginPath();c.moveTo(nock.x,nock.y);c.lineTo(hand.x+dx*9,hand.y+dy*9);c.stroke();
+    c.fillStyle="#dfe6ee";c.beginPath();c.moveTo(hand.x+dx*15,hand.y+dy*15);c.lineTo(hand.x+dx*9+px*3,hand.y+dy*9+py*3);c.lineTo(hand.x+dx*9-px*3,hand.y+dy*9-py*3);c.fill();
+    c.fillStyle="#b3262e";c.beginPath();c.moveTo(nock.x+dx*1,nock.y+dy*1);c.lineTo(nock.x+dx*6+px*3,nock.y+dy*6+py*3);c.lineTo(nock.x+dx*6-px*3,nock.y+dy*6-py*3);c.fill()}
+  c.fillStyle=body;c.beginPath();c.arc(nock.x,nock.y,2.4,0,6.283);c.arc(hand.x,hand.y,0,0,6.283);c.fill();
+  c.restore();
+}
+// letters ride inside lotus rosettes; healing letters are pink lotus flowers
+function rosette(c,x,y,r,rot,petal,inner,ring){
+  var n=12,st=6.2832/n;c.fillStyle=petal;c.beginPath();c.moveTo(x+Math.cos(rot)*r,y+Math.sin(rot)*r);
+  for(var i=0;i<n;i++){var a1=rot+i*st+st/2,a2=rot+(i+1)*st;c.quadraticCurveTo(x+Math.cos(a1)*(r+11),y+Math.sin(a1)*(r+11),x+Math.cos(a2)*r,y+Math.sin(a2)*r)}
+  c.fill();c.fillStyle=inner;c.beginPath();c.arc(x,y,r-1,0,6.283);c.fill();c.strokeStyle=ring;c.lineWidth=1.6;c.beginPath();c.arc(x,y,r-3.5,0,6.283);c.stroke();
+}
+
 // ---------- Archer: shoot the falling letters before they explode ----------
 /* opts: pool() -> units, disp(u), hint(u|null), t(km,en), num(n), best() -> number, saveBest(n), buzz() */
 function archer(box,opts){
@@ -312,65 +372,6 @@ function archer(box,opts){
     var nx=lowest(function(l){return !l.doomed});var hu=nx?nx.u:null;if(hu!==S.lastHint){S.lastHint=hu;opts.hint(hu)}
     draw();raf=requestAnimationFrame(frame);
   }
-  // ---------- the archer: a Khmer foot soldier after the Bayon bas-reliefs ----------
-  function drawArcher(x,g,s,aim,drawn,hurt,t){
-    var c=ctx;c.save();c.translate(x,g+(hurt?2:0));c.scale(s,s);
-    var skin=c.createLinearGradient(0,-90,0,0);skin.addColorStop(0,"#d9a06a");skin.addColorStop(1,"#8f5a30");
-    var body=hurt?"#ff8f7f":skin,leather="#5a3418",trim="#d8b071",dx=Math.cos(aim),dy=Math.sin(aim),px=-dy,py=dx,side=dx>=0?1:-1,br=Math.sin(t*1.7)*.5;
-    c.lineCap="round";c.lineJoin="round";
-    // quiver on the back, arrows showing over the shoulder
-    c.save();c.translate(-7*side,-62+br);c.rotate(.35*side);
-    c.strokeStyle="#e8d3a6";c.lineWidth=1.2;c.beginPath();[-2,0,2].forEach(function(o){c.moveTo(o,-4);c.lineTo(o,-13)});c.stroke();
-    c.fillStyle="#9b1c2c";[-2,0,2].forEach(function(o){c.beginPath();c.moveTo(o,-15);c.lineTo(o-1.6,-11);c.lineTo(o+1.6,-11);c.fill()});
-    c.fillStyle=leather;c.fillRect(-4,-5,8,24);c.fillStyle=trim;c.fillRect(-4,-5,8,1.6);c.fillRect(-4,8,8,1.2);c.restore();
-    // legs: wide, bent-knee fighting stance; knee wraps and bare feet
-    c.strokeStyle=body;c.lineWidth=6;c.beginPath();c.moveTo(-6,-36);c.lineTo(-17,-20);c.lineTo(-14,-3);c.moveTo(6,-36);c.lineTo(17,-20);c.lineTo(14,-3);c.stroke();
-    c.lineWidth=4;c.beginPath();c.moveTo(-14,-2);c.lineTo(-21,0);c.moveTo(14,-2);c.lineTo(21,0);c.stroke();
-    c.strokeStyle=leather;c.lineWidth=2.4;c.beginPath();c.moveTo(-19.5,-22);c.lineTo(-14.5,-18);c.moveTo(19.5,-22);c.lineTo(14.5,-18);c.stroke();
-    // short soldier's sampot, tucked up for running, with a cloth belt and hanging end
-    c.fillStyle="#6e2a22";c.beginPath();c.moveTo(-11,-50);c.lineTo(11,-50);c.lineTo(15,-37);c.quadraticCurveTo(8,-34,3,-37);c.lineTo(0,-41);c.lineTo(-3,-37);c.quadraticCurveTo(-8,-34,-15,-37);c.closePath();c.fill();
-    c.strokeStyle="rgba(0,0,0,.25)";c.lineWidth=.8;c.beginPath();c.moveTo(-7,-48);c.lineTo(-10,-38);c.moveTo(7,-48);c.lineTo(10,-38);c.stroke();
-    c.fillStyle="#3b2416";c.fillRect(-11.5,-51.5,23,3);c.beginPath();c.moveTo(-2.4,-49);c.lineTo(2.4,-49);c.lineTo(1.2,-39);c.lineTo(-1.2,-39);c.closePath();c.fill();
-    // bare torso with a leather baldric across the chest
-    c.fillStyle=body;c.beginPath();c.moveTo(-9,-50);c.quadraticCurveTo(-10,-59+br,-13,-66+br);c.quadraticCurveTo(0,-71+br,13,-66+br);c.quadraticCurveTo(10,-59+br,9,-50);c.closePath();c.fill();
-    c.strokeStyle=leather;c.lineWidth=2.6;c.beginPath();c.moveTo(-11*side,-66+br);c.lineTo(9*side,-50);c.stroke();
-    c.fillStyle=trim;c.beginPath();c.arc(-1*side,-58+br,1.4,0,6.283);c.fill();
-    // head with a krama wrapped as a headcloth, its ends flying behind
-    c.fillStyle=body;c.fillRect(-2.2,-74+br,4.4,5);c.beginPath();c.ellipse(0,-78+br,5.6,6.4,0,0,6.283);c.fill();
-    var hy=-81+br,fl=Math.sin(t*5)*1.6;
-    c.fillStyle="#b3262e";c.beginPath();c.moveTo(-6.2,hy+2);c.quadraticCurveTo(0,hy-7,6.2,hy+2);c.lineTo(5.6,hy+3.5);c.quadraticCurveTo(0,hy-1,-5.6,hy+3.5);c.closePath();c.fill();
-    c.strokeStyle="#f3efe6";c.lineWidth=.7;c.beginPath();for(var i=-4;i<=4;i+=2.6){c.moveTo(i,hy-2.5);c.lineTo(i+.6,hy+2.4)}c.stroke();
-    c.fillStyle="#b3262e";c.beginPath();c.moveTo(-5*side,hy+1);c.quadraticCurveTo(-11*side,hy-1+fl,-15*side,hy+3+fl);c.lineTo(-13*side,hy+5+fl);c.quadraticCurveTo(-10*side,hy+3,-5*side,hy+3.5);c.closePath();c.fill();
-    c.beginPath();c.moveTo(-5*side,hy+2.5);c.quadraticCurveTo(-10*side,hy+4-fl,-13*side,hy+9-fl);c.lineTo(-11*side,hy+10-fl);c.quadraticCurveTo(-9*side,hy+6,-5*side,hy+4);c.closePath();c.fill();
-    // arms: the bow arm reaches along the aim; the draw hand pulls the string to the cheek
-    var sF={x:12*side,y:-65+br},sR={x:-12*side,y:-65+br},hand={x:sF.x+dx*27,y:sF.y+dy*27},pull=drawn?24:9,nock={x:hand.x-dx*pull,y:hand.y-dy*pull};
-    var ex=nock.x-sR.x,ey=nock.y-sR.y,d=Math.sqrt(ex*ex+ey*ey),l=15,mxp=(sR.x+nock.x)/2,myp=(sR.y+nock.y)/2,hh=d<2*l?Math.sqrt(l*l-d*d/4):0,nx=-ey/(d||1),ny=ex/(d||1);
-    if(ny>0){nx=-nx;ny=-ny} // elbow up and out, as archers hold it
-    var elbow={x:mxp+nx*hh,y:myp+ny*hh};
-    c.strokeStyle=body;c.lineWidth=4.4;c.beginPath();c.moveTo(sR.x,sR.y);c.lineTo(elbow.x,elbow.y);c.lineTo(nock.x,nock.y);c.moveTo(sF.x,sF.y);c.lineTo(hand.x,hand.y);c.stroke();
-    c.strokeStyle=leather;c.lineWidth=3.2;c.beginPath(); // leather arm guards
-    [[sF,hand,.72],[sF,hand,.86],[sR,elbow,.5]].forEach(function(q){var ax0=q[0].x+(q[1].x-q[0].x)*q[2],ay0=q[0].y+(q[1].y-q[0].y)*q[2],vx=q[1].x-q[0].x,vy=q[1].y-q[0].y,vl=Math.sqrt(vx*vx+vy*vy)||1;c.moveTo(ax0-vy/vl*2.6,ay0+vx/vl*2.6);c.lineTo(ax0+vy/vl*2.6,ay0-vx/vl*2.6)});c.stroke();
-    // recurve bow with gold naga-curl tips
-    var L=31,t1={x:hand.x+px*L-dx*L*.3,y:hand.y+py*L-dy*L*.3},t2={x:hand.x-px*L-dx*L*.3,y:hand.y-py*L-dy*L*.3};
-    function limbs(){c.beginPath();c.moveTo(t1.x+dx*5+px*2,t1.y+dy*5+py*2);c.quadraticCurveTo(t1.x-dx*1,t1.y-dy*1,t1.x,t1.y);
-      c.quadraticCurveTo(hand.x+px*L*.8+dx*L*.18,hand.y+py*L*.8+dy*L*.18,hand.x,hand.y);c.quadraticCurveTo(hand.x-px*L*.8+dx*L*.18,hand.y-py*L*.8+dy*L*.18,t2.x,t2.y);
-      c.quadraticCurveTo(t2.x-dx*1,t2.y-dy*1,t2.x+dx*5-px*2,t2.y+dy*5-py*2);c.stroke()}
-    c.strokeStyle="#5b3416";c.lineWidth=4.2;limbs();c.strokeStyle="#f3cd72";c.lineWidth=1.5;limbs();
-    c.fillStyle="#f6d77c";[[t1,1],[t2,-1]].forEach(function(q){var cx0=q[0].x+dx*5+px*2*q[1],cy0=q[0].y+dy*5+py*2*q[1];c.beginPath();c.arc(cx0,cy0,2.3,0,6.283);c.fill()});
-    c.fillStyle="#9b1c2c";c.beginPath();c.arc(hand.x,hand.y,2.6,0,6.283);c.fill();
-    c.strokeStyle="rgba(255,250,232,.9)";c.lineWidth=.9;c.beginPath();c.moveTo(t1.x,t1.y);if(drawn)c.lineTo(nock.x,nock.y);c.lineTo(t2.x,t2.y);c.stroke();
-    if(drawn){c.strokeStyle="#e8c983";c.lineWidth=1.6;c.beginPath();c.moveTo(nock.x,nock.y);c.lineTo(hand.x+dx*9,hand.y+dy*9);c.stroke();
-      c.fillStyle="#dfe6ee";c.beginPath();c.moveTo(hand.x+dx*15,hand.y+dy*15);c.lineTo(hand.x+dx*9+px*3,hand.y+dy*9+py*3);c.lineTo(hand.x+dx*9-px*3,hand.y+dy*9-py*3);c.fill();
-      c.fillStyle="#b3262e";c.beginPath();c.moveTo(nock.x+dx*1,nock.y+dy*1);c.lineTo(nock.x+dx*6+px*3,nock.y+dy*6+py*3);c.lineTo(nock.x+dx*6-px*3,nock.y+dy*6-py*3);c.fill()}
-    c.fillStyle=body;c.beginPath();c.arc(nock.x,nock.y,2.4,0,6.283);c.arc(hand.x,hand.y,0,0,6.283);c.fill();
-    c.restore();
-  }
-  // letters ride inside lotus rosettes; healing letters are pink lotus flowers
-  function rosette(x,y,r,rot,petal,inner,ring){
-    var c=ctx,n=12,st=6.2832/n;c.fillStyle=petal;c.beginPath();c.moveTo(x+Math.cos(rot)*r,y+Math.sin(rot)*r);
-    for(var i=0;i<n;i++){var a1=rot+i*st+st/2,a2=rot+(i+1)*st;c.quadraticCurveTo(x+Math.cos(a1)*(r+11),y+Math.sin(a1)*(r+11),x+Math.cos(a2)*r,y+Math.sin(a2)*r)}
-    c.fill();c.fillStyle=inner;c.beginPath();c.arc(x,y,r-1,0,6.283);c.fill();c.strokeStyle=ring;c.lineWidth=1.6;c.beginPath();c.arc(x,y,r-3.5,0,6.283);c.stroke();
-  }
   function draw(){
     if(!W)return;var g=ground(),t=Date.now()/1000;
     ctx.clearRect(0,0,W,H);paintScene(ctx,W,H,g,S.tod,t,SC,{terrace:true});
@@ -380,8 +381,8 @@ function archer(box,opts){
       var x=l.x+Math.sin(l.wob)*3,y=l.y,danger=Math.min(1,Math.max(0,(l.y-(g-150))/150)),r=20;
       var halo=ctx.createRadialGradient(x,y,4,x,y,r+18);halo.addColorStop(0,l.heal?"rgba(255,160,205,.5)":"rgba(255,"+Math.round(205-150*danger)+",90,.45)");halo.addColorStop(1,"rgba(0,0,0,0)");
       ctx.fillStyle=halo;ctx.beginPath();ctx.arc(x,y,r+18,0,6.283);ctx.fill();
-      if(l.heal)rosette(x,y,r,l.wob*.2,"#ff9ec7","#2d1030","#ffd1e6");
-      else rosette(x,y,r,l.wob*.2,l.doomed?"rgba(120,100,80,.5)":"rgb(255,"+Math.round(205-130*danger)+","+Math.round(110-70*danger)+")","#241634",danger>.6?"#ff8a5c":"#f3cd72");
+      if(l.heal)rosette(ctx,x,y,r,l.wob*.2,"#ff9ec7","#2d1030","#ffd1e6");
+      else rosette(ctx,x,y,r,l.wob*.2,l.doomed?"rgba(120,100,80,.5)":"rgb(255,"+Math.round(205-130*danger)+","+Math.round(110-70*danger)+")","#241634",danger>.6?"#ff8a5c":"#f3cd72");
       ctx.fillStyle="#fff";ctx.font="600 21px "+font;ctx.fillText(opts.disp(l.u),x,y+1);
       if(l.heal){ctx.fillStyle="#7dffb0";ctx.font="700 11px sans-serif";ctx.fillText("✚",x,y-r+5)}
     });
@@ -391,7 +392,7 @@ function archer(box,opts){
       ctx.fillStyle="#e9eef4";ctx.beginPath();ctx.moveTo(11,0);ctx.lineTo(1,-4.5);ctx.lineTo(3,0);ctx.lineTo(1,4.5);ctx.fill();ctx.fillStyle="#b3262e";ctx.beginPath();ctx.moveTo(-27,0);ctx.lineTo(-20,-4);ctx.lineTo(-18,0);ctx.lineTo(-20,4);ctx.fill();ctx.restore()});
     // the archer
     var aim=Math.max(-Math.PI+.2,Math.min(-.2,S.aim)),sc=Math.max(.72,Math.min(1.12,H/400));
-    drawArcher(ax(),g,sc,aim,S.release<=0,S.hurt>0&&Math.floor(t*20)%2===0,t);
+    drawArcher(ctx,ax(),g,sc,aim,S.release<=0,S.hurt>0&&Math.floor(t*20)%2===0,t);
     // HUD: gold-framed health bar, score and wave
     var bw=Math.min(180,W*.36),hp=S.hp/100,hx=14,hy=20;
     ctx.fillStyle="rgba(10,6,24,.6)";ctx.beginPath();ctx.roundRect?ctx.roundRect(hx,hy,bw+6,14,7):ctx.rect(hx,hy,bw+6,14);ctx.fill();
@@ -419,5 +420,5 @@ function archer(box,opts){
   window.__arcade=api;return api;
 }
 
-window.Arcade={scene:scene,_scenes:scenes,play:play,sfxButton:sfxButton,fx:fx,banner:banner,combo:combo,archer:archer,reducedMotion:RM};
+window.Arcade={_paint:{scene:paintScene,sceneState:sceneState,rosette:rosette,archer:drawArcher},scene:scene,_scenes:scenes,play:play,sfxButton:sfxButton,fx:fx,banner:banner,combo:combo,archer:archer,reducedMotion:RM};
 })();
