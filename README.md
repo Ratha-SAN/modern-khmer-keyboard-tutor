@@ -4,6 +4,7 @@ Browser typing tutor for an **experimental** Khmer keyboard layout whose key ass
 
 - Live page: serve the `docs/` folder (GitHub Pages: Settings → Pages → Deploy from branch → `main` / `/docs`).
 - Open `docs/index.html` locally to run it; no build step or server needed.
+- Pages: `docs/index.html` is the home page, which teaches the standard NiDA keyboard. `docs/lab.html` is the experimental layout tutor, with its research data in an ⓘ About sheet. `docs/nida.html` only redirects old links to the home page. `docs/ui.css` holds the shared design system: tokens, krama top bar, buttons, sheets and arcade styles.
 - Works with physical key positions (QWERTY `event.code`), so it is independent of the OS layout. On-screen keys are clickable for touch devices.
 
 ## Important caveats
@@ -63,7 +64,7 @@ On narrow screens the on-screen keyboard docks to the bottom (respecting the iPh
 
 ## Standard NiDA keyboard (Windows and Mac)
 
-`docs/nida.html` teaches the keyboard most Khmer typists already use: the NiDA "Khmer Unicode" layout, with a Windows/Mac switch. It has 10 lessons (home, top and bottom rows; the same rows with Shift; subscripts; digits and punctuation; common words; long words) and three games (Key Hunt, a 60-second Sprint and Word Rain). The on-screen keyboard follows the real Windows or Mac key shapes, with AltGr or ⌥ Option for the third layer.
+`docs/index.html` (the home page) teaches the keyboard most Khmer typists already use: the NiDA "Khmer Unicode" layout, with a Windows/Mac switch. It has 10 lessons (home, top and bottom rows; the same rows with Shift; subscripts; digits and punctuation; common words; long words) and three games (Key Hunt, a 60-second Sprint and Word Rain). The on-screen keyboard follows the real Windows or Mac key shapes, with AltGr or ⌥ Option for the third layer.
 
 - Key maps are in `docs/nida-layouts.js`. Windows comes from XKB `symbols/kh` (the same layout as Windows "Khmer (NIDA)", KBDKNI). Mac comes from the "Khmer Unicode" keylayout in [socheatsok78/khmer-unicode-keyboard-for-macos](https://github.com/socheatsok78/khmer-unicode-keyboard-for-macos).
 - Every letter key is the same in both maps. They differ in 10 rarely used AltGr/Option symbols.
@@ -87,7 +88,7 @@ On narrow screens the on-screen keyboard docks to the bottom (respecting the iPh
 
 ## Word Rain game
 
-The **Word Rain game** is a tab in `docs/index.html` next to the lessons: Khmer words fall; type each before it hits the red line. Choose the layout and how many keys (top 8/16/…/all) are in play, so it doubles as practice for the lessons. Three lives, speed rises every 8 words, Backspace drops the current word lock, Esc pauses, best score is stored per layout and key set in `localStorage`.
+The **Word Rain game** is a tab in `docs/lab.html` next to the lessons: Khmer words fall; type each before it hits the red line. Choose the layout and how many keys (top 8/16/…/all) are in play, so it doubles as practice for the lessons. Three lives, speed rises every 8 words, Backspace drops the current word lock, Esc pauses, best score is stored per layout and key set in `localStorage`.
 
 ## Tutor
 

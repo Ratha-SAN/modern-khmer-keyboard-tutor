@@ -3,1067 +3,710 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#eef1f5" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0c0f13" media="(prefers-color-scheme: dark)">
+<title>កម្មវិធីហាត់វាយអក្សរខ្មែរទំនើប</title>
+<meta name="description" content="Learn to type Khmer on the standard NiDA keyboard for Windows and Mac: short lessons and arcade games.">
+<meta name="theme-color" content="#f6f5f2">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="វាយខ្មែរ">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<title>កម្មវិធីហាត់វាយអក្សរខ្មែរទំនើប</title>
-<meta name="description" content="Typing tutor for an experimental Khmer keyboard layout derived from letter and coeng-cluster frequency.">
+<link rel="stylesheet" href="ui.css">
 <style>
-/* Layout: app bar with mode switch, one practice card (single-line text strip), keyboard deck below.
-   Type: Noto Serif Khmer for all Khmer text; Kantumruy Pro (Latin subset) for Latin interface text. */
-@font-face{font-family:"UI Latin";src:url(fonts/KantumruyPro-latin-400.woff2) format("woff2");font-weight:400;font-display:swap;unicode-range:U+0000-00FF,U+2000-206F,U+2190-2193,U+2212}
-@font-face{font-family:"UI Latin";src:url(fonts/KantumruyPro-latin-600.woff2) format("woff2");font-weight:600;font-display:swap;unicode-range:U+0000-00FF,U+2000-206F,U+2190-2193,U+2212}
-@font-face{font-family:"Noto Serif Khmer";src:url(fonts/NotoSerifKhmer-400.woff2) format("woff2");font-weight:400;font-display:swap;unicode-range:U+1780-17FF,U+19E0-19FF,U+200C-200D,U+25CC}
-@font-face{font-family:"Noto Serif Khmer";src:url(fonts/NotoSerifKhmer-600.woff2) format("woff2");font-weight:600;font-display:swap;unicode-range:U+1780-17FF,U+19E0-19FF,U+200C-200D,U+25CC}
-:root{
-  --bg:#eef1f5; --panel:#ffffff; --raise:#f6f8fb; --ink:#10151c; --muted:#5b6574; --line:#dde3eb;
-  --accent:#0d8a6e; --accent-ink:#ffffff; --accent-soft:#d9f2ea;
-  --hint:#ffbf2e; --hint-ink:#2a1d00; --bad:#e5484d; --good:#18794e;
-  --key:#ffffff; --key-edge:#c7cfda; --sky:#e6edf3;
-  --f0:#e5484d; --f1:#f08c2e; --f2:#d4a90b; --f3:#30a46c; --f4:#12a594; --f5:#0090ff; --f6:#6e56cf; --f7:#d6409f;
-  --shadow:0 1px 2px rgba(16,21,28,.06),0 10px 30px -18px rgba(16,21,28,.35);
-  --krama-base:#ffffff; --krama-red:rgba(200,16,46,.62); --krama-dim:rgba(40,18,22,.24);
-  --ui:"UI Latin","Noto Serif Khmer",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --text:"Noto Serif Khmer","Khmer OS Siemreap","Khmer OS","Khmer UI",serif;
-  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-}
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --bg:#0c0f13; --panel:#151a21; --raise:#1b212a; --ink:#e7ebf0; --muted:#8c97a6; --line:#262e39;
-  --accent:#2fd3a8; --accent-ink:#04221a; --accent-soft:#123b31;
-  --hint:#ffbf2e; --hint-ink:#2a1d00; --bad:#ff6b6f; --good:#4cc38a;
-  --key:#1e252f; --key-edge:#0a0d11; --sky:#11171e;
-  --shadow:0 1px 2px rgba(0,0,0,.4),0 14px 34px -20px rgba(0,0,0,.8); --krama-base:#ffffff; --krama-red:rgba(200,16,46,.62); --krama-dim:rgba(20,10,12,.42); color-scheme:dark } }
-:root[data-theme="dark"]{
-  --bg:#0c0f13; --panel:#151a21; --raise:#1b212a; --ink:#e7ebf0; --muted:#8c97a6; --line:#262e39;
-  --accent:#2fd3a8; --accent-ink:#04221a; --accent-soft:#123b31;
-  --hint:#ffbf2e; --hint-ink:#2a1d00; --bad:#ff6b6f; --good:#4cc38a;
-  --key:#1e252f; --key-edge:#0a0d11; --sky:#11171e;
-  --shadow:0 1px 2px rgba(0,0,0,.4),0 14px 34px -20px rgba(0,0,0,.8); --krama-base:#ffffff; --krama-red:rgba(200,16,46,.62); --krama-dim:rgba(20,10,12,.42); color-scheme:dark }
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--ui);-webkit-font-smoothing:antialiased}
-.kh{font-family:var(--text)}
-main{display:block}
-.wrap{max-width:1120px;margin:0 auto;padding-inline:20px}
-section[id]{scroll-margin-top:72px}
-/* site navigation */
-.nav{position:sticky;top:0;padding-top:env(safe-area-inset-top,0px);z-index:30;border-bottom:1px solid var(--line);
-  /* krama (Cambodian checked scarf): red and white checks drawn as the bar's own background, fading out from left to right */
-  background-color:var(--krama-base);
-  background-image:
-    linear-gradient(var(--krama-dim),var(--krama-dim)),
-    linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.12) 50%,rgba(255,255,255,.3) 100%),
-    linear-gradient(90deg,var(--krama-red) 50%,transparent 50%),
-    linear-gradient(var(--krama-red) 50%,transparent 50%);
-  background-size:100% 100%,100% 100%,18px 18px,18px 18px;background-position:0 0,0 0,0 0,0 0}
-.nav .wrap{display:flex;align-items:center;gap:6px 22px;min-height:62px;flex-wrap:wrap}
-.nav .brand{margin-right:auto;text-decoration:none;color:var(--ink)}
-.nav .brand b{font-weight:600;font-size:1.12rem;color:#10151c;-webkit-text-stroke:4px #ffffff;paint-order:stroke fill;letter-spacing:.01em;text-shadow:0 2px 6px rgba(120,0,20,.25)}
-.nav .mark{width:34px;height:34px;border-radius:10px;font-size:1.15rem}
-.navlinks{display:flex;gap:6px 8px;flex-wrap:wrap}
-/* top-bar menu: white chips, grey when hovered or for the section you are in */
-.navlinks a,.langbtn{background:#ffffff;color:#10151c;border:0;border-radius:999px;padding:6px 14px;font-weight:600;font-size:.88rem;text-decoration:none;box-shadow:0 1px 2px rgba(16,21,28,.12);transition:background .15s}
-.navlinks a:hover,.navlinks a.active,.langbtn:hover{background:#d9dde3;color:#10151c}
-.navlinks a:focus-visible,.langbtn:focus-visible{outline:2px solid #10151c;outline-offset:2px}
-.gh{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:6px 14px;color:var(--ink);text-decoration:none;font-weight:600;font-size:.85rem;background:var(--panel)}
-/* arcade kit (arcade.js) */
-.arc-fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
-.arc-shake{animation:arcShake .3s}
-@keyframes arcShake{20%{transform:translate(-6px,3px)}40%{transform:translate(5px,-4px)}60%{transform:translate(-4px,2px)}80%{transform:translate(3px,-2px)}}
-.arc-flash{position:absolute;inset:0;pointer-events:none;z-index:6;animation:arcFlash .26s forwards}
-@keyframes arcFlash{to{opacity:0}}
-.arc-banner{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);z-index:7;pointer-events:none;font:900 clamp(1.5rem,6vw,2.6rem)/1.3 var(--ui);letter-spacing:.05em;color:#ffe58a;-webkit-text-stroke:2px #7a1020;paint-order:stroke fill;text-shadow:0 0 18px rgba(255,180,60,.8);white-space:nowrap;animation:arcBan 1.1s forwards}
-.arc-banner.mult{color:#7af0ff;top:30%;text-shadow:0 0 18px rgba(80,220,255,.8)}
-@keyframes arcBan{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}15%{transform:translate(-50%,-50%) scale(1.15);opacity:1}30%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{transform:translate(-50%,-75%);opacity:0}}
-.arc-combo{position:absolute;right:10px;top:50px;z-index:7;display:grid;grid-template-columns:auto auto;align-items:center;gap:2px 8px;padding:6px 10px;border-radius:12px;background:rgba(10,8,24,.75);color:#fff;font:700 .78rem/1.3 var(--ui);opacity:0;transition:opacity .2s;pointer-events:none}
-.arc-combo.on{opacity:1}
-.arc-combo b{grid-row:span 2;font:900 1.5rem/1 var(--ui);color:#ffe58a;text-shadow:0 0 10px rgba(255,200,60,.7)}
-.arc-combo[data-m="3"] b{color:#7af0ff}.arc-combo[data-m="4"] b{color:#ff8af0}.arc-combo[data-m="5"] b{color:#5dff9b}
-.arc-combo i{display:block;width:84px;height:4px;border-radius:2px;background:rgba(255,255,255,.18);overflow:hidden}
-.arc-combo u{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffb347,#ff5a36);transition:width .15s}
-.arc-combo.pop b{animation:arcPop .2s}
-.arc-combo.broke{animation:arcShake .3s}
-@keyframes arcPop{50%{transform:scale(1.35)}}
-.arc-mute{border:1px solid var(--line);background:var(--raise);border-radius:999px;padding:4px 10px;font-size:1rem;line-height:1.4;cursor:pointer}
-.arc-sky{position:relative;isolation:isolate;background:linear-gradient(#0b0a1f,#22163f 62%,#4a2346)!important;color:#fff}
-.arc-bg{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;display:block}
-.arc-sky.arc-day .glyph{color:#24163a;text-shadow:0 0 16px rgba(255,255,255,.85)}
-.arc-sky.arc-day .sub{color:#3b2a4c}
-.arc-sky .rw{background:#2a1838;color:#fff;border:2px solid rgba(255,211,77,.45);box-shadow:0 0 14px rgba(255,180,60,.25)}
-.arc-sky .rw.lock{border-color:#ffd34d;box-shadow:0 0 0 3px rgba(255,211,77,.35),0 0 18px rgba(255,211,77,.5)}
-.arc-sky .rw i{background:#ffd34d}
-.arc-archer{position:relative;height:clamp(260px,52vh,440px);border-radius:16px;overflow:hidden;background:radial-gradient(ellipse at 50% 125%,#4a1d4f 0%,#1a1236 50%,#0a0a18 100%);color:#fff;touch-action:manipulation}
-.arc-stage{position:absolute;inset:0;width:100%;height:100%;display:block}
-.arc-ov{position:absolute;inset:0;z-index:8;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;text-align:center;padding:18px;background:rgba(8,6,20,.62);color:#fff}
-.arc-ov[hidden]{display:none}
-.arc-ov h4,.arc-sky .overlay h4,.arc-sky #goverlay h2{margin:0;font:900 clamp(1.4rem,5vw,2.2rem)/1.3 var(--ui);letter-spacing:.06em;color:#ffe58a;-webkit-text-stroke:2px #7a1020;paint-order:stroke fill}
-.arc-ov p{margin:0;max-width:34em;color:#ddd;font-size:.92rem}
-.arc-sky .overlay,.arc-sky #goverlay{z-index:8;background:rgba(8,6,20,.62);color:#fff}
-.arc-sky .overlay .note,.arc-sky #goverlay .note{color:#ddd}
-.arc-sky .glyph{color:#fff;text-shadow:0 0 22px rgba(255,211,77,.55)}
-.arc-sky .sub{color:#c9c3e6}
-.arc-archer .arc-combo{right:auto;left:10px;top:44px}
-@media (max-width:640px){.arc-archer{height:min(40vh,320px)}.arc-combo{top:44px;padding:4px 8px}.arc-combo b{font-size:1.2rem}}
-#gfield .arc-combo{top:12px}
-/* hero */
-.hero{padding-block:56px 44px}
-.hero .wrap{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:40px;align-items:center}
-.eyebrow{color:var(--accent);font-weight:600;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;margin:0 0 12px}
-.hero h2{font-size:clamp(2rem,4.6vw,3.3rem);line-height:1.08;letter-spacing:-.025em;margin:0 0 16px;font-weight:600;text-wrap:balance}
-.hero h2 em{font-style:normal;color:var(--accent)}
-.lede{font-size:1.08rem;color:var(--muted);max-width:56ch;margin:0 0 26px}
-.cta{display:flex;gap:10px;flex-wrap:wrap}
-.btn{display:inline-flex;align-items:center;gap:8px;border-radius:12px;padding:12px 20px;font-weight:600;text-decoration:none;border:1px solid var(--line);color:var(--ink);background:var(--panel)}
-.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
-.facts{display:flex;gap:28px;flex-wrap:wrap;margin-top:34px;padding-top:22px;border-top:1px solid var(--line)}
-.facts div b{display:block;font-size:1.6rem;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.facts div span{color:var(--muted);font-size:.8rem}
-.herokeys{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:22px;border-radius:24px;background:var(--panel);box-shadow:var(--shadow)}
-.herokeys .hk{aspect-ratio:1;max-width:100%;border-radius:16px;background:var(--key);border:1px solid var(--line);border-bottom:4px solid var(--key-edge);display:grid;place-items:center;font:2.1rem/1 var(--text);color:var(--ink);position:relative}
-.herokeys .hk small{position:absolute;left:8px;top:6px;font:600 .7rem/1 var(--ui);color:var(--muted)}
-.herokeys .hk.home{background:var(--accent-soft);border-bottom-color:var(--accent)}
-.herokeys p{grid-column:1/-1;margin:4px 0 0;color:var(--muted);font-size:.8rem;text-align:center}
-/* page sections */
-.band{padding-block:48px}
-.band.alt{background:var(--panel);border-block:1px solid var(--line)}
-.shead{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px}
-.shead h2{margin:0;font-size:1.65rem;font-weight:600;letter-spacing:-.015em}
-.shead p{margin:6px 0 0;color:var(--muted);max-width:60ch}
-.app{display:flex;flex-direction:column;gap:16px}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
-.card{background:var(--raise);border-radius:18px;padding:20px}
-.band:not(.alt) .card{background:var(--panel);box-shadow:var(--shadow)}
-.card .num{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--accent-soft);color:var(--accent);font-weight:600;font-size:.85rem;margin-bottom:12px}
-.card h3{margin:0 0 6px;font-size:1.02rem;font-weight:600}
-.card p{margin:0;color:var(--muted);font-size:.92rem}
-.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
-.dhead{margin:0 0 12px;font-size:1.05rem;font-weight:600}
-.datastats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:10px}
-.ds{background:var(--panel);border-radius:16px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:2px;min-width:0}
-.ds b{font-size:1.5rem;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--accent)}
-.ds strong{font-weight:600;font-size:.95rem}
-.ds span{color:var(--muted);font-size:.84rem}
-.dnote{margin:0 0 20px}
-@media (max-width:640px){.datastats{grid-template-columns:1fr 1fr;gap:8px}.ds{padding:12px}.ds b{font-size:1.2rem}}
-.compare th:not(:first-child),.compare td:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
-.compare td.best{color:var(--accent);font-weight:600}
-.caveat{margin-top:16px;padding:14px 16px;border-radius:14px;background:color-mix(in srgb,var(--hint) 16%,var(--panel));color:var(--ink);font-size:.88rem}
-footer{padding-block:28px 40px;color:var(--muted);font-size:.85rem}
-footer .wrap{display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between}
-.herokeys p{font-family:var(--ui)}
-html[lang="km"] h1,html[lang="km"] h2,html[lang="km"] h3{line-height:1.5;letter-spacing:0}
-html[lang="km"] .lede,html[lang="km"] .shead p,html[lang="km"] .card p{line-height:1.75}
-@media (max-width:860px){.hero .wrap,.split{grid-template-columns:1fr}.hero{padding-block:36px 28px}.herokeys{max-width:420px}}
-a{color:var(--accent)}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-
-/* app bar */
-.appbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px}
-.apphead{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
-.brand{display:flex;align-items:center;gap:12px;margin-right:auto;min-width:0}
-.mark{width:42px;height:42px;border-radius:12px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font:600 1.45rem/1 var(--text);flex:none;box-shadow:var(--shadow)}
-h1{font-size:1.15rem;font-weight:600;margin:0;letter-spacing:-.01em;text-wrap:balance}
-.sub{color:var(--muted);font-size:.85rem;margin:0}
-.seg{display:inline-flex;background:var(--raise);border:1px solid var(--line);border-radius:999px;padding:3px}
-.seg button{border:0;background:transparent;border-radius:999px;padding:7px 16px;font-weight:600;color:var(--muted)}
-.seg button[aria-pressed=true]{background:var(--panel);color:var(--ink);box-shadow:var(--shadow)}
-
-/* cards and controls */
-.panel{background:var(--panel);border-radius:18px;padding:18px;box-shadow:var(--shadow)}
-.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-label.field{display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-size:.85rem}
-select,button,textarea{font:inherit;color:var(--ink)}
-select{background:var(--raise);border:1px solid var(--line);border-radius:10px;padding:7px 30px 7px 12px;max-width:100%;appearance:none;
-  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
-  background-position:calc(100% - 15px) 52%,calc(100% - 10px) 52%;background-size:5px 5px;background-repeat:no-repeat}
-button{background:var(--raise);border:1px solid var(--line);border-radius:10px;padding:7px 14px;cursor:pointer;transition:background .15s,transform .05s}
-button:hover{border-color:var(--muted)}
-button:active{transform:translateY(1px)}
-button:disabled{opacity:.45;cursor:default}
-button.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent;font-weight:600}
-button.toggle[aria-pressed=true]{background:var(--accent-soft);border-color:transparent;color:var(--ink)}
-.stats{display:flex;gap:8px;margin-left:auto;font-variant-numeric:tabular-nums;flex-wrap:wrap}
-.stat{background:var(--raise);border-radius:12px;padding:6px 12px;min-width:72px}
-.stat b{display:block;font-size:1.15rem;line-height:1.2;font-weight:600}
-.stat span{color:var(--muted);font-size:.7rem;letter-spacing:.04em;text-transform:uppercase}
-#progress{height:4px;background:var(--raise);border-radius:2px;overflow:hidden;margin-top:14px}
+/* ---- home ---- */
+.hero{padding-block:clamp(40px,8vw,84px) 28px;text-align:center}
+.hero h1{font-size:clamp(2.1rem,5.4vw,3.4rem);font-weight:600;margin:0 0 8px;letter-spacing:-.02em;line-height:1.15;text-wrap:balance}
+html[lang="km"] .hero h1{line-height:1.45}
+.hero .sub{margin:0 0 30px;color:var(--muted);font-size:1.02rem}
+.actions{display:flex;flex-direction:column;align-items:center;gap:16px}
+.actions .btn.primary{padding:14px 30px;font-size:1.02rem;min-width:240px}
+.linkbtn{background:none;border:0;color:var(--muted);font-weight:600;font-size:.86rem;display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px}
+.linkbtn:hover{color:var(--ink);background:var(--raise)}
+.band{padding-block:18px 34px}
+section[id]{scroll-margin-top:70px}
+.shead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 14px}
+.shead h2{margin:0;font-size:1.3rem;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:12px}
+.lcard{position:relative;text-align:left;background:var(--panel);border:1.5px solid transparent;border-radius:20px;padding:16px;box-shadow:var(--shadow);cursor:pointer;display:flex;flex-direction:column;gap:10px;min-width:0;transition:transform .15s,box-shadow .15s}
+.lcard:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:transparent}
+.lcard .n{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:var(--raise);font:600 .92rem var(--ui);color:var(--ink)}
+.lcard.cur{border-color:var(--accent)}
+.lcard.cur .n{background:var(--accent);color:#fff}
+.lcard.done .n{background:var(--home);color:var(--good)}
+.lcard h3{margin:0;font-size:.98rem;font-weight:600;line-height:1.4}
+.stars{color:var(--star);font-size:.95rem;letter-spacing:.12em;min-height:1.2em;line-height:1}
+.stars .off{color:var(--line)}
+.games{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+.gcard{min-height:168px;justify-content:space-between;padding:18px;border:0}
+.gcard .big{font:600 2.5rem/1 var(--text)}
+.gcard h3{font-size:1.08rem}
+.gcard .pill{align-self:flex-start;background:rgba(255,255,255,.75)}
+.gcard[data-g=hunt]{background:linear-gradient(150deg,#fff6e6,#ffe7c2)}
+.gcard[data-g=sprint]{background:linear-gradient(150deg,#eef4ff,#d9e6ff)}
+.gcard[data-g=archer]{background:linear-gradient(150deg,#f6edff,#e5d3ff)}
+.gcard[data-g=rain]{background:linear-gradient(150deg,#e9f7f1,#cdeedf)}
+/* ---- play (focus mode) ---- */
+body.playing .hero,body.playing #learn,body.playing #games,body.playing footer{display:none}
+#play{padding-block:18px 28px}
+.runbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.runbar h3{margin:0 auto 0 0;font-size:1.08rem;font-weight:600}
+#runOpts{gap:8px}
+#runOpts .seg button{padding:6px 12px;font-size:.84rem}
+#runOpts>button{font-size:.84rem;padding:6px 14px}
+#runOpts>.note{display:none}
+.stage{padding:16px}
+#newKeys{min-height:1.2em}
+#progress{height:4px;background:var(--raise);border-radius:2px;overflow:hidden;margin:10px 0 12px}
 #bar{height:100%;width:0;background:var(--accent);transition:width .2s}
-.note{color:var(--muted);font-size:.85rem}
-
-/* single-line practice strip */
-#newkeys{margin:0 0 10px}
-#newkeys .kh{color:var(--ink);font-size:1.05rem;letter-spacing:.08em}
-.strip{position:relative;height:5.4rem;overflow:hidden;border-radius:14px;background:var(--raise);
+.strip{position:relative;height:5.6rem;overflow:hidden;border-radius:18px;background:var(--raise);
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 9%,#000 88%,transparent)}
-#target{position:absolute;left:0;top:0;bottom:0;display:flex;align-items:center;gap:26px;white-space:nowrap;font-size:2.1rem;transition:transform .28s cubic-bezier(.2,.7,.2,1);will-change:transform}
-#target .w{position:relative;color:var(--muted);padding:0 4px;line-height:1.9;transition:color .2s,opacity .2s}
+#target{position:absolute;left:0;top:0;bottom:0;display:flex;align-items:center;gap:26px;white-space:nowrap;font-size:2.15rem;transition:transform .28s cubic-bezier(.2,.7,.2,1)}
+#target .w{position:relative;color:var(--muted);padding:0 4px;line-height:1.9}
 #target .w.done{color:var(--good);opacity:.45}
-#target .w.cur{color:var(--ink);background:var(--panel);border-radius:12px;padding:0 14px;box-shadow:var(--shadow)}
+#target .w.cur{color:var(--ink);background:var(--panel);border-radius:14px;padding:0 14px;box-shadow:var(--shadow)}
 #target .w i{position:absolute;left:14px;right:14px;bottom:6px;height:3px;border-radius:2px;background:var(--line);overflow:hidden;display:none}
 #target .w.cur i{display:block}
-#target .w i::after{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--p,0%);background:var(--accent);transition:width .12s}
-.typed{display:flex;align-items:center;gap:10px;margin-top:12px}
-.typed span.lbl{color:var(--muted);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;flex:none}
-#echo{flex:1;min-width:0;font-size:1.5rem;min-height:2.6rem;line-height:2.4rem;padding:0 12px;border-radius:10px;border:1px solid var(--line);white-space:nowrap;overflow:hidden}
-#echo::after{content:"";display:inline-block;width:2px;height:1.4rem;background:var(--accent);vertical-align:-3px;margin-left:2px;animation:blink 1s steps(1) infinite}
+#target .w i::after{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--p,0%);background:var(--accent)}
+.typedrow{margin-top:10px}
+#echo{min-height:2.6rem;font-size:1.45rem;line-height:2.4rem;padding:0 14px;border-radius:14px;background:var(--raise);white-space:nowrap;overflow:hidden}
+#echo::after{content:"";display:inline-block;width:2px;height:1.3rem;background:var(--accent);vertical-align:-3px;margin-left:2px;animation:blink 1s steps(1) infinite}
 @keyframes blink{50%{opacity:0}}
-#echo.err{border-color:var(--bad);animation:shake .18s}
+.err{animation:shake .18s}
 @keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
-#hintline{color:var(--muted);font-size:.85rem;margin:8px 0 0;min-height:1.3rem}
-
-/* keyboard deck */
-.deck{background:var(--panel)}
-.kb{display:flex;flex-direction:column;gap:6px;align-items:center;user-select:none;touch-action:manipulation;overflow-x:auto;padding:4px 0 8px}
-.kr{display:flex;gap:6px}
-.k{position:relative;width:clamp(25px,7vw,60px);height:clamp(40px,8.6vw,62px);background:var(--key);border:1px solid var(--line);border-bottom:3px solid var(--key-edge);border-radius:10px;cursor:pointer;padding:0;overflow:hidden;transition:transform .06s,background .15s}
+#echo.err{box-shadow:inset 0 0 0 2px var(--bad)}
+.hintline{color:var(--muted);font-size:.9rem;margin:10px 0 0;min-height:1.4rem;text-align:center}
+.hintline b{color:var(--ink)}
+.result{margin-top:14px;padding:22px;border-radius:var(--r-lg);background:var(--panel);box-shadow:var(--shadow-lg);text-align:center}
+.result b{display:block;font-size:1.1rem;font-weight:600}
+.result .stars{font-size:1.6rem;display:block;margin-top:6px}
+.result .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.hunt{display:grid;place-items:center;gap:6px;padding:18px;border-radius:18px;background:var(--raise);min-height:12rem}
+.hunt .glyph{font:600 4.6rem/1.25 var(--text);color:var(--ink)}
+.hunt .sub{color:var(--muted);font-size:.9rem;min-height:1.3em}
+#rfield{position:relative;height:min(46vh,380px);border-radius:18px;overflow:hidden}
+#rfield::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--bad);opacity:.7}
+.rw{position:absolute;top:0;left:0;padding:2px 16px;border-radius:999px;font-size:1.5rem;line-height:1.9;white-space:nowrap}
+.rw i{position:absolute;left:14px;bottom:4px;height:3px;width:0;border-radius:2px}
+.overlay{position:absolute;inset:0;z-index:8;display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:center;text-align:center;padding:16px}
+.overlay h4{margin:0}
+#typeArea,.hunt{position:relative}
+/* ---- keyboard: real Windows / Mac shape, keys sized in key units ---- */
+.deck{margin-top:16px}
+.kb{display:flex;flex-direction:column;gap:5px;user-select:none;-webkit-user-select:none;touch-action:manipulation;max-width:860px;margin:0 auto}
+.kr{display:flex;gap:5px}
+.k{position:relative;flex:var(--w,1) 1 0;min-width:0;height:clamp(40px,6.2vw,58px);background:var(--key);border:1px solid var(--line);border-bottom:3px solid var(--key-edge);border-radius:11px;padding:0;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .k::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--fc,transparent);opacity:.85}
 .k.f0{--fc:var(--f0)}.k.f1{--fc:var(--f1)}.k.f2{--fc:var(--f2)}.k.f3{--fc:var(--f3)}.k.f4{--fc:var(--f4)}.k.f5{--fc:var(--f5)}.k.f6{--fc:var(--f6)}.k.f7{--fc:var(--f7)}
-.k .b{position:absolute;left:0;right:0;top:50%;transform:translateY(-55%);text-align:center;font-size:clamp(.95rem,2.5vw,1.4rem);color:var(--ink)}
-.k .s,.k .a{position:absolute;font-size:clamp(.5rem,1.4vw,.75rem);color:var(--muted)}
+.k .b{position:absolute;left:0;right:0;top:50%;transform:translateY(-52%);text-align:center;font:clamp(.95rem,2.4vw,1.35rem) var(--text);color:var(--ink)}
+.k .s,.k .a{position:absolute;font:clamp(.5rem,1.3vw,.72rem) var(--text);color:var(--muted)}
 .k .s{right:4px;top:3px}.k .a{right:4px;bottom:2px}
-.k.home{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 55%,transparent);border-bottom-color:var(--accent)}
-.k.bump::after{content:"";position:absolute;left:50%;bottom:5px;width:34%;height:3px;margin-left:-17%;border-radius:2px;background:var(--accent)}
-.k.hint{background:var(--hint);border-color:var(--hint);border-bottom-color:color-mix(in srgb,var(--hint) 60%,#000);box-shadow:0 0 0 4px color-mix(in srgb,var(--hint) 35%,transparent)}
-.k.hint .b,.k.hint .s,.k.hint .a{color:var(--hint-ink)}
-.k.hl-s .s,.k.hl-a .a{background:var(--hint-ink);color:var(--hint);border-radius:4px;padding:0 3px}
-.k.press{transform:translateY(2px);border-bottom-width:1px}
-.mods{display:flex;gap:8px;justify-content:center;margin-top:10px}
-.mods button{min-width:96px}
-.mods button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:transparent}
-.mods button.need{box-shadow:0 0 0 3px var(--hint)}
-.legend{display:flex;gap:6px 16px;justify-content:center;align-items:center;font-size:.78rem;color:var(--muted);margin-top:12px;flex-wrap:wrap}
-.legend i{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:6px;background:var(--accent-soft);border:1px solid var(--accent)}
-.legend .fingers{display:inline-flex;gap:3px;vertical-align:-1px;margin-right:6px}
-.legend .fingers b{width:10px;height:4px;border-radius:2px;display:inline-block}
-
-/* about */
-details summary{cursor:pointer;font-weight:600}
-details[open] summary{margin-bottom:8px}
-.tablewrap{overflow-x:auto}
-table{border-collapse:collapse;width:100%;font-size:.88rem}
-td,th{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left}
-th{color:var(--muted);font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em}
-.bar2{height:6px;background:var(--accent);border-radius:3px}
-#csvtext{width:100%;font:12px/1.4 var(--mono);background:var(--raise);border:1px solid var(--line);border-radius:10px;padding:8px;margin:8px 0}
-
-[hidden]{display:none!important}
-/* Word Rain */
-#gfield{position:relative;height:min(56vh,420px);background:var(--sky);border-radius:18px;overflow:hidden;box-shadow:var(--shadow)}
-#gfield::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--bad);opacity:.7}
-.rw{position:absolute;top:0;left:0;padding:2px 16px;border-radius:999px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);font-size:1.5rem;line-height:1.9;white-space:nowrap;will-change:transform}
-.rw.lock{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 30%,transparent)}
-.rw i{position:absolute;left:14px;bottom:4px;height:3px;width:0;background:var(--accent);border-radius:2px}
-.rw.pop{animation:pop .25s forwards}
-@keyframes pop{to{opacity:0;transform:scale(1.3)}}
-#goverlay{position:absolute;inset:0;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;text-align:center;background:color-mix(in srgb,var(--panel) 80%,transparent);backdrop-filter:blur(3px);padding:16px}
-#goverlay.hide{display:none}
-#goverlay h2{margin:0;font-size:1.4rem;font-weight:600}
-#gflash{position:absolute;inset:0;pointer-events:none;background:var(--bad);opacity:0}
-#gflash.on{animation:fl .25s}
-@keyframes fl{from{opacity:.22}to{opacity:0}}
-#result{display:none}
-#result.show{display:block}
-#result b{font-size:1.05rem}
-label.field{max-width:100%;min-width:0}
-label.field select{min-width:0;flex:1 1 auto;text-overflow:ellipsis}
-@media (max-width:640px){
-  .stats{margin-left:0}.strip{height:4.6rem}#target{font-size:1.7rem}
-  .panel{padding:14px}
-  .kb{gap:4px}.kr{gap:3px}
-  .k{width:calc((100vw - 32px - 28px - 11*3px - 18px)/12);height:calc((100vw - 120px)/7);border-radius:7px}
-}
-/* ---- touch devices: iOS Safari and Android Chrome ---- */
-html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
-button,a,select,.k{-webkit-tap-highlight-color:transparent}
-.k{touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-/* when Shift / AltGr is latched, keycaps show that layer's glyph large (phone-keyboard style) */
+.k .q{position:absolute;left:5px;top:3px;font:600 clamp(.45rem,1.1vw,.62rem) var(--ui);color:var(--muted);opacity:.8}
+.k.mod{background:var(--raise)}
+.k.mod .ml{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font:600 clamp(.55rem,1.4vw,.78rem)/1.1 var(--ui);color:var(--muted);padding:0 2px}
+.k.inert{cursor:default;opacity:.5}
+.k.home{background:var(--home);border-color:color-mix(in srgb,var(--home-edge) 40%,transparent);border-bottom-color:var(--home-edge)}
+.k.bump::after{content:"";position:absolute;left:50%;bottom:5px;width:30%;height:3px;margin-left:-15%;border-radius:2px;background:var(--home-edge)}
+.k.on{background:var(--ink)}.k.on .ml{color:#fff}
+.k.hint,.k.need{background:var(--hint);border-color:var(--hint);box-shadow:0 0 0 3px color-mix(in srgb,var(--hint) 35%,transparent)}
+.k.hint .b,.k.hint .s,.k.hint .a,.k.need .ml,.k.hint .q{color:var(--hint-ink)}
+.k.press{transform:translateY(2px)}
 .kb.show-s .k .b,.kb.show-a .k .b{visibility:hidden}
-.kb.show-s .k .s,.kb.show-a .k .a{left:0;right:0;top:50%;bottom:auto;transform:translateY(-55%);text-align:center;font-size:clamp(.95rem,2.5vw,1.4rem);color:var(--ink);background:none;padding:0}
+.kb.show-s .k .s,.kb.show-a .k .a{left:0;right:0;top:50%;bottom:auto;transform:translateY(-52%);text-align:center;font-size:clamp(.95rem,2.4vw,1.35rem);color:var(--ink)}
 .kb.show-s .k .a,.kb.show-a .k .s{visibility:hidden}
-#mback{display:none}
-.k.mod{display:none}
-.k.space{width:calc(clamp(25px,7vw,60px) * 6 + 30px);height:clamp(34px,6vw,46px)}
-.k.space .sl{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font:600 .78rem/1 var(--ui);color:var(--muted);letter-spacing:.04em}
-.k.space.hint .sl{color:var(--hint-ink)}
-body.mode-game #mback{display:inline-flex}
+.kb.blind .k:not(.mod) .b,.kb.blind .k:not(.mod) .s,.kb.blind .k:not(.mod) .a{visibility:hidden!important}
+/* ---- setup sheet ---- */
+.steps{display:grid;gap:12px}
+.steps .panel{box-shadow:none;background:var(--raise);padding:16px}
+.steps h3{margin:0;font-size:.98rem}
+.steps ul{margin:8px 0 0;padding-left:1.1em}
+.steps li{margin:4px 0}
 @media (max-width:640px){
-  .wrap{padding-inline:12px}
-  .nav .wrap{min-height:54px;gap:4px 12px}
-  .nav .brand b{font-size:1rem;-webkit-text-stroke-width:3.5px}
-  .navlinks{order:3;width:100%;flex-wrap:nowrap;overflow-x:auto;gap:6px;padding:2px 0 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-  .navlinks::-webkit-scrollbar{display:none}
-  .navlinks a{white-space:nowrap;padding:5px 12px;flex:none}
-  section[id]{scroll-margin-top:96px}
-  .hero{padding-block:24px 20px}
-  .hero h2{font-size:clamp(1.7rem,8vw,2.2rem)}
-  .lede{font-size:1rem;margin-bottom:18px}
-  .cta .btn{flex:1;justify-content:center;padding:12px}
-  .facts{gap:16px;margin-top:20px;padding-top:16px}
-  .facts div b{font-size:1.25rem}
-  .herokeys{display:none}
-  .band{padding-block:24px}
-  .shead{margin-bottom:12px}.shead h2{font-size:1.35rem}
-  .seg{width:100%}.seg button{flex:1}
-  .app{gap:10px}
-  .panel{padding:12px;border-radius:14px}
-  .stats{width:100%}.stat{flex:1;min-width:0;padding:6px 8px}
-  .row>button,.row>label.field{flex:1 1 auto}
-  select,button{min-height:40px}
-  #csvtext{font-size:16px}
-  .strip{height:4.4rem}
-  #target{font-size:1.65rem;gap:18px}
-  #echo{font-size:1.25rem;min-height:2.3rem;line-height:2.1rem}
-  #hintline{margin-top:6px}
-  /* keyboard docks to the bottom of the screen while you practise */
-  .deck{position:sticky;bottom:0;z-index:20;margin-inline:-12px;border-radius:16px 16px 0 0;padding:8px 4px calc(8px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 24px -12px rgba(0,0,0,.35)}
-  .kb{gap:5px;padding:2px 0 4px;overflow:visible}
-  .kr{gap:3px}
-  .kr:first-child{display:none}
-  .k{width:calc((100vw - 8px - 33px) / 12);height:clamp(44px,12vw,52px);border-radius:7px;border-bottom-width:2px}
-  .k .b{font-size:clamp(1.05rem,5vw,1.3rem)}
-  .k .s,.k .a{font-size:.55rem}
-  .k.bump::after{bottom:3px}
-  .kr{margin-left:0!important}
-  .k.mod{display:block;background:var(--raise);border-color:var(--line);border-bottom-color:var(--key-edge)}
-  .k.mod .mi{position:absolute;left:0;right:0;top:44%;transform:translateY(-50%);text-align:center;font:600 1.15rem/1 var(--ui);color:var(--ink)}
-  .k.mod .ml{position:absolute;left:0;right:0;bottom:3px;text-align:center;font:600 .5rem/1 var(--ui);color:var(--muted);letter-spacing:.02em}
-  .k.mod.on{background:var(--accent);border-color:transparent;border-bottom-color:color-mix(in srgb,var(--accent) 60%,#000)}
-  .k.mod.on .mi,.k.mod.on .ml{color:var(--accent-ink)}
-  .k.mod.need{box-shadow:0 0 0 3px var(--hint)}
-  body:not(.mode-game) #kback{opacity:.35}
-  .k.space{width:calc((100vw - 8px - 33px) / 12 * 7 + 18px);height:clamp(40px,11vw,46px);background:var(--key)}
-  body.mode-game .k.space{opacity:.35}
-  .kb.show-s .k.mod .mi,.kb.show-a .k.mod .mi{visibility:visible}
-  .mods{display:none!important}
-  .mods{margin-top:6px;gap:6px}
-  .mods button{min-width:0;flex:1;min-height:42px;padding:6px}
-  .legend{display:none}
-  #gfield{height:min(38vh,320px)}
-  .rw{font-size:1.25rem}
+  .hero{padding-block:30px 18px}
+  .actions .btn.primary{min-width:0;width:100%}
+  .grid{grid-template-columns:1fr 1fr;gap:10px}
+  .lcard{padding:14px}
+  .gcard{min-height:140px}
+  .stage{padding:12px}
+  .strip{height:4.4rem}#target{font-size:1.6rem;gap:18px}
+  #echo{font-size:1.2rem}
+  .hunt .glyph{font-size:3.4rem}
+  .deck{position:sticky;bottom:0;z-index:20;margin-inline:-14px;background:var(--panel);border-radius:20px 20px 0 0;padding:8px 3px calc(8px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 24px -12px rgba(0,0,0,.25)}
+  .kb{gap:4px}.kr{gap:2px}
+  .k{height:clamp(38px,10.5vw,48px);border-radius:7px;border-bottom-width:2px}
+  .k .q{display:none}
+  .k .s,.k .a{font-size:.5rem}
+  .k .b{font-size:clamp(.9rem,4.2vw,1.15rem)}
+  .k.mod .ml{font-size:.5rem}
+  .kr.r0{display:none}
+  #runOpts .seg{flex-wrap:wrap}
 }
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
-<body>
+<body class="has-tabbar">
 <header class="nav">
   <div class="wrap">
-    <a class="brand" href="#top"><span class="mark kh" aria-hidden="true">ក</span><b>Modern Khmer Typing Tutor</b></a>
-    <nav class="navlinks" aria-label="Sections">
-      <a href="#practice">Practice</a>
-      <a href="#game">Word Rain</a>
-      <a href="#about-layout">The layout</a>
-      <a href="#about">How it was made</a>
-      <a href="nida.html">Standard keyboard</a>
-    </nav>
-    <button id="langBtn" class="langbtn" type="button" lang="en" aria-label="Switch to English">English</button>
+    <a class="brand" href="./"><span class="mark kh" aria-hidden="true">ក</span><b data-t="brand">កម្មវិធីហាត់វាយអក្សរខ្មែរទំនើប</b></a>
+    <nav class="tabs" aria-label="Sections"><a href="#learn" class="on" data-t="navLessons">មេរៀន</a><a href="#games" data-t="navGames">ល្បែង</a></nav>
+    <button class="ibtn" type="button" data-sheet="setupSheet" id="setupBtn"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg></button>
+    <button id="langBtn" class="langbtn" type="button">English</button>
   </div>
 </header>
-<main id="top">
+
+<main>
   <section class="hero">
     <div class="wrap">
-      <div>
-        <p class="eyebrow">Experimental Khmer keyboard</p>
-        <h2>Type Khmer on a layout built from <em>real Khmer text</em>.</h2>
-        <p class="lede">Key positions come from letter and coeng-cluster counts in a large Khmer corpus, plus letter-pair statistics. Learn it a few keys at a time, then test yourself in Word Rain.</p>
-        <div class="cta">
-          <a class="btn primary" href="#practice">Start practising</a>
-          <a class="btn" href="#game">Play Word Rain</a>
-          <a class="btn" href="nida.html">Learn the standard keyboard</a>
+      <h1 data-t="heroTitle">រៀនវាយអក្សរខ្មែរ</h1>
+      <p class="sub" data-t="heroSub">ក្ដារចុចស្តង់ដារ NiDA សម្រាប់ Windows និង Mac</p>
+      <div class="actions">
+        <div class="seg" role="group" aria-label="Computer">
+          <button id="platWin" type="button" aria-pressed="true"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.5l7.5-1v7H3zM12 4.3L21 3v8.5h-9zM3 12.5h7.5v7l-7.5-1zM12 12.5h9V21l-9-1.3z" fill="currentColor" stroke="none"/></svg>Windows</button>
+          <button id="platMac" type="button" aria-pressed="false"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M16.4 12.6c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9s-1.9-.9-3.1-.8C6.8 7.4 5.3 8.3 4.5 9.8c-1.7 2.9-.4 7.2 1.2 9.6.8 1.2 1.7 2.4 2.9 2.4s1.6-.8 3-.8 1.8.8 3.1.7c1.3 0 2.1-1.2 2.8-2.4.9-1.3 1.3-2.6 1.3-2.7 0 0-2.4-1-2.4-4zM14.2 5.6c.6-.8 1.1-1.9 1-3-.9 0-2.1.6-2.7 1.4-.6.7-1.1 1.8-1 2.9 1 .1 2.1-.5 2.7-1.3z" fill="currentColor" stroke="none"/></svg>Mac</button>
         </div>
-        <div class="facts" id="facts"></div>
-      </div>
-      <div class="herokeys kh" id="herokeys" aria-label="Home row of the current layout"></div>
-    </div>
-  </section>
-
-  <section class="band alt" id="practice">
-    <div class="wrap app">
-      <div class="shead">
-        <div>
-          <h2>Practice</h2>
-          <p>Lessons add eight keys at a time in frequency order. Type on a physical keyboard (QWERTY positions) or tap the keys.</p>
-        </div>
-        <div class="seg" role="group" aria-label="Mode">
-          <button id="tabLessons" aria-pressed="true">Lessons</button>
-          <button id="tabGame" aria-pressed="false">Word Rain</button>
-        </div>
-      </div>
-
-  <section class="panel toolbar">
-    <label class="field">Layout <select id="layout"></select></label>
-    <button id="showhint" class="toggle" aria-pressed="true">Hints on</button>
-    <span id="lessonMute"></span>
-  </section>
-
-  <div id="lessonView" style="display:flex;flex-direction:column;gap:16px">
-  <section class="panel">
-    <div class="row">
-      <label class="field">Lesson <select id="lesson"></select></label>
-      <button id="restart">Restart</button>
-      <button id="export" disabled title="Per-keystroke log for comparing layouts with real typists">Export log</button>
-      <div class="stats">
-        <div class="stat"><b id="wpm">0</b><span>WPM</span></div>
-        <div class="stat"><b id="acc">100%</b><span>Accuracy</span></div>
-        <div class="stat"><b id="best">–</b><span>Best</span></div>
+        <button class="btn primary" type="button" id="contBtn"></button>
+        <button class="linkbtn" type="button" data-sheet="setupSheet"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg><span data-t="setupLink">ដំឡើងក្ដារចុចលើកុំព្យូទ័រ</span></button>
       </div>
     </div>
-    <div id="progress"><div id="bar"></div></div>
   </section>
 
-  <section class="panel">
-    <div id="newkeys" class="note"></div>
-    <div class="strip"><div id="target" class="kh" aria-live="off"></div></div>
-    <div class="typed"><span class="lbl">Typed</span><div id="echo" class="kh" aria-label="typed text"></div></div>
-    <p id="hintline"></p>
-  </section>
-
-  <section id="csvbox" class="panel" hidden>
-    <div class="note">Keystroke log (CSV). If the download did not start, copy it from here.</div>
-    <textarea id="csvtext" rows="5" readonly></textarea>
-    <button id="csvcopy">Copy CSV</button>
-  </section>
-
-  <section id="result" class="panel">
-    <b id="resulttext"></b>
-    <div class="row" style="margin-top:10px"><button class="primary" id="again">Again</button><button id="next">Next lesson</button></div>
-  </section>
-  </div>
-
-  <div id="gameView" style="display:flex;flex-direction:column;gap:16px" hidden>
-  <section class="panel">
-    <div class="row">
-      <div class="seg" id="gpick" role="group" aria-label="Game"><button id="pickRain" type="button" aria-pressed="true">Word Rain</button><button id="pickArch" type="button" aria-pressed="false">Archer</button></div>
-      <label class="field">Keys <select id="glevel"></select></label>
-      <button class="primary" id="gstart">Start</button>
-      <span id="muteSlot"></span>
-      <div class="stats" id="gstats">
-        <div class="stat"><b id="gscore">0</b><span>Score</span></div>
-        <div class="stat"><b id="glives">♥♥♥</b><span>Lives</span></div>
-        <div class="stat"><b id="glvl">1</b><span>Speed</span></div>
-        <div class="stat"><b id="gbest">–</b><span>Best</span></div>
-      </div>
-    </div>
-    <p class="note" id="anote" style="margin:10px 0 0" hidden>Shoot each falling letter by typing it. Letters that land explode and hurt the archer. Every 10-hit combo heals; green ✚ letters heal more. Enter starts, Esc pauses.</p>
-    <p class="note" id="rnote" style="margin:10px 0 0">Type each falling word before it reaches the red line. Enter starts, Esc pauses, Backspace drops your current word.</p>
-  </section>
-  <div id="afield" class="kh" aria-label="Archer game" hidden></div>
-  <div id="gfield" class="kh arc-sky" aria-label="Game area">
-    <div id="gflash"></div>
-    <div id="goverlay">
-      <h2 id="gotitle">Ready?</h2>
-      <div id="gotext" class="note">Words fall from the top. Type them on the keys you chose.</div>
-      <button class="primary" id="gstart2">Start (Enter)</button>
-    </div>
-  </div>
-  </div>
-
-  <section class="panel deck">
-    <div class="kb kh" id="kb"></div>
-    <div class="mods">
-      <button id="mshift" aria-pressed="false">Shift</button>
-      <button id="maltgr" aria-pressed="false">AltGr / Option</button>
-      <button id="mback" aria-label="Drop current word">⌫</button>
-    </div>
-    <div class="legend">
-      <span><i></i>Home keys (bar marks F and J)</span>
-      <span><span class="fingers"><b style="background:var(--f0)"></b><b style="background:var(--f1)"></b><b style="background:var(--f2)"></b><b style="background:var(--f3)"></b><b style="background:var(--f4)"></b><b style="background:var(--f5)"></b><b style="background:var(--f6)"></b><b style="background:var(--f7)"></b></span>Top stripe = finger</span>
-      <span>Small glyphs: top = Shift, bottom = AltGr (Option on Mac)</span>
-    </div>
-  </section>
-
-    </div>
-  </section>
-
-  <section class="band" id="about-layout">
+  <section class="band" id="learn">
     <div class="wrap">
-      <div class="shead">
-        <div>
-          <h2>The layout</h2>
-          <p>Three layouts ship with the tutor so you can compare them. The numbers below come from the effort model, not from timing real typists.</p>
-        </div>
-      </div>
-      <h3 class="dhead">Data behind the layout</h3>
-      <div class="datastats">
-        <div class="ds"><b>212,000,389</b><strong>Letters and clusters counted</strong><span>in the Khmer text corpus; this sets each key's frequency</span></div>
-        <div class="ds"><b>20,646,826</b><strong>Coeng clusters</strong><span>subscript consonants among them, in 35 cluster types</span></div>
-        <div class="ds"><b>142</b><strong>Units ranked</strong><span>distinct letters, vowels, signs and clusters given a key position</span></div>
-        <div class="ds"><b>9,428</b><strong>Words for letter pairs</strong><span>from a search-word list (478,195 weighted uses), giving 2,613 distinct letter pairs</span></div>
-        <div class="ds"><b>3,000</b><strong>Practice words</strong><span>the most common words that every layout can type</span></div>
-        <div class="ds"><b>0.9996</b><strong>Ranking stability</strong><span>agreement between two halves of the corpus at 10 million letters</span></div>
-      </div>
-      <p class="note dnote">The number of words in the corpus was not counted; key frequencies come from letter and cluster counts, not word counts.</p>
-      <div class="split">
-        <div class="panel">
-          <div class="tablewrap"><table class="compare" id="compare"></table></div>
-          <div class="caveat">Bigram figures currently use word-list statistics as an interim estimate. Re-running the optimiser on corpus bigrams may change the layout.</div>
-        </div>
-        <div class="panel">
-          <details>
-            <summary>Most frequent keys in the selected layout</summary>
-            <p class="note" id="about"></p>
-            <div id="freq" class="tablewrap"></div>
-          </details>
-        </div>
-      </div>
+      <div class="shead"><h2 data-t="lessonsTitle">មេរៀន</h2></div>
+      <div class="grid" id="lessonGrid"></div>
     </div>
   </section>
 
-  <section class="band alt" id="about">
+  <section class="band" id="games">
     <div class="wrap">
-      <div class="shead">
-        <div>
-          <h2>How it was made</h2>
-          <p>The method in four steps. The code and data are in the GitHub repository.</p>
+      <div class="shead"><h2 data-t="gamesTitle">ល្បែង</h2></div>
+      <div class="grid games" id="gameGrid"></div>
+    </div>
+  </section>
+
+  <!-- focus mode: a lesson or game -->
+  <section id="play" hidden>
+    <div class="wrap">
+      <div class="runbar">
+        <button id="backBtn" class="ibtn" type="button"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <h3 id="runTitle"></h3>
+        <div class="stats" id="runStats"></div><span id="muteSlot"></span>
+      </div>
+      <div id="runOpts" class="runbar" hidden></div>
+      <div class="panel stage">
+        <div id="typeArea">
+          <div class="note" id="newKeys"></div>
+          <div id="progress"><div id="bar"></div></div>
+          <div class="strip"><div id="target" class="kh"></div></div>
+          <div class="typedrow"><div id="echo" class="kh"></div></div>
         </div>
+        <div id="huntArea" class="hunt arc-sky" hidden><div class="glyph kh" id="huntGlyph"></div><div class="sub" id="huntSub"></div></div>
+        <div id="archerArea" class="kh" hidden></div>
+        <div id="rainArea" hidden><div id="rfield" class="kh arc-sky"><div class="overlay" id="rOverlay"><h4 id="rTitle"></h4><div class="note" id="rText"></div><button class="primary" id="rStart"></button></div></div></div>
+        <p class="hintline" id="hintline"></p>
       </div>
-      <div class="cards">
-        <article class="card"><span class="num">1</span><h3>Count real text</h3><p>About 212 million Khmer letters and coeng clusters were counted from a text corpus. Split-half checks show the ranking is stable from roughly one million letters.</p></article>
-        <article class="card"><span class="num">2</span><h3>Model the effort</h3><p>Each key has a reach cost. Shift and AltGr add a penalty, and letter pairs are scored for same-finger repeats, rolls and hand alternation. Fingers have load caps.</p></article>
-        <article class="card"><span class="num">3</span><h3>Search for the best fit</h3><p>Simulated annealing tries over a million key swaps. Dedicated cluster keys like ្រ did not lower effort with only 33 base keys, so the default layout types them as coeng + consonant.</p></article>
-        <article class="card"><span class="num">4</span><h3>Make it learnable, then measure</h3><p>Paired letters such as ក / គ sit on the same or neighbouring keys. Export your keystroke log to compare layouts with real typists.</p></article>
-      </div>
+      <div class="result" id="result" hidden><b id="resultText"></b><div class="row"><button class="primary" id="againBtn" data-t="again">ម្ដងទៀត</button><button id="nextBtn" data-t="nextLesson">មេរៀនបន្ទាប់</button></div></div>
+      <div class="deck"><div class="kb kh" id="kb"></div></div>
     </div>
   </section>
 </main>
-<footer>
-  <div class="wrap">
-    <span>Experimental layout, not an official Khmer standard.</span>
-    <span>Fonts: Noto Serif Khmer and Kantumruy Pro (SIL Open Font License) · <a href="https://github.com/Ratha-SAN/modern-khmer-keyboard-tutor">Source on GitHub</a></span>
-  </div>
-</footer>
-<script src="layout.js"></script>
+
+<dialog class="sheet" id="setupSheet" aria-labelledby="setupTitle">
+  <header><h2 id="setupTitle" data-t="setupTitle">ដំឡើងក្ដារចុចខ្មែរ</h2><button class="ibtn" type="button" data-close><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+  <div class="body"><p class="note" id="platNote" style="margin-top:0"></p><div class="steps" id="setupSteps"></div></div>
+</dialog>
+
+<footer><div class="wrap"><a href="lab.html" data-t="footLab">ប្លង់សាកល្បង →</a><a href="https://github.com/Ratha-SAN/modern-khmer-keyboard-tutor">GitHub</a></div></footer>
+
+<nav class="tabbar" aria-label="Sections">
+  <a href="#learn" class="on"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5"/></svg><span data-t="navLessons">មេរៀន</span></a>
+  <a href="#games"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 11v3M5.5 12.5h3M15 12h.01M18 11h.01"/></svg><span data-t="navGames">ល្បែង</span></a>
+  <button type="button" data-sheet="setupSheet"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg><span data-t="navSetup">ដំឡើង</span></button>
+</nav>
+
+<script src="nida-layouts.js"></script>
 <script src="words.js"></script>
 <script src="arcade.js"></script>
 <script>
 (function(){
 "use strict";
-var LAYOUTS=window.LAYOUTS, L, K, layoutName, WORDS=window.WORDS, COENG="្";
-var PER_LESSON=8, MAXL=6, ITEMS=24;
-
-// ---- helpers
-function $(id){return document.getElementById(id)}
-function disp(u){
-  var c=u.charCodeAt(0);
-  var dep=(c>=0x17B6&&c<=0x17D3)||c===0x17DD||u.charAt(0)===COENG;
-  return dep?"◌"+u:u;
-}
+var $=function(id){return document.getElementById(id)};
 function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
-var FINGER={KeyQ:0,KeyA:0,KeyZ:0,KeyW:1,KeyS:1,KeyX:1,KeyE:2,KeyD:2,KeyC:2,KeyR:3,KeyF:3,KeyV:3,KeyT:3,KeyG:3,KeyB:3,
-  KeyY:4,KeyH:4,KeyN:4,KeyU:4,KeyJ:4,KeyM:4,KeyI:5,KeyK:5,Comma:5,KeyO:6,KeyL:6,Period:6,
-  KeyP:7,Semicolon:7,Slash:7,BracketLeft:7,BracketRight:7,Quote:7};
-
-var HOME={KeyA:1,KeyS:1,KeyD:1,KeyF:1,KeyJ:1,KeyK:1,KeyL:1,Semicolon:1};
-
-// ---- unit lookup: unit string -> {code, layer}   (rebuilt whenever the layout changes)
-var where, rank, pairSet, lessons;
-function buildTables(){
-  where={};
-  Object.keys(K).forEach(function(code){
-    K[code].forEach(function(u,layer){ if(u && !where[u]){where[u]={code:code,layer:layer}} });
-  });
-  rank=L.ranking.filter(function(r){return r[1]>0}).map(function(r){return r[0]});
-  pairSet={}; L.info.pairs.forEach(function(p){pairSet[p]=1});
-  var NLESS=Math.min(MAXL,Math.ceil(rank.length/PER_LESSON));
-  lessons=[];
-  for(var i=1;i<=NLESS;i++){
-    lessons.push({num:i,from:(i-1)*PER_LESSON+1,to:Math.min(i*PER_LESSON,rank.length),
-      learned:rank.slice(0,i*PER_LESSON), fresh:rank.slice((i-1)*PER_LESSON,i*PER_LESSON)});
-  }
-  lessons.push({final:true,learned:null,fresh:[]});
-}
-function splitUnits(w){
-  var out=[],i=0;
-  while(i<w.length){
-    if(w.charAt(i)===COENG && pairSet[w.substr(i,2)]){out.push(w.substr(i,2));i+=2}
-    else{out.push(w.charAt(i));i++}
-  }
-  return out;
-}
-
 function rnd(n){return Math.floor(Math.random()*n)}
 function pick(a){return a[rnd(a.length)]}
 function shuffle(a){for(var i=a.length-1;i>0;i--){var j=rnd(i+1),t=a[i];a[i]=a[j];a[j]=t}return a}
+var COENG="\u17d2";
 
-function buildItems(les){
-  if(!les.learned){return shuffle(WORDS.slice(0,1500)).slice(0,ITEMS)}
-  var set={};les.learned.forEach(function(u){set[u]=1});
-  var ok=WORDS.filter(function(w){return splitUnits(w).every(function(u){return set[u]})});
-  var fresh=les.fresh, items=[];
-  var wordsUse=ok.filter(function(w){return splitUnits(w).some(function(u){return fresh.indexOf(u)>=0})});
-  // drills first: 2–4 units mixing new keys with earlier ones
-  var nd=Math.max(8,ITEMS-Math.min(wordsUse.length,12));
-  for(var i=0;i<nd;i++){
-    var n=2+rnd(3), s="";
-    for(var j=0;j<n;j++){
-      s+= (j===0||Math.random()<.6)&&fresh.length ? pick(fresh) : pick(les.learned);
-    }
-    items.push(s);
-  }
-  shuffle(wordsUse);
-  var take=wordsUse.slice(0,ITEMS-items.length);
-  var rest=shuffle(ok.slice(0,400)).slice(0,ITEMS-items.length-take.length);
-  return items.concat(take,rest).slice(0,ITEMS);
+// ---------- text (Khmer first, English second) ----------
+var TX={
+ brand:["កម្មវិធីហាត់វាយអក្សរខ្មែរទំនើប","Modern Khmer Typing Tutor"],
+ navLessons:["មេរៀន","Lessons"],navGames:["ល្បែង","Games"],navSetup:["ដំឡើង","Set up"],navExp:["ប្លង់សាកល្បង","Experimental layout"],
+ eyebrow:["ក្ដារចុចខ្មែរស្តង់ដារ NiDA","Standard NiDA Khmer keyboard"],
+ heroTitle:["រៀនវាយអក្សរខ្មែរ","Learn to type Khmer"],
+ heroSub:["ក្ដារចុចស្តង់ដារ NiDA សម្រាប់ Windows និង Mac","The standard NiDA keyboard, for Windows and Mac"],
+ setupLink:["ដំឡើងក្ដារចុចលើកុំព្យូទ័រ","Set up the keyboard on your computer"],
+ footLab:["ប្លង់សាកល្បង →","Experimental layout →"],
+ cont:["បន្ត · មេរៀនទី ","Continue · Lesson "],startL:["ចាប់ផ្ដើមរៀន","Start learning"],allDone:["ហាត់ម្ដងទៀត","Practise again"],
+ heroLede:["មេរៀនតាមលំដាប់ពីជួរគោល ដល់ជើងអក្សរ និងល្បែងសម្រាប់ហាត់ ដោយប្រើប្លង់ Khmer Unicode (NiDA) របស់ Windows និង Mac។ ជ្រើសកុំព្យូទ័ររបស់អ្នក រួចចាប់ផ្ដើម។","Step-by-step lessons from the home row to subscript consonants, plus practice games, on the Khmer Unicode (NiDA) layout for Windows and Mac. Pick your computer and start."],
+ noteWin:["Windows៖ ក្ដារចុច «Khmer (NIDA)»។ អក្សរបន្ថែមប្រើគ្រាប់ចុច AltGr (Alt ខាងស្ដាំ)។","Windows: the “Khmer (NIDA)” keyboard. Extra characters use AltGr (right Alt)."],
+ noteMac:["Mac៖ ក្ដារចុច «Khmer Unicode» (NiDA)។ អក្សរបន្ថែមប្រើគ្រាប់ចុច ⌥ Option។","Mac: the “Khmer Unicode” (NiDA) keyboard. Extra characters use ⌥ Option."],
+ lessonsTitle:["មេរៀន","Lessons"],lessonsSub:["មេរៀននីមួយៗណែនាំគ្រាប់ចុចថ្មីៗ ហើយហាត់ជាមួយពាក្យពិត។ ផ្កាយបង្ហាញភាពត្រឹមត្រូវល្អបំផុតរបស់អ្នក។","Each lesson introduces new keys, then practises them in real words. Stars show your best accuracy."],
+ gamesTitle:["ល្បែង","Games"],gamesSub:["ហាត់ល្បឿន និងការចងចាំទីតាំងគ្រាប់ចុច។","Practise speed and remembering where the keys are."],
+ back:["ត្រឡប់","Back"],close:["បិទ","Close"],typed:["បានវាយ","Typed"],again:["ម្ដងទៀត","Again"],nextLesson:["មេរៀនបន្ទាប់","Next lesson"],
+ legend1:["ពណ៌បៃតង = គ្រាប់ចុចគោល (ដាក់ម្រាមដៃនៅទីនេះ)","Green = home keys (rest your fingers here)"],
+ legend2:["តួអក្សរតូច៖ ខាងលើ = Shift, ខាងក្រោម = AltGr/Option","Small letters: top = Shift, bottom = AltGr / Option"],
+ setupTitle:["ដំឡើងក្ដារចុចខ្មែរ","Set up the Khmer keyboard"],
+ setupSub:["ទំព័រនេះអាចហាត់បានដោយមិនចាំបាច់ដំឡើងអ្វីទេ ព្រោះវាអានទីតាំងគ្រាប់ចុច។ ដើម្បីវាយខ្មែរក្នុងកម្មវិធីផ្សេងទៀត សូមដំឡើងក្ដារចុចដូចខាងក្រោម។","You can practise here without installing anything, because the page reads key positions. To type Khmer in other apps, add the keyboard as shown below."],
+ foot1:["ប្លង់ NiDA ផ្អែកលើស្តង់ដារ Khmer Unicode របស់ NiDA (Windows: Khmer (NIDA); Mac: Khmer Unicode)។","Based on the NiDA Khmer Unicode standard (Windows: Khmer (NIDA); Mac: Khmer Unicode)."],
+ footBack:["← ទៅប្លង់សាកល្បង","← Experimental layout"],
+ wpm:["ពាក្យ/នាទី","WPM"],acc:["ត្រឹមត្រូវ","Accuracy"],best:["ល្អបំផុត","Best"],time:["ពេល","Time"],score:["ពិន្ទុ","Score"],streak:["ជាប់ៗ","Streak"],lives:["ជីវិត","Lives"],
+ newKeys:["គ្រាប់ចុចថ្មី៖ ","New keys: "],next:["បន្ទាប់៖ ","Next: "],space:["ដកឃ្លា","Space"],
+ finger:["ម្រាមដៃ៖ ","Finger: "],press:["ចុច ","Press "],with:[" ជាមួយ "," with "],
+ doneL:["រួចរាល់៖ {w} ពាក្យ/នាទី, ត្រឹមត្រូវ {a}%","Done: {w} WPM, {a}% accuracy"],
+ start:["ចាប់ផ្ដើម","Start"],playAgain:["លេងម្ដងទៀត","Play again"],ready:["ត្រៀមរួចហើយឬនៅ?","Ready?"],gameOver:["ចប់ល្បែង","Game over"],
+ blind:["លាក់អក្សរលើគ្រាប់ចុច","Hide key labels"],hints:["ជំនួយ","Hints"],
+ huntPool:["ក្រុមអក្សរ៖","Letters:"],
+ poolHome:["ជួរគោល","Home row"],poolBase:["គ្រប់ជួរ (គ្មាន Shift)","All rows, no Shift"],poolShift:["ជាមួយ Shift","With Shift"],poolAll:["ទាំងអស់","Everything"],
+ huntEnd:["ពិន្ទុ {s} · ជាប់ៗបំផុត {k} · ត្រឹមត្រូវ {a}%","Score {s} · longest streak {k} · {a}% accuracy"],
+ sprintEnd:["{n} ពាក្យ ក្នុង ៦០ វិនាទី · {w} ពាក្យ/នាទី · ត្រឹមត្រូវ {a}%","{n} words in 60 s · {w} WPM · {a}% accuracy"],
+ rainText:["វាយពាក្យនីមួយៗ មុនពេលវាធ្លាក់ដល់បន្ទាត់ក្រហម។","Type each word before it reaches the red line."],
+ rainEnd:["ពិន្ទុ {s} · {n} ពាក្យ","Score {s} · {n} words"],
+ lessonWord:["មេរៀនទី ","Lesson "]
+};
+var FINGERS=[["កូនដៃឆ្វេង","left little finger"],["ម្រាមនាងឆ្វេង","left ring finger"],["ម្រាមកណ្ដាលឆ្វេង","left middle finger"],["ម្រាមចង្អុលឆ្វេង","left index finger"],["ម្រាមចង្អុលស្ដាំ","right index finger"],["ម្រាមកណ្ដាលស្ដាំ","right middle finger"],["ម្រាមនាងស្ដាំ","right ring finger"],["កូនដៃស្ដាំ","right little finger"]];
+var lang=store("lang")==="en"?"en":"km";
+function T(k,vars){var v=(TX[k]||[k,k])[lang==="km"?0:1];if(vars)Object.keys(vars).forEach(function(n){v=v.replace("{"+n+"}",vars[n])});return v}
+function L2(km,en){return lang==="km"?km:en}
+function kmNum(n){return lang==="km"?String(n).replace(/[0-9]/g,function(d){return String.fromCharCode(0x17E0+(+d))}):String(n)}
+
+// ---------- platform & key map ----------
+var plat=store("nidaPlat")||(/Mac|iPhone|iPad/.test(navigator.platform||navigator.userAgent)?"mac":"windows");
+var K,where;
+var FING={Backquote:0,Digit1:0,KeyQ:0,KeyA:0,KeyZ:0,Digit2:1,KeyW:1,KeyS:1,KeyX:1,Digit3:2,KeyE:2,KeyD:2,KeyC:2,Digit4:3,Digit5:3,KeyR:3,KeyT:3,KeyF:3,KeyG:3,KeyV:3,KeyB:3,
+ Digit6:4,Digit7:4,KeyY:4,KeyU:4,KeyH:4,KeyJ:4,KeyN:4,KeyM:4,Digit8:5,KeyI:5,KeyK:5,Comma:5,Digit9:6,KeyO:6,KeyL:6,Period:6,
+ Digit0:7,Minus:7,Equal:7,KeyP:7,BracketLeft:7,BracketRight:7,Backslash:7,Semicolon:7,Quote:7,Slash:7};
+var HOME={KeyA:1,KeyS:1,KeyD:1,KeyF:1,KeyJ:1,KeyK:1,KeyL:1,Semicolon:1};
+var ROWS=[
+ ["Backquote","Digit1","Digit2","Digit3","Digit4","Digit5","Digit6","Digit7","Digit8","Digit9","Digit0","Minus","Equal",["Backspace",2,"⌫"]],
+ [["Tab",1.5,"Tab"],"KeyQ","KeyW","KeyE","KeyR","KeyT","KeyY","KeyU","KeyI","KeyO","KeyP","BracketLeft","BracketRight",["Backslash*",1.5]],
+ [["CapsLock",1.75,"Caps"],"KeyA","KeyS","KeyD","KeyF","KeyG","KeyH","KeyJ","KeyK","KeyL","Semicolon","Quote",["Enter",2.25,"Enter"]],
+ [["ShiftLeft",2.25,"Shift"],"KeyZ","KeyX","KeyC","KeyV","KeyB","KeyN","KeyM","Comma","Period","Slash",["ShiftRight",2.75,"Shift"]]];
+var BOTTOM={windows:[["CtrlL",1.5,"Ctrl"],["Win",1.25,"⊞"],["AltL",1.25,"Alt"],["Space",8,""],["AltGr",1.5,"AltGr"],["CtrlR",1.5,"Ctrl"]],
+            mac:[["Fn",1.25,"fn"],["CtrlL",1.25,"control"],["OptL",1.25,"⌥ option"],["CmdL",1.5,"⌘"],["Space",6.5,""],["CmdR",1.5,"⌘"],["OptR",1.25,"⌥ option"],["Arrows",1.5,""]]};
+function modName(){return plat==="mac"?"⌥ Option":"AltGr"}
+function setPlatform(p){
+  plat=p==="mac"?"mac":"windows";store("nidaPlat",plat);K=window.NIDA[plat];where={};
+  Object.keys(K).forEach(function(c){K[c].forEach(function(u,l){if(u&&(!where[u]||where[u].layer>l))where[u]={code:c,layer:l}})});
+  $("platWin").setAttribute("aria-pressed",plat==="windows");$("platMac").setAttribute("aria-pressed",plat==="mac");
+  $("platNote").textContent=T(plat==="mac"?"noteMac":"noteWin");
+  renderKeyboard();renderSetup();
+  if(active)restart();
+}
+function disp(u){
+  if(u==="\u200b")return "ZWSP";if(u==="\u200c")return "ZWNJ";if(u==="\u200d")return "ZWJ";if(u==="\u00a0")return "NBSP";
+  var c=u.charCodeAt(0);return ((c>=0x17B6&&c<=0x17D3)||c===0x17DD||u.charAt(0)===COENG)?"\u25cc"+u:u;
 }
 
-// ---- keyboard rendering
-var kbEl=$("kb"), keyEls={};
-function mkKey(code,label){
-  var b=document.createElement("button");
-  b.className="k f"+(FINGER[code]!==undefined?FINGER[code]:0)+(HOME[code]?" home":"")+(code==="KeyF"||code==="KeyJ"?" bump":"");
-  b.type="button"; b.dataset.code=code;
-  var k=K[code]||["","",""];
-  b.innerHTML='<span class="b"></span><span class="s"></span><span class="a"></span>';
-  b.children[0].textContent=k[0]?disp(k[0]):"";
-  b.children[1].textContent=k[1]?disp(k[1]):"";
-  b.children[2].textContent=k[2]?disp(k[2]):"";
-  b.addEventListener("pointerdown",function(e){if(e.pointerType==="mouse"&&e.button!==0)return;e.preventDefault();b._pd=Date.now();virtual(code)});
-  b.addEventListener("click",function(){if(Date.now()-(b._pd||0)>700)virtual(code)});  // keyboard / assistive activation only
+// ---------- on-screen keyboard ----------
+var kbEl=$("kb"),keyEls={},stickyS=false,stickyA=false;
+function keyBtn(code,w,label){
+  var b=document.createElement("button");b.type="button";b.dataset.code=code;b.style.setProperty("--w",w||1);
+  if(K[code]){
+    b.className="k f"+FING[code]+(HOME[code]?" home":"")+(code==="KeyF"||code==="KeyJ"?" bump":"");
+    b.innerHTML='<span class="b"></span><span class="s"></span><span class="a"></span><span class="q"></span>';
+    b.children[0].textContent=K[code][0]?disp(K[code][0]):"";b.children[1].textContent=K[code][1]?disp(K[code][1]):"";b.children[2].textContent=K[code][2]?disp(K[code][2]):"";
+    b.children[3].textContent=code.replace("Key","").replace("Digit","").replace("Backquote","`").replace("Minus","-").replace("Equal","=").replace("BracketLeft","[").replace("BracketRight","]").replace("Backslash","\\").replace("Semicolon",";").replace("Quote","'").replace("Comma",",").replace("Period",".").replace("Slash","/");
+  }else{
+    var func=/Shift|AltGr|Opt|Space|Backspace/.test(code);
+    b.className="k mod"+(func?"":" inert");b.innerHTML='<span class="ml"></span>';
+    b.children[0].textContent=code==="Space"?T("space"):label||"";
+    if(!func)b.tabIndex=-1;
+  }
+  b.addEventListener("pointerdown",function(e){if(e.pointerType==="mouse"&&e.button!==0)return;e.preventDefault();b._pd=Date.now();tap(code)});
+  b.addEventListener("click",function(){if(Date.now()-(b._pd||0)>700)tap(code)});
   keyEls[code]=b;return b;
 }
 function renderKeyboard(){
-  kbEl.innerHTML=""; keyEls={};
-  [L.digits].concat(L.rows).forEach(function(r,ri){
-    var d=document.createElement("div");d.className="kr";
-    d.style.marginLeft="calc("+ri+" * min(10px, 1.5vw))";
-    r.forEach(function(c){d.appendChild(mkKey(c))});
+  kbEl.innerHTML="";keyEls={};
+  ROWS.concat([BOTTOM[plat]]).forEach(function(r,ri){
+    var d=document.createElement("div");d.className="kr r"+ri;
+    r.forEach(function(k){
+      if(typeof k==="string"){d.appendChild(keyBtn(k,1))}
+      else if(k[0]==="Backslash*"){d.appendChild(keyBtn("Backslash",k[1]))}
+      else d.appendChild(keyBtn(k[0],k[1],k[2]));
+    });
     kbEl.appendChild(d);
   });
-  // phone-style modifier keys (shown on narrow screens): AltGr where Caps Lock sits, Shift and Backspace around the bottom row
-  var rows=kbEl.children;
-  rows[2].insertBefore(modKey("kalt","⌥","AltGr",function(){setMod(false,!stickyAlt)}),rows[2].firstChild);
-  rows[3].insertBefore(modKey("kshift","⇧","Shift",function(){setMod(!stickyShift,false)}),rows[3].firstChild);
-  rows[3].appendChild(modKey("kback","⌫","",function(){if(mode==="game")gKey({key:"Backspace",preventDefault:function(){}})}));
-  var sr=document.createElement("div");sr.className="kr spacerow";
-  var sp=document.createElement("button");sp.type="button";sp.id="kspace";sp.className="k space";sp.innerHTML='<span class="sl"></span>';
-  sp.children[0].textContent=T("Space");
-  sp.addEventListener("pointerdown",function(e){if(e.pointerType==="mouse"&&e.button!==0)return;e.preventDefault();sp._pd=Date.now();flashKey("Space");virtual("Space")});
-  sp.addEventListener("click",function(){if(Date.now()-(sp._pd||0)>700)virtual("Space")});
-  keyEls.Space=sp;sr.appendChild(sp);kbEl.appendChild(sr);
-  setMod(stickyShift,stickyAlt);
+  setMods(stickyS,stickyA);updateHint();
 }
-function modKey(id,icon,label,fn){
-  var b=document.createElement("button");b.type="button";b.id=id;b.className="k mod";b.setAttribute("aria-label",label||"Backspace");
-  b.innerHTML='<span class="mi"></span><span class="ml"></span>';b.children[0].textContent=icon;b.children[1].textContent=label;
-  b.addEventListener("pointerdown",function(e){if(e.pointerType==="mouse"&&e.button!==0)return;e.preventDefault();b._pd=Date.now();fn()});
-  b.addEventListener("click",function(){if(Date.now()-(b._pd||0)>700)fn()});
-  return b;
+function setMods(s,a){
+  stickyS=!!s;stickyA=!!a;
+  ["ShiftLeft","ShiftRight"].forEach(function(c){if(keyEls[c])keyEls[c].classList.toggle("on",stickyS)});
+  ["AltGr","OptL","OptR"].forEach(function(c){if(keyEls[c])keyEls[c].classList.toggle("on",stickyA)});
+  kbEl.classList.toggle("show-s",stickyS);kbEl.classList.toggle("show-a",stickyA);
 }
-function needMod(layer){
-  ["mshift","kshift"].forEach(function(id){var e=$(id);if(e)e.classList.toggle("need",layer===1)});
-  ["maltgr","kalt"].forEach(function(id){var e=$(id);if(e)e.classList.toggle("need",layer===2)});
-}
-
-// ---- state
-var mode="lessons", cur=0, items=[], idx=0, typed="", correct=0, errors=0, t0=0, done=false;
-var showHint=true, stickyShift=false, stickyAlt=false;
-var targetEl=$("target"), echoEl=$("echo");
-
-function loadLesson(i){
-  cur=i; items=buildItems(lessons[i]); buildTrack(); idx=0; typed=""; correct=0; errors=0; t0=0; done=false;
-  $("result").classList.remove("show");
-  var f=lessons[i].fresh;
-  setNewKeys();
-  renderTarget(); renderStats(); updateHint();
-  var b=store("best"+layoutName+"_"+i); $("best").textContent=b?b:"–";
-}
-function buildTrack(){
-  targetEl.innerHTML="";targetEl.style.transition="none";
-  items.forEach(function(w){
-    var sp=document.createElement("span");sp.className="w";
-    sp.appendChild(document.createTextNode(w));sp.appendChild(document.createElement("i"));
-    targetEl.appendChild(sp);
-  });
-}
-function setNewKeys(){
-  var f=lessons[cur]?lessons[cur].fresh:[];
-  $("newkeys").innerHTML="";$("newkeys").appendChild(document.createTextNode(T(f.length?"New keys: ":"All keys in play.")));
-  if(f.length){var nk=document.createElement("span");nk.className="kh";nk.textContent=f.map(disp).join("  ");$("newkeys").appendChild(nk)}
-}
-function renderTarget(){
-  var ws=targetEl.children;
-  for(var i=0;i<ws.length;i++){
-    ws[i].className="w"+(i<idx?" done":i===idx?" cur":"");
-    if(i===idx)ws[i].style.setProperty("--p",(100*typed.length/items[i].length)+"%");
-  }
-  var c=ws[Math.min(idx,ws.length-1)],strip=targetEl.parentNode;
-  if(c){targetEl.style.transform="translateX("+Math.round(strip.clientWidth*0.3-c.offsetLeft)+"px)"}
-  void targetEl.offsetWidth;targetEl.style.transition="";
-  echoEl.textContent=typed;
-  $("bar").style.width=(100*idx/items.length)+"%";
-}
-window.addEventListener("resize",function(){if(mode==="lessons")renderTarget()});
-function renderStats(){
-  var mins=t0?(Date.now()-t0)/60000:0;
-  $("wpm").textContent=mins>0.02?Math.round(correct/5/mins):0;
-  var tot=correct+errors; $("acc").textContent=tot?Math.round(100*correct/tot)+"%":"100%";
-}
-function nextUnit(){
-  if(done)return null;
-  var T=items[idx], pos=typed.length, best=null;
-  if(typed===T)return idx<items.length-1?" ":null;   // word done: Space moves to the next one
-  Object.keys(where).forEach(function(u){
-    if(T.substr(pos,u.length)===u && (!best||u.length>best.length)) best=u;
-  });
-  return best;
-}
-function clearHint(){
-  Object.keys(keyEls).forEach(function(c){keyEls[c].classList.remove("hint","hl-s","hl-a")});
-  needMod(0);
-}
-function updateHint(){
-  if(mode==="game"){gHint();return}
-  clearHint(); var hl=$("hintline"); hl.textContent="";
-  var u=nextUnit(); if(!u||!showHint)return;
-  if(u===" "){if(keyEls.Space)keyEls.Space.classList.add("hint");hl.textContent=T("Next: ")+T("Space");return}
-  var w=where[u], el=keyEls[w.code];
-  if(el){el.classList.add("hint"); if(w.layer===1)el.classList.add("hl-s"); if(w.layer===2)el.classList.add("hl-a");}
-  needMod(w.layer);
-  hl.textContent=T("Next: ")+disp(u)+(w.layer===1?T("  (hold Shift)"):w.layer===2?T("  (hold AltGr / Option)"):"");
-}
-var LOG=[], lastT=0;
-function press(unit,code,layer){
-  if(done)return;
-  var now=Date.now(); if(!t0)t0=now;
-  var T=items[idx], ok=unit===" "?(typed===T&&idx<items.length-1):T.substr(0,(typed+unit).length)===typed+unit;
-  LOG.push([now,layoutName,cur,idx,nextUnit()||"",unit,code,layer,ok?1:0,lastT?now-lastT:""]); lastT=now;
-  $("export").disabled=false;
-  if(ok){
-    correct++; echoEl.classList.remove("err"); AR.play(unit===" "?"space":"key");
-    if(unit===" "){idx++;typed=""}
-    else{typed+=unit; if(typed===T&&idx===items.length-1){idx++;typed="";finish();return}}
-    renderTarget();
-  }else{
-    errors++; buzz(); AR.play("bad"); echoEl.classList.remove("err"); void echoEl.offsetWidth; echoEl.classList.add("err");
-  }
-  renderStats(); updateHint();
-}
-function finish(){
-  done=true;AR.play("done"); renderTarget(); clearHint();
-  var mins=(Date.now()-t0)/60000, wpm=Math.round(correct/5/mins), acc=Math.round(100*correct/(correct+errors));
-  var prev=+store("best"+layoutName+"_"+cur)||0;
-  if(acc>=90&&wpm>prev){store("best"+layoutName+"_"+cur,String(wpm));$("best").textContent=wpm}
-  $("resulttext").textContent=L2("Done: "+wpm+" WPM, "+acc+"% accuracy"+(acc<90?" (aim for 90%+ to record a best).":"."),"រួចរាល់៖ "+kmNum(wpm)+" ពាក្យ/នាទី, ភាពត្រឹមត្រូវ "+kmNum(acc)+"%"+(acc<90?" (ត្រូវបាន ៩០% ឡើងទៅ ដើម្បីកត់ត្រាលទ្ធផលល្អបំផុត)។":"។"));
-  $("result").classList.add("show");
-  $("next").style.display=cur<lessons.length-1?"":"none";
-}
-
-// ---- input
-function layerFrom(e){
-  var alt=(e.getModifierState&&e.getModifierState("AltGraph"))||e.altKey;
-  return alt?2:(e.shiftKey?1:0);
+function flash(code){var el=keyEls[code];if(el){el.classList.add("press");setTimeout(function(){el.classList.remove("press")},110)}}
+function tap(code){
+  if(/Shift/.test(code)){setMods(!stickyS,false);return}
+  if(/AltGr|Opt/.test(code)){setMods(false,!stickyA);return}
+  if(code==="Space"){flash(code);input(" ");return}
+  if(code==="Backspace"){input("\b");return}
+  if(!K[code])return;
+  var l=stickyA?2:stickyS?1:0,u=K[code][l];setMods(false,false);flash(code);if(u)input(u);
 }
 document.addEventListener("keydown",function(e){
+  if(!active)return;
   if(e.target&&/SELECT|INPUT|TEXTAREA/.test(e.target.tagName))return;
-  if((e.ctrlKey&&!e.getModifierState("AltGraph"))||e.metaKey)return;
-  if(mode==="game"&&gKey(e))return;
-  if(e.code==="Space"){e.preventDefault();flashKey("Space");if(mode!=="game")press(" ","Space",0);return}
+  var altgr=plat==="mac"?e.altKey:((e.getModifierState&&e.getModifierState("AltGraph"))||(e.ctrlKey&&e.altKey));
+  if(!altgr&&(e.ctrlKey||e.metaKey||e.altKey))return;
+  if(e.code==="Space"){e.preventDefault();flash("Space");input(" ");return}
+  if(e.code==="Backspace"){e.preventDefault();input("\b");return}
+  if(active.type==="archer"&&ARCH&&ARCH.key(e)){e.preventDefault();return}
+  if(e.key==="Enter"&&active.type==="rain"&&!rain.running){e.preventDefault();rainStart();return}
   if(!K[e.code])return;
-  var u=K[e.code][layerFrom(e)];
   e.preventDefault();
-  if(!u)return;
-  var el=keyEls[e.code];
-  if(el){el.classList.add("press");setTimeout(function(){el.classList.remove("press")},120)}
-  if(mode==="game")gType(u,e.code);else press(u,e.code,layerFrom(e));
+  var u=K[e.code][altgr?2:e.shiftKey?1:0];flash(e.code);if(u)input(u);
 });
-function flashKey(c){var el=keyEls[c];if(el){el.classList.add("press");setTimeout(function(){el.classList.remove("press")},120)}}
-function virtual(code){
-  if(code==="Space"){if(mode!=="game")press(" ","Space",0);setMod(false,false);return}
-  var layer=stickyAlt?2:stickyShift?1:0, u=K[code]&&K[code][layer];
-  if(u){if(mode==="game")gType(u,code);else press(u,code,layer)}
-  setMod(false,false);
-}
 function buzz(){try{if(navigator.vibrate)navigator.vibrate(25)}catch(e){}}
-function setMod(s,a){
-  stickyShift=s;stickyAlt=a;
-  $("mshift").setAttribute("aria-pressed",s);$("maltgr").setAttribute("aria-pressed",a);
-  kbEl.classList.toggle("show-s",!!s);kbEl.classList.toggle("show-a",!!a);
-  if($("kshift")){$("kshift").classList.toggle("on",!!s);$("kalt").classList.toggle("on",!!a);$("kshift").setAttribute("aria-pressed",!!s);$("kalt").setAttribute("aria-pressed",!!a)}
-}
-$("mshift").onclick=function(){setMod(!stickyShift,false)};
-$("maltgr").onclick=function(){setMod(false,!stickyAlt)};
-$("restart").onclick=$("again").onclick=function(){loadLesson(cur)};
-$("next").onclick=function(){$("lesson").value=cur+1;loadLesson(cur+1)};
-$("showhint").onclick=function(){showHint=!showHint;this.setAttribute("aria-pressed",showHint);this.textContent=T(showHint?"Hints on":"Hints off");updateHint()};
-var sel=$("lesson"), lsel=$("layout");
-function fillLessons(){
-  sel.innerHTML="";
-  lessons.forEach(function(l,i){var o=document.createElement("option");o.value=i;o.textContent=l.final?L2("Final – all keys, common words","ចុងក្រោយ – គ្រាប់ចុចទាំងអស់ ពាក្យប្រើញឹកញាប់"):L2("Lesson "+l.num+" – keys "+l.from+"–"+l.to,"មេរៀនទី "+kmNum(l.num)+" – គ្រាប់ចុច "+kmNum(l.from)+"–"+kmNum(l.to));sel.appendChild(o)});
-}
-sel.onchange=function(){loadLesson(+sel.value);sel.blur()};
-Object.keys(LAYOUTS).forEach(function(n){var o=document.createElement("option");o.value=n;o.textContent=LAYOUTS[n].info.name;lsel.appendChild(o)});
-lsel.onchange=function(){applyLayout(lsel.value);lsel.blur()};
-$("csvcopy").onclick=function(){var t=$("csvtext");t.select();try{navigator.clipboard.writeText(t.value).catch(function(){document.execCommand("copy")})}catch(e){try{document.execCommand("copy")}catch(e2){}}};
-$("export").onclick=function(){
-  var head="timestamp_ms,layout,lesson,item,expected_unit,typed_unit,physical_key,layer,correct,ms_since_prev_key\n";
-  var csv="\ufeff"+head+LOG.map(function(r){return r.map(function(x){return '"'+String(x).replace(/"/g,'""')+'"'}).join(",")}).join("\n");
-  var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
-  a.download="khmer-typing-log.csv";document.body.appendChild(a);a.click();a.remove();
-  $("csvtext").value=csv;$("csvbox").hidden=false;
-};
-setInterval(function(){if(t0&&!done)renderStats()},500);
 
-// ---- about
-function renderAbout(){
-  var I=L.info, M=I.metrics||{};
-  $("about").textContent=lang==="km"?"តារាងខាងក្រោមបង្ហាញគ្រាប់ចុចដែលប្រើញឹកញាប់បំផុត ៣០ ក្នុងប្លង់ “"+T(I.name)+"” តាមលំដាប់ប្រេកង់។ ព័ត៌មានបច្ចេកទេសលម្អិតមានជាភាសាអង់គ្លេស។":"Layout \""+I.name+"\": "+(I.note||"")+". Data: "+I.source+(I.bigramSource?"; bigrams from "+I.bigramSource:"")+
-    ". Coeng pair keys ("+I.pairs.length+"): "+(I.pairs.join(" ")||"none")+"; other clusters are typed coeng key + consonant. "+
-    "Modelled metrics (assumption-dependent, not measured on people): "+M.keystrokesPerUnit+" keystrokes per Khmer unit, "+
-    M.sameFingerPct+"% same-finger bigrams, "+M.handAlternationPct+"% hand alternation, keystrokes on base/Shift/AltGr "+
-    (M.layerPct||[]).join("/")+"%. This is an experimental layout, not an official or standard one.";
-  var fr=$("freq"); fr.innerHTML="";
-  var ft=document.createElement("table"), max=L.ranking[0][1];
-  ft.innerHTML="<tr><th>#</th><th>"+T("unit")+"</th><th>"+T("key")+"</th><th style='width:45%'>"+T("weight")+"</th></tr>";
-  L.ranking.slice(0,30).forEach(function(r,i){
-    var w=where[r[0]], tr=document.createElement("tr");
-    var keyname=w?(w.layer?(w.layer===1?"Shift+":"AltGr+"):"")+w.code.replace("Key","").replace("Bracket","[").replace("Semicolon",";").replace("Quote","'").replace("Comma",",").replace("Period",".").replace("Slash","/"):"";
-    tr.innerHTML="<td>"+(i+1)+"</td><td class='kh'></td><td></td><td><div class='bar2' style='width:"+(100*r[1]/max)+"%'></div></td>";
-    tr.children[1].textContent=disp(r[0]);tr.children[2].textContent=keyname;ft.appendChild(tr);
+// ---------- hints ----------
+function clearHint(){Object.keys(keyEls).forEach(function(c){keyEls[c].classList.remove("hint","need")})}
+function showKeyHint(u,el){
+  clearHint();el.textContent="";
+  if(!u)return;
+  if(u===" "){if(keyEls.Space)keyEls.Space.classList.add("hint");el.innerHTML="";el.appendChild(document.createTextNode(T("next")));var bb=document.createElement("b");bb.textContent=T("space");el.appendChild(bb);return}
+  var w=where[u];if(!w)return;
+  if(keyEls[w.code])keyEls[w.code].classList.add("hint");
+  if(w.layer===1){keyEls.ShiftLeft&&keyEls.ShiftLeft.classList.add("need");keyEls.ShiftRight&&keyEls.ShiftRight.classList.add("need")}
+  if(w.layer===2){["AltGr","OptL","OptR"].forEach(function(c){keyEls[c]&&keyEls[c].classList.add("need")})}
+  var b=document.createElement("b");b.className="kh";b.textContent=disp(u);
+  el.appendChild(document.createTextNode(T("next")));el.appendChild(b);
+  el.appendChild(document.createTextNode("  ·  "+T("finger")+FINGERS[FING[w.code]][lang==="km"?0:1]+(w.layer===1?L2(" + Shift"," + Shift"):w.layer===2?" + "+modName():"")));
+}
+
+// ---------- lessons ----------
+function outs(codes,layer){var r=[];codes.forEach(function(c){var u=K[c]&&K[c][layer];if(u&&u.length<=3&&!/[\u200b-\u200d]/.test(u))r.push(u)});return r}
+var R1=["KeyQ","KeyW","KeyE","KeyR","KeyT","KeyY","KeyU","KeyI","KeyO","KeyP","BracketLeft","BracketRight","Backslash"],
+    R2=["KeyA","KeyS","KeyD","KeyF","KeyG","KeyH","KeyJ","KeyK","KeyL","Semicolon","Quote"],
+    R3=["KeyZ","KeyX","KeyC","KeyV","KeyB","KeyN","KeyM","Comma","Period","Slash"],
+    R0=["Digit1","Digit2","Digit3","Digit4","Digit5","Digit6","Digit7","Digit8","Digit9","Digit0"];
+var LESSONS=[
+ {t:["ជួរគោល","Home row"],d:["ម្រាមដៃនៅលើ A S D F និង J K L ;","Fingers rest on A S D F and J K L ;"],keys:function(){return outs(R2,0)}},
+ {t:["ជួរខាងលើ","Top row"],d:["ស្រៈ និងព្យញ្ជនៈ នៅជួរ Q ដល់ ]","Vowels and consonants on Q to ]"],keys:function(){return outs(R1,0)}},
+ {t:["ជួរខាងក្រោម","Bottom row"],d:["ជួរ Z ដល់ / រួមទាំង ។","Z to /, including ។"],keys:function(){return outs(R3,0)}},
+ {t:["Shift៖ ជួរគោល","Shift: home row"],d:["សង្កត់ Shift សម្រាប់អក្សរទីពីរ","Hold Shift for the second letter on each key"],keys:function(){return outs(R2,1)}},
+ {t:["Shift៖ ជួរខាងលើ","Shift: top row"],d:["ស្រៈវែង និងព្យញ្ជនៈអឃោសៈ","Long vowels and second-series consonants"],keys:function(){return outs(R1,1)}},
+ {t:["Shift៖ ជួរខាងក្រោម","Shift: bottom row"],d:["ព្យញ្ជនៈ និងស្រៈផ្សំ","Consonants and combined vowels"],keys:function(){return outs(R3,1)}},
+ {t:["ជើងអក្សរ","Subscript consonants"],d:["ចុច ្ (J) រួចព្យញ្ជនៈ ដើម្បីដាក់ជើង","Press ្ (J) then a consonant to make a subscript"],coeng:true,keys:function(){return [COENG]}},
+ {t:["លេខ និងវណ្ណយុត្តិ","Numbers & punctuation"],d:["លេខខ្មែរ ១ ដល់ ០ និងសញ្ញា","Khmer digits ១–០ and signs"],digits:true,keys:function(){return outs(R0,0).concat(["។","៕","ៗ"])}},
+ {t:["ពាក្យប្រើញឹកញាប់","Common words"],d:["ពាក្យ ៣០០ ដែលប្រើច្រើនបំផុត","The 300 most used words"],all:true,keys:function(){return []}},
+ {t:["ពាក្យវែង","Long words"],d:["ពាក្យវែង ដែលមានជើង និងស្រៈច្រើន","Longer words with more subscripts and vowels"],all:true,long:true,keys:function(){return []}}
+];
+function learnedUpTo(i){var s={};for(var j=0;j<=i&&j<7;j++)LESSONS[j].keys().forEach(function(u){s[u]=1});if(i>=6)Object.keys(where).forEach(function(u){if(where[u].layer<2)s[u]=1});return s}
+function allSet(){var s={};Object.keys(where).forEach(function(u){s[u]=1});return s}
+function canType(w,set){ // can the word be typed with these key outputs?
+  var n=w.length,ok=[true];for(var i=1;i<=n;i++)ok[i]=false;
+  for(i=0;i<n;i++){if(!ok[i])continue;for(var L=1;L<=3&&i+L<=n;L++)if(set[w.substr(i,L)])ok[i+L]=true}
+  return ok[n];
+}
+function isCons(u){var c=u.charCodeAt(0);return u.length===1&&c>=0x1780&&c<=0x17B3}
+function lessonItems(i){
+  var les=LESSONS[i],items=[],N=20;
+  if(les.all){
+    var set=allSet(),pool=WORDS.filter(function(w){return canType(w,set)});
+    if(les.long)pool=pool.filter(function(w){return w.length>=6}).slice(0,600);else pool=pool.slice(0,300);
+    return shuffle(pool.slice()).slice(0,N);
+  }
+  if(les.digits){for(var d=0;d<N;d++){var s="";for(var k=0;k<3;k++)s+=pick("០១២៣៤៥៦៧៨៩".split(""));items.push(d%5===4?pick(["។","៕","ៗ"]):s)}return items}
+  var learned=learnedUpTo(i),fresh=les.keys(),cons=Object.keys(learned).filter(isCons),vow=Object.keys(learned).filter(function(u){return !isCons(u)&&u!==COENG});
+  if(les.coeng){
+    var subs=["រ","ន","ត","ល","ម","យ","ស","វ","ប","ទ","គ","ក"].filter(function(c){return learned[c]});
+    for(var c=0;c<10;c++){var base=pick(["ក","ស","ប","ព","ត","ច","ន","ម"].filter(function(x){return learned[x]}));items.push(base+COENG+pick(subs)+(Math.random()<.5&&vow.length?pick(vow):""))}
+    var wc=shuffle(WORDS.slice(0,1500).filter(function(w){return w.indexOf(COENG)>=0&&canType(w,learned)})).slice(0,N-items.length);
+    return items.concat(wc);
+  }
+  var freshC=fresh.filter(isCons),freshV=fresh.filter(function(u){return !isCons(u)&&u!==COENG});
+  for(var t=0;t<10;t++){
+    var syl;
+    if(freshC.length&&(t%2===0||!freshV.length))syl=pick(freshC)+(vow.length?pick(vow):"");
+    else syl=(cons.length?pick(cons):"អ")+pick(freshV.length?freshV:vow);
+    if(Math.random()<.5)syl+=(cons.length?pick(cons):"");
+    items.push(syl);
+  }
+  var words=shuffle(WORDS.slice(0,2500).filter(function(w){return canType(w,learned)&&fresh.some(function(u){return w.indexOf(u)>=0})})).slice(0,N-items.length);
+  items=items.concat(words);
+  while(items.length<N)items.push(pick(items));
+  return items;
+}
+
+// ---------- menus ----------
+function stars(n){var s="";for(var i=0;i<3;i++)s+=i<n?"★":'<span class="off">★</span>';return s}
+function nextLesson(){for(var i=0;i<LESSONS.length;i++)if((+store("nida_"+plat+"_l"+i)||0)<3)return i;return -1}
+function renderMenus(){
+  var g=$("lessonGrid"),cur=nextLesson();g.innerHTML="";
+  LESSONS.forEach(function(les,i){
+    var b=document.createElement("button");b.type="button";
+    var st=+store("nida_"+plat+"_l"+i)||0;
+    b.className="lcard"+(i===cur?" cur":st>=3?" done":"");
+    b.innerHTML='<span class="n"></span><h3></h3><span class="stars"></span>';
+    b.children[0].textContent=kmNum(i+1);b.children[1].textContent=les.t[lang==="km"?0:1];b.children[2].innerHTML=stars(st);
+    b.title=les.d[lang==="km"?0:1];b.setAttribute("aria-label",T("lessonWord")+kmNum(i+1)+" · "+les.t[lang==="km"?0:1]+" · "+st+"/3 ★");
+    b.onclick=function(){open({type:"lesson",i:i})};g.appendChild(b);
   });
-  fr.appendChild(ft);
-}
-
-function applyLayout(name){
-  layoutName=name; L=LAYOUTS[name]; K=L.keys; lsel.value=name; store("layout",name);
-  buildTables(); renderKeyboard(); fillLessons(); renderAbout(); renderHero(); setMod(false,false); loadLesson(0);
-  gBuildLevels(); gReset();
-}
-
-// ---- Word Rain game
-var gItems=[],gLocked=null,gScore=0,gLives=3,gSpeed=1,gSpawnT=0,gRunning=false,gPaused=false,gDone=false,gLast=0,gHits=0,gKeys=0,gWords=0,gT0=0,gRaf=0,gPool=[];
-var G_MAXU=8, gField=$("gfield"), gOverlay=$("goverlay");
-var AR=window.Arcade,ARCH=null,gGame=store("game")==="archer"?"archer":"rain",aState={running:false,paused:false,over:false};
-var SCg=AR.scene(gField),FXg=AR.fx(gField),CBg=AR.combo(gField,{healEvery:5,label:function(){return L2("COMBO","ជាប់ៗ")},num:kmNum,
-  onMult:function(m){AR.banner(gField,"×"+m,"mult")},
-  onHeal:function(){if(gRunning&&!gPaused&&gLives<5){gLives++;gHud();FXg.text(gField.clientWidth/2,gField.clientHeight-50,"+♥","#5dff9b",26);AR.play("heal")}}});
-$("muteSlot").appendChild(AR.sfxButton());$("lessonMute").appendChild(AR.sfxButton());
-function aPool(){var lv=+$("glevel").value,us=lv?rank.slice(0,lv*PER_LESSON):rank.slice();return us.filter(function(x){return where[x]&&!/^[\s\u200b-\u200d]+$/.test(x)})}
-function aHint(u){clearHint();if(!showHint||!u)return;var w=where[u];if(!w)return;var el=keyEls[w.code];if(el){el.classList.add("hint");if(w.layer===1)el.classList.add("hl-s");if(w.layer===2)el.classList.add("hl-a")}needMod(w.layer)}
-function aBestKey(){return "archer_"+layoutName+"_"+$("glevel").value}
-function ensureArcher(){if(!ARCH)ARCH=AR.archer($("afield"),{pool:aPool,disp:disp,hint:aHint,t:function(km,en){return L2(en,km)},num:kmNum,buzz:buzz,
-  best:function(){return +store(aBestKey())||0},saveBest:function(n){store(aBestKey(),String(n))},onState:function(st){aState=st;gBtn()}});return ARCH}
-function pickGame(g){
-  gStop();gGame=g;store("game",g);
-  $("pickRain").setAttribute("aria-pressed",g==="rain");$("pickArch").setAttribute("aria-pressed",g==="archer");
-  $("gfield").hidden=g!=="rain";$("afield").hidden=g!=="archer";$("gstats").hidden=g!=="rain";$("rnote").hidden=g!=="rain";$("anote").hidden=g!=="archer";
-  if(mode==="game")gReset();
-}
-$("pickRain").onclick=function(){pickGame("rain")};$("pickArch").onclick=function(){pickGame("archer")};
-function gBuildLevels(){
-  var ls=$("glevel"),keep=ls.value;ls.innerHTML="";
-  for(var i=1;i<=Math.min(MAXL,Math.ceil(rank.length/PER_LESSON));i++){
-    var o=document.createElement("option");o.value=i;o.textContent=L2("Top "+Math.min(i*PER_LESSON,rank.length)+" keys","គ្រាប់ចុច "+kmNum(Math.min(i*PER_LESSON,rank.length))+" ដំបូង");ls.appendChild(o);
-  }
-  var all=document.createElement("option");all.value=0;all.textContent=T("All keys, common words");ls.appendChild(all);
-  ls.value=keep&&ls.querySelector('option[value="'+keep+'"]')?keep:"1";
-}
-function gPoolFor(level){
-  if(+level===0)return WORDS.slice(0,1500).filter(function(w){return splitUnits(w).length<=G_MAXU});
-  var learned=rank.slice(0,level*PER_LESSON),set={};learned.forEach(function(u){set[u]=1});
-  var ok=WORDS.filter(function(w){var u=splitUnits(w);return u.length>=2&&u.length<=G_MAXU&&u.every(function(x){return set[x]})});
-  var out=ok.slice(0,200);
-  while(out.length<40){var n=2+rnd(2),t="";for(var j=0;j<n;j++)t+=pick(learned);out.push(t)}
-  return out;
-}
-function gHud(){
-  $("gscore").textContent=gScore;$("glives").textContent=new Array(gLives+1).join("♥")||"–";$("glvl").textContent=gSpeed;
-}
-function gOverlayShow(t,txt,btn){$("gotitle").textContent=t;$("gotext").textContent=txt;$("gstart2").textContent=btn;gOverlay.classList.remove("hide")}
-function gClear(){gItems.forEach(function(w){w.el.remove()});gItems=[];gLocked=null;gScore=0;gLives=3;gSpeed=1;gHits=0;gKeys=0;gWords=0;gHud();CBg.reset();FXg.clear()}
-function gStop(){gRunning=false;gDone=false;gPaused=false;cancelAnimationFrame(gRaf);if(ARCH)ARCH.stop()}
-function gReset(){
-  gStop();gClear();gBtn();
-  if(gGame==="archer"){ensureArcher().menu();if(mode==="game")clearHint();return}
-  gOverlayShow(T("Ready?"),T("Words fall from the top. Type them on the keys you chose."),T("Start (Enter)"));
-  var b=store("rain_"+layoutName+"_"+$("glevel").value);$("gbest").textContent=b||"–";
-  if(mode==="game")clearHint();
-}
-function gStart(){
-  if(gDone||!gRunning)gClear();
-  gOverlay.classList.add("hide");gPool=gPoolFor($("glevel").value);
-  gRunning=true;gPaused=false;gDone=false;gLast=0;gT0=Date.now();gSpawnT=.4;SCg.reset();AR.banner(gField,"GO!");AR.play("up");cancelAnimationFrame(gRaf);gRaf=requestAnimationFrame(gFrame);gBtn();
-}
-function gPause(on){
-  if(!gRunning)return;gPaused=on;gBtn();
-  if(on)gOverlayShow(T("Paused"),T("Press Esc or Enter to continue."),T("Resume"));
-  else{gOverlay.classList.add("hide");gLast=0;gRaf=requestAnimationFrame(gFrame)}
-}
-function gSpawn(){
-  var text=pick(gPool),el=document.createElement("div");
-  el.className="rw";el.textContent=text;var bar=document.createElement("i");el.appendChild(bar);gField.appendChild(el);
-  var w=el.offsetWidth,fw=gField.clientWidth,x=0;
-  for(var t=0;t<8;t++){x=rnd(Math.max(1,fw-w-8))+4;
-    if(!gItems.some(function(o){return o.y<70&&Math.abs(o.x-x)<Math.max(o.w,w)}))break}
-  var it={el:el,bar:bar,text:text,x:x,y:-44,w:w,typed:"",clean:true};gItems.push(it);gPlace(it);
-}
-function gPlace(it){it.el.style.transform="translate("+it.x+"px,"+it.y+"px)"}
-function gFlash(){var f=$("gflash");f.classList.remove("on");void f.offsetWidth;f.classList.add("on")}
-function gFrame(ts){
-  if(!gRunning||gPaused)return;
-  var dt=gLast?Math.min(.1,(ts-gLast)/1000):0;gLast=ts;
-  gSpawnT-=dt;if(gSpawnT<=0){gSpawn();gSpawnT=Math.max(1.1,2.7*Math.pow(.93,gSpeed-1))}
-  var H=gField.clientHeight,v=36+(gSpeed-1)*6;
-  for(var i=gItems.length-1;i>=0;i--){
-    var it=gItems[i];it.y+=v*dt;gPlace(it);
-    if(it.y+it.el.offsetHeight>=H){
-      if(gLocked===it)gLocked=null;
-      it.el.remove();gItems.splice(i,1);gLives--;gHud();gFlash();FXg.boom(it.x+it.w/2,H-4);FXg.shake(320);CBg.miss();AR.play("boom");buzz();
-      if(gLives<=0){gOver();return}
-    }
-  }
-  gHint();gRaf=requestAnimationFrame(gFrame);
-}
-function gOver(){
-  gRunning=false;gDone=true;AR.play("over");clearHint();gBtn();
-  var mins=(Date.now()-gT0)/60000,acc=gKeys?Math.round(100*gHits/gKeys):100,wpm=mins>0?Math.round(gHits/5/mins):0;
-  var bk="rain_"+layoutName+"_"+$("glevel").value,prev=+store(bk)||0,rec=gScore>prev;
-  if(rec){store(bk,String(gScore));$("gbest").textContent=gScore}
-  gOverlayShow(T("Game over")+(rec&&gScore>0?T(" – new best!"):""),L2("Score "+gScore+" · "+gWords+" words · "+acc+"% accuracy · "+wpm+" WPM (keys÷5)","ពិន្ទុ "+kmNum(gScore)+" · "+kmNum(gWords)+" ពាក្យ · ត្រឹមត្រូវ "+kmNum(acc)+"% · "+kmNum(wpm)+" ពាក្យ/នាទី"),T("Play again (Enter)"));
-}
-function gLowest(pred){var b=null;gItems.forEach(function(it){if(pred(it)&&(!b||it.y>b.y))b=it});return b}
-function gType(u,code){
-  if(gGame==="archer"){if(ARCH)ARCH.input(u);return}
-  if(!gRunning||gPaused)return;
-  gKeys++;var el=keyEls[code];if(el){el.classList.add("press");setTimeout(function(){el.classList.remove("press")},120)}
-  var tgt=gLocked||gLowest(function(it){return it.text.indexOf(u)===0});
-  if(gLocked&&gLocked.text.substr(0,(gLocked.typed+u).length)!==gLocked.typed+u)tgt=null;
-  if(!tgt){if(gLocked)gLocked.clean=false;gFlash();buzz();CBg.miss();AR.play("bad");return}
-  if(!gLocked)gLocked=tgt;
-  tgt.typed+=u;gHits++;
-  tgt.bar.style.width=Math.min(100,100*tgt.typed.length/tgt.text.length)+"%";tgt.el.classList.add("lock");FXg.burst(tgt.x+tgt.w/2,tgt.y+tgt.el.offsetHeight/2,"#ffd34d",5);
-  if(tgt.typed===tgt.text){
-    var len=splitUnits(tgt.text).length,mu=CBg.hit(),pts=(len*10+(tgt.clean?5*len:0))*mu,cx=tgt.x+tgt.w/2,cy=tgt.y+tgt.el.offsetHeight/2;gScore+=pts;gWords++;
-    FXg.burst(cx,cy,"#ffd34d",26);FXg.text(cx,cy,"+"+kmNum(pts),"#ffe58a",20);AR.play("word");
-    if(gWords%8===0){gSpeed++;SCg.setTime(((gSpeed-1)%7)/7);AR.banner(gField,L2("SPEED ","ល្បឿន ")+kmNum(gSpeed))}
-    tgt.el.classList.add("pop");(function(n){setTimeout(function(){n.remove()},250)})(tgt.el);
-    gItems.splice(gItems.indexOf(tgt),1);gLocked=null;gHud();
-  }
-  gHint();
-}
-function gKey(e){   // returns true when the key was handled by the game
-  if(gGame==="archer"){if(ARCH&&ARCH.key(e)){e.preventDefault();return true}if(e.key==="Backspace"){e.preventDefault();return true}return false}
-  if(e.key==="Enter"||(e.key===" "&&!gRunning)){
-    e.preventDefault();if(gPaused)gPause(false);else if(!gRunning)gStart();return true;
-  }
-  if(e.key==="Escape"){e.preventDefault();if(gRunning)gPause(!gPaused);return true}
-  if(e.key==="Backspace"){e.preventDefault();if(gLocked){gLocked.typed="";gLocked.bar.style.width="0";gLocked.el.classList.remove("lock");gLocked=null;gHint()}return true}
-  return false;
-}
-function gHint(){
-  clearHint();if(!showHint||!gRunning)return;
-  var t=gLocked||gLowest(function(){return true});if(!t)return;
-  var rem=t.text.substr(t.typed.length),best=null;
-  Object.keys(where).forEach(function(u){if(rem.indexOf(u)===0&&(!best||u.length>best.length))best=u});
-  if(!best)return;var w=where[best],el=keyEls[w.code];
-  if(el){el.classList.add("hint");if(w.layer===1)el.classList.add("hl-s");if(w.layer===2)el.classList.add("hl-a")}needMod(w.layer);
-}
-function setMode(m){
-  setTimeout(function(){if(typeof markNav==="function")markNav()},0);
-  document.body.classList.toggle("mode-game",m==="game");
-  mode=m;store("mode",m);
-  $("lessonView").hidden=m!=="lessons";$("gameView").hidden=m!=="game";
-  $("tabLessons").setAttribute("aria-pressed",m==="lessons");$("tabGame").setAttribute("aria-pressed",m==="game");
-  if(m==="game"){gReset()}else{gStop();renderTarget();updateHint()}
-}
-$("tabLessons").onclick=function(){setMode("lessons")};
-$("tabGame").onclick=function(){setMode("game")};
-$("gstart").onclick=function(){if(gGame==="archer"){var a=ensureArcher();if(aState.running)a.pause(true);else if(aState.paused)a.pause(false);else a.start();return}if(gRunning&&!gPaused)gPause(true);else if(gPaused)gPause(false);else gStart()};
-$("gstart2").onclick=function(){if(gPaused)gPause(false);else gStart()};
-$("mback").onclick=function(){gKey({key:"Backspace",preventDefault:function(){}})};
-function gBtn(){if(gGame==="archer"){$("gstart").textContent=aState.running?L2("Pause","ផ្អាក"):aState.paused?T("Resume"):T("Start");return}$("gstart").textContent=gRunning&&!gPaused?L2("Pause","ផ្អាក"):gPaused?T("Resume"):T("Start")}
-$("glevel").onchange=function(){gReset();this.blur()};
-document.addEventListener("visibilitychange",function(){if(document.hidden&&gRunning&&!gPaused)gPause(true)});
-window.__rain={items:function(){return gItems},state:function(){return{score:gScore,lives:gLives,running:gRunning,done:gDone}}};
-
-
-function renderCompare(){
-  var names=Object.keys(LAYOUTS),rows=[
-    ["Keystrokes per Khmer letter","keystrokesPerUnit",function(v){return v.toFixed(3)},-1],
-    ["Same-finger letter pairs","sameFingerPct",function(v){return v.toFixed(1)+"%"},-1],
-    ["Hand alternation","handAlternationPct",function(v){return v.toFixed(0)+"%"},1],
-    ["Keystrokes on the base layer","layerPct",function(v){return v[0].toFixed(0)+"%"},1],
-    ["Modelled effort per letter","totalCostPerUnit",function(v){return v.toFixed(2)},-1]];
-  var t=$("compare"),h="<tr><th>"+T("Modelled metric")+"</th>";
-  names.forEach(function(n){h+="<th>"+T({refined:"Optimised v2",clusters:"Cluster keys",unigram:"Frequency only"}[n]||n)+"</th>"});
-  t.innerHTML=h+"</tr>";
-  rows.forEach(function(r){
-    var vals=names.map(function(n){var m=LAYOUTS[n].info.metrics||{};return m[r[1]]});
-    var nums=vals.map(function(v){return Array.isArray(v)?v[0]:v}),best=r[3]>0?Math.max.apply(null,nums):Math.min.apply(null,nums);
-    var tr=document.createElement("tr"),td=document.createElement("td");td.textContent=T(r[0]);tr.appendChild(td);
-    vals.forEach(function(v,i){var c=document.createElement("td");c.textContent=v==null?"–":r[2](v);if(nums[i]===best)c.className="best";tr.appendChild(c)});
-    t.appendChild(tr);
+  var cb=$("contBtn"),fresh=store("nida_"+plat+"_l0")==null;
+  cb.innerHTML="";cb.appendChild(document.createTextNode(cur<0?T("allDone"):fresh?T("startL"):T("cont")+kmNum(cur+1)));
+  cb.onclick=function(){open({type:"lesson",i:cur<0?0:cur})};
+  var gg=$("gameGrid");gg.innerHTML="";
+  GAMES.forEach(function(gm){
+    var b=document.createElement("button");b.className="lcard gcard";b.type="button";b.dataset.g=gm.id;
+    var best=store("nida_"+plat+"_g_"+gm.id);
+    b.innerHTML='<span class="big kh" aria-hidden="true"></span><h3></h3>'+(best?'<span class="pill"></span>':'');
+    b.children[0].textContent=gm.icon;b.children[1].textContent=gm.t[lang==="km"?0:1];if(best)b.children[2].textContent="★ "+best;
+    b.title=gm.d[lang==="km"?0:1];
+    b.onclick=function(){open({type:gm.id})};gg.appendChild(b);
   });
 }
-function renderHero(){
-  var hk=$("herokeys");hk.innerHTML="";
-  ["KeyA","KeyS","KeyD","KeyF","KeyJ","KeyK","KeyL","Semicolon"].forEach(function(c){
-    var d=document.createElement("div");d.className="hk home";
-    var sm=document.createElement("small");sm.textContent=c.replace("Key","").replace("Semicolon",";");
-    d.appendChild(sm);d.appendChild(document.createTextNode(K[c]&&K[c][0]?disp(K[c][0]):""));hk.appendChild(d);
-  });
-  var p=document.createElement("p");p.textContent=L2("Home row of “"+L.info.name+"”","ជួរគ្រាប់ចុចគោលនៃ “"+T(L.info.name)+"”");hk.appendChild(p);
-  var R=LAYOUTS.refined||L,M=(R.info.metrics)||{},n=parseInt(R.info.source,10);
-  $("facts").innerHTML="";
-  [[isNaN(n)?"–":Math.round(n/1e6)+"M","Khmer letters analysed"],[(M.layerPct||[0])[0]+"%","keystrokes without Shift (modelled)"],[Object.keys(LAYOUTS).length,"layouts to compare"]].forEach(function(f){
-    var d=document.createElement("div"),b=document.createElement("b"),sp=document.createElement("span");b.textContent=f[0];sp.textContent=T(f[1]);d.appendChild(b);d.appendChild(sp);$("facts").appendChild(d);
-  });
-}
-function showWork(){
-  var deck=document.querySelector(".deck"),t=mode==="game"?$("gfield"):document.querySelector(".strip");
-  if(!t)return;
-  if(getComputedStyle(deck).position!=="sticky"){$("practice").scrollIntoView({behavior:"smooth"});return}
-  var y=t.getBoundingClientRect().bottom+scrollY-(innerHeight-deck.offsetHeight)+(mode==="game"?8:70);
-  scrollTo({top:Math.max(0,y),behavior:"smooth"});
-}
-document.querySelectorAll('a[href="#game"]').forEach(function(a){a.addEventListener("click",function(e){e.preventDefault();setMode("game");showWork()})});
-document.querySelectorAll('a[href="#practice"]').forEach(function(a){a.addEventListener("click",function(e){e.preventDefault();if(mode!=="lessons")setMode("lessons");showWork()})});
+var GAMES=[
+ {id:"hunt",icon:"ក?",t:["ស្វែងរកគ្រាប់ចុច","Key Hunt"],d:["អក្សរលេចឡើង រកគ្រាប់ចុចឱ្យបានលឿន ក្នុង ៦០ វិនាទី។ អាចលាក់អក្សរលើគ្រាប់ចុច ដើម្បីហាត់ចងចាំ។","A letter appears; find its key fast. 60 seconds. Hide the key labels to train your memory."]},
+ {id:"sprint",icon:"⏱",t:["ប្រណាំង ៦០ វិនាទី","60-second Sprint"],d:["វាយពាក្យឱ្យបានច្រើនបំផុត ក្នុងមួយនាទី។","Type as many words as you can in one minute."]},
+ {id:"archer",icon:"🏹",t:["អ្នកបាញ់ព្រួញ","Archer"],d:["បាញ់អក្សរដែលធ្លាក់ មុនវាផ្ទុះលើអ្នកបាញ់។ ជាប់ៗ និងព្យាបាល។","Shoot the falling letters before they explode on the archer. Combos and healing."]},
+ {id:"rain",icon:"☔",t:["ពាក្យធ្លាក់","Word Rain"],d:["វាយពាក្យដែលធ្លាក់ មុនវាដល់ដី។ មានជីវិត ៣។","Type falling words before they land. Three lives."]}
+];
 
-// ---- language (English / Khmer)
-var KM_NAMES={"Cluster-Frequency Khmer v2 (model-optimal)": "ប្លង់ខ្មែរតាមប្រេកង់ v2 (ល្អបំផុតតាមម៉ូដែល)", "Cluster keys v2 (12 pair keys)": "គ្រាប់ចុចជើងអក្សរ v2 (១២ គ្រាប់)", "Frequency-only baseline (v1)": "មូលដ្ឋានតាមប្រេកង់តែប៉ុណ្ណោះ (v1)"};
-var KM={"Modern Khmer Typing Tutor": "កម្មវិធីហាត់វាយអក្សរខ្មែរទំនើប", "Practice": "ហាត់វាយ", "Word Rain": "ពាក្យធ្លាក់", "The layout": "ប្លង់ក្ដារចុច", "How it was made": "របៀបបង្កើត", "Experimental Khmer keyboard": "ក្ដារចុចខ្មែរសាកល្បង", "Type Khmer on a layout built from": "វាយអក្សរខ្មែរលើប្លង់ដែលបង្កើតចេញពី", "real Khmer text": "អត្ថបទខ្មែរពិតៗ", ".": "។", "Key positions come from letter and coeng-cluster counts in a large Khmer corpus, plus letter-pair statistics. Learn it a few keys at a time, then test yourself in Word Rain.": "ទីតាំងគ្រាប់ចុចផ្អែកលើការរាប់អក្សរ និងជើងអក្សរ ក្នុងសំណុំអត្ថបទខ្មែរដ៏ធំមួយ រួមទាំងស្ថិតិគូអក្សរ។ រៀនម្ដងបន្តិចៗ រួចសាកល្បងសមត្ថភាពក្នុងល្បែងពាក្យធ្លាក់។", "Start practising": "ចាប់ផ្ដើមហាត់", "Play Word Rain": "លេងល្បែងពាក្យធ្លាក់", "Lessons add eight keys at a time in frequency order. Type on a physical keyboard (QWERTY positions) or tap the keys.": "មេរៀននីមួយៗបន្ថែមគ្រាប់ចុចប្រាំបី តាមលំដាប់ប្រេកង់។ វាយលើក្ដារចុចពិត (ទីតាំង QWERTY) ឬចុចលើគ្រាប់ចុចខាងក្រោម។", "Lessons": "មេរៀន", "Layout": "ប្លង់", "Lesson": "មេរៀន", "Restart": "ចាប់ផ្ដើមឡើងវិញ", "Export log": "នាំចេញកំណត់ត្រា", "WPM": "ពាក្យ/នាទី", "Accuracy": "ភាពត្រឹមត្រូវ", "Best": "ល្អបំផុត", "Typed": "បានវាយ", "Keystroke log (CSV). If the download did not start, copy it from here.": "កំណត់ត្រាការចុច (CSV)។ បើការទាញយកមិនចាប់ផ្ដើម សូមចម្លងពីទីនេះ។", "Copy CSV": "ចម្លង CSV", "Again": "ម្ដងទៀត", "Next lesson": "មេរៀនបន្ទាប់", "Keys": "គ្រាប់ចុច", "Start": "ចាប់ផ្ដើម", "Score": "ពិន្ទុ", "Lives": "ជីវិត", "Speed": "ល្បឿន", "Type each falling word before it reaches the red line. Enter starts, Esc pauses, Backspace drops your current word.": "វាយពាក្យនីមួយៗ មុនពេលវាធ្លាក់ដល់បន្ទាត់ក្រហម។ Enter ចាប់ផ្ដើម, Esc ផ្អាក, Backspace បោះបង់ពាក្យដែលកំពុងវាយ។", "Ready?": "ត្រៀមរួចហើយឬនៅ?", "Words fall from the top. Type them on the keys you chose.": "ពាក្យធ្លាក់ពីលើ។ វាយវាដោយប្រើគ្រាប់ចុចដែលអ្នកបានជ្រើស។", "Start (Enter)": "ចាប់ផ្ដើម (Enter)", "Paused": "បានផ្អាក", "Press Esc or Enter to continue.": "ចុច Esc ឬ Enter ដើម្បីបន្ត។", "Resume": "បន្ត", "Play again (Enter)": "លេងម្ដងទៀត (Enter)", "Home keys (bar marks F and J)": "គ្រាប់ចុចគោល (សញ្ញារបារលើ F និង J)", "Top stripe = finger": "ឆ្នូតខាងលើ = ម្រាមដៃ", "Small glyphs: top = Shift, bottom = AltGr (Option on Mac)": "តួអក្សរតូច៖ ខាងលើ = Shift, ខាងក្រោម = AltGr (Option លើ Mac)", "Three layouts ship with the tutor so you can compare them. The numbers below come from the effort model, not from timing real typists.": "កម្មវិធីនេះមានប្លង់បី ដើម្បីឱ្យអ្នកប្រៀបធៀប។ តួលេខខាងក្រោមបានមកពីម៉ូដែលគណនាកម្លាំង មិនមែនពីការវាស់ល្បឿនអ្នកវាយពិតៗទេ។", "Bigram figures currently use word-list statistics as an interim estimate. Re-running the optimiser on corpus bigrams may change the layout.": "តួលេខគូអក្សរ បច្ចុប្បន្នប្រើស្ថិតិពីបញ្ជីពាក្យ ជាការប៉ាន់ស្មានបណ្ដោះអាសន្ន។ ការគណនាឡើងវិញលើគូអក្សរពីសំណុំអត្ថបទ អាចផ្លាស់ប្ដូរប្លង់។", "Most frequent keys in the selected layout": "គ្រាប់ចុចដែលប្រើញឹកញាប់បំផុត ក្នុងប្លង់ដែលបានជ្រើស", "The method in four steps. The code and data are in the GitHub repository.": "វិធីសាស្ត្រជាបួនជំហាន។ កូដ និងទិន្នន័យមាននៅក្នុងឃ្លាំង GitHub។", "Count real text": "រាប់អត្ថបទពិត", "About 212 million Khmer letters and coeng clusters were counted from a text corpus. Split-half checks show the ranking is stable from roughly one million letters.": "អក្សរខ្មែរ និងជើងអក្សរប្រហែល ២១២ លាន ត្រូវបានរាប់ពីសំណុំអត្ថបទ។ ការត្រួតពិនិត្យដោយបែងចែកជាពីរពាក់កណ្ដាល បង្ហាញថាលំដាប់មានស្ថិរភាពចាប់ពីប្រហែលមួយលានអក្សរ។", "Model the effort": "គណនាកម្លាំង", "Each key has a reach cost. Shift and AltGr add a penalty, and letter pairs are scored for same-finger repeats, rolls and hand alternation. Fingers have load caps.": "គ្រាប់ចុចនីមួយៗមានតម្លៃចម្ងាយលាតម្រាមដៃ។ Shift និង AltGr បន្ថែមការពិន័យ ហើយគូអក្សរត្រូវបានវាយតម្លៃលើការប្រើម្រាមដៃដដែល ការរំកិលម្រាមដៃ និងការឆ្លាស់ដៃ។ ម្រាមដៃនីមួយៗមានកម្រិតបន្ទុក។", "Search for the best fit": "ស្វែងរកប្លង់ល្អបំផុត", "Simulated annealing tries over a million key swaps. Dedicated cluster keys like ្រ did not lower effort with only 33 base keys, so the default layout types them as coeng + consonant.": "វិធី Simulated annealing សាកល្បងប្ដូរគ្រាប់ចុចជាងមួយលានដង។ គ្រាប់ចុចជើងអក្សរដាច់ដោយឡែក ដូចជា ្រ មិនបានកាត់បន្ថយកម្លាំងទេ ព្រោះមានគ្រាប់ចុចមូលដ្ឋានតែ ៣៣ ដូច្នេះប្លង់លំនាំដើមវាយវាជា ជើង + ព្យញ្ជនៈ។", "Make it learnable, then measure": "ធ្វើឱ្យងាយរៀន រួចវាស់វែង", "Paired letters such as ក / គ sit on the same or neighbouring keys. Export your keystroke log to compare layouts with real typists.": "អក្សរគូ ដូចជា ក / គ ស្ថិតនៅលើគ្រាប់ចុចតែមួយ ឬជាប់គ្នា។ នាំចេញកំណត់ត្រាការចុចរបស់អ្នក ដើម្បីប្រៀបធៀបប្លង់ជាមួយអ្នកវាយពិតៗ។", "Experimental layout, not an official Khmer standard.": "ប្លង់សាកល្បង មិនមែនជាស្តង់ដារខ្មែរផ្លូវការទេ។", "Fonts: Noto Serif Khmer and Kantumruy Pro (SIL Open Font License) ·": "ពុម្ពអក្សរ៖ Noto Serif Khmer និង Kantumruy Pro (SIL Open Font License) ·", "Source on GitHub": "កូដប្រភពនៅលើ GitHub", "Hints on": "ជំនួយ៖ បើក", "Hints off": "ជំនួយ៖ បិទ", "New keys: ": "គ្រាប់ចុចថ្មី៖ ", "All keys in play.": "ប្រើគ្រាប់ចុចទាំងអស់។", "Next: ": "បន្ទាប់៖ ", "  (hold Shift)": "  (សង្កត់ Shift)", "  (hold AltGr / Option)": "  (សង្កត់ AltGr / Option)", "All keys, common words": "គ្រាប់ចុចទាំងអស់ ពាក្យប្រើញឹកញាប់", "Game over": "ចប់ល្បែង", " – new best!": " – ពិន្ទុខ្ពស់ថ្មី!", "Modelled metric": "រង្វាស់តាមម៉ូដែល", "Optimised v2": "បង្កើនប្រសិទ្ធភាព v2", "Cluster keys": "គ្រាប់ចុចជើងអក្សរ", "Frequency only": "តាមប្រេកង់តែប៉ុណ្ណោះ", "Keystrokes per Khmer letter": "ចំនួនចុចក្នុងមួយអក្សរ", "Same-finger letter pairs": "គូអក្សរវាយដោយម្រាមដៃដដែល", "Hand alternation": "ការឆ្លាស់ដៃ", "Keystrokes on the base layer": "ការចុចលើស្រទាប់មូលដ្ឋាន", "Modelled effort per letter": "កម្លាំងក្នុងមួយអក្សរ (ម៉ូដែល)", "Khmer letters analysed": "អក្សរខ្មែរដែលបានវិភាគ", "keystrokes without Shift (modelled)": "ការចុចដោយមិនប្រើ Shift (ម៉ូដែល)", "layouts to compare": "ប្លង់សម្រាប់ប្រៀបធៀប", "unit": "អក្សរ", "key": "គ្រាប់ចុច", "weight": "ទម្ងន់", "Letters and clusters counted": "អក្សរ និងជើងអក្សរដែលបានរាប់", "in the Khmer text corpus; this sets each key's frequency": "ក្នុងសំណុំអត្ថបទខ្មែរ ដែលកំណត់ប្រេកង់របស់គ្រាប់ចុចនីមួយៗ", "Coeng clusters": "ជើងអក្សរ", "subscript consonants among them, in 35 cluster types": "ក្នុងចំណោមនោះ មាន ៣៥ ប្រភេទជើង", "Units ranked": "ឯកតាដែលបានចាត់លំដាប់", "distinct letters, vowels, signs and clusters given a key position": "អក្សរ ស្រៈ សញ្ញា និងជើង ដែលបានផ្ដល់ទីតាំងគ្រាប់ចុច", "Words for letter pairs": "ពាក្យសម្រាប់គូអក្សរ", "from a search-word list (478,195 weighted uses), giving 2,613 distinct letter pairs": "ពីបញ្ជីពាក្យស្វែងរក (ប្រើ ៤៧៨,១៩៥ ដង) ផ្ដល់គូអក្សរខុសគ្នា ២,៦១៣", "Practice words": "ពាក្យសម្រាប់ហាត់", "the most common words that every layout can type": "ពាក្យប្រើញឹកញាប់បំផុត ដែលប្លង់ទាំងអស់អាចវាយបាន", "Ranking stability": "ស្ថិរភាពនៃលំដាប់", "agreement between two halves of the corpus at 10 million letters": "ភាពស៊ីគ្នារវាងពាក់កណ្ដាលទាំងពីរនៃសំណុំអត្ថបទ នៅ ១០ លានអក្សរ", "Data behind the layout": "ទិន្នន័យដែលប្រើក្នុងការបង្កើតប្លង់", "The number of words in the corpus was not counted; key frequencies come from letter and cluster counts, not word counts.": "មិនបានរាប់ចំនួនពាក្យក្នុងសំណុំអត្ថបទទេ។ ប្រេកង់គ្រាប់ចុចបានមកពីការរាប់អក្សរ និងជើងអក្សរ មិនមែនពីការរាប់ពាក្យទេ។", "Space": "ដកឃ្លា", "Archer": "អ្នកបាញ់ព្រួញ", "Shoot each falling letter by typing it. Letters that land explode and hurt the archer. Every 10-hit combo heals; green ✚ letters heal more. Enter starts, Esc pauses.": "វាយអក្សរដែលធ្លាក់ ដើម្បីបាញ់វា។ អក្សរដែលធ្លាក់ដល់ដីនឹងផ្ទុះ ហើយធ្វើឱ្យអ្នកបាញ់របួស។ ជាប់ៗ ១០ ដង = ព្យាបាល; អក្សរពណ៌បៃតង ✚ ព្យាបាលបន្ថែម។ Enter ចាប់ផ្ដើម, Esc ផ្អាក។", "Standard keyboard": "ក្ដារចុចស្តង់ដារ", "Learn the standard keyboard": "រៀនក្ដារចុចស្តង់ដារ"}, lang="en", I18N_NODES=[];
-function T(en){return lang==="km"&&(KM[en]!=null||KM_NAMES[en]!=null)?(KM[en]!=null?KM[en]:KM_NAMES[en]):en}
-function L2(en,km){return lang==="km"?km:en}
-function kmNum(n){return lang==="km"?String(n).replace(/[0-9]/g,function(d){return String.fromCharCode(0x17E0+(+d))}):String(n)}
-(function(){
-  var skip={SCRIPT:1,STYLE:1,SELECT:1,OPTION:1,TEXTAREA:1};
-  var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{acceptNode:function(n){
-    for(var e=n.parentNode;e&&e!==document.body;e=e.parentNode){if(skip[e.tagName]||e.id==="kb"||e.id==="target"||e.id==="echo")return NodeFilter.FILTER_REJECT}
-    return KM[n.nodeValue.trim()]!=null?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_SKIP}});
-  for(var n;(n=w.nextNode());)I18N_NODES.push({n:n,en:n.nodeValue});
-})();
-function setLang(l){
-  lang=l==="km"?"km":"en";store("lang",lang);document.documentElement.lang=lang;
-  var lb=$("langBtn");lb.textContent=lang==="km"?"English":"ខ្មែរ";lb.lang=lang==="km"?"en":"km";lb.setAttribute("aria-label",lang==="km"?"Switch to English":"ប្ដូរទៅភាសាខ្មែរ");
-  I18N_NODES.forEach(function(r){var k=r.en.trim();r.n.nodeValue=lang==="km"?r.en.replace(k,KM[k]):r.en});
-  if(!L)return;
-  var lv=sel.value;fillLessons();sel.value=lv;
-  var gv=$("glevel").value;gBuildLevels();$("glevel").value=gv;
-  $("showhint").textContent=T(showHint?"Hints on":"Hints off");
-  Array.prototype.forEach.call(lsel.options,function(o){o.textContent=T(LAYOUTS[o.value].info.name)});
-  if($("kspace"))$("kspace").children[0].textContent=T("Space");
-  renderCompare();renderHero();renderAbout();setNewKeys();updateHint();gBtn();
-  if(!gRunning&&!gDone)gOverlayShow(T("Ready?"),T("Words fall from the top. Type them on the keys you chose."),T("Start (Enter)"));
-  else if(gPaused)gOverlayShow(T("Paused"),T("Press Esc or Enter to continue."),T("Resume"));
-  if(ARCH&&!aState.running&&!aState.paused)ARCH.menu();
+// ---------- run area ----------
+var active=null;
+function open(a){
+  active=a;$("play").hidden=false;$("result").hidden=true;
+  ["typeArea","huntArea","rainArea","archerArea"].forEach(function(id){$(id).hidden=true});
+  $("runOpts").hidden=true;$("runOpts").innerHTML="";
+  document.body.classList.add("playing");restart();
+  setTimeout(function(){scrollTo(0,0)},0);
 }
-$("langBtn").onclick=function(){setLang(lang==="km"?"en":"km")};
-function markNav(){
-  var cur=null;["practice","about-layout","about"].forEach(function(id){var r=$(id).getBoundingClientRect();if(r.top<140&&r.bottom>140)cur=id});
-  if(cur==="practice"&&mode==="game")cur="game";
-  document.querySelectorAll(".navlinks a").forEach(function(a){a.classList.toggle("active",cur!==null&&a.getAttribute("href")==="#"+cur)});
+function restart(){
+  stopTimers();$("result").hidden=true;setMods(false,false);
+  if(active.type==="lesson"){$("typeArea").hidden=false;startLesson(active.i)}
+  else if(active.type==="sprint"){$("typeArea").hidden=false;startSprint()}
+  else if(active.type==="hunt"){$("huntArea").hidden=false;startHunt()}
+  else if(active.type==="rain"){$("rainArea").hidden=false;startRainMenu()}
+  else if(active.type==="archer"){$("archerArea").hidden=false;startArcher()}
+  CBs.el.hidden=active.type!=="sprint";
 }
-window.addEventListener("scroll",markNav,{passive:true});
-renderCompare();
-var saved=store("layout");
-applyLayout(saved&&LAYOUTS[saved]?saved:window.LAYOUT_DEFAULT);
-pickGame(gGame);
-if(location.hash==="#game"||store("mode")==="game")setMode("game");
-setLang(store("lang")||"km");
+$("backBtn").onclick=function(){var was=active&&active.type;stopTimers();active=null;$("play").hidden=true;document.body.classList.remove("playing");clearHint();renderMenus();$(was&&was!=="lesson"?"games":"learn").scrollIntoView()};
+function lastMenu(){return "learn"}
+$("againBtn").onclick=function(){restart()};
+$("nextBtn").onclick=function(){if(active.type==="lesson"&&active.i<LESSONS.length-1){active={type:"lesson",i:active.i+1};restart()}};
+function statBox(id,label,val){return '<div class="stat"><b id="'+id+'">'+val+'</b><span>'+label+'</span></div>'}
+var timers=[];function stopTimers(){timers.forEach(clearInterval);timers=[];if(rain.raf)cancelAnimationFrame(rain.raf);rain.running=false;if(ARCH)ARCH.stop()}
+
+// ---------- arcade effects (arcade.js) ----------
+var A=window.Arcade,cLabel=function(){return L2("ជាប់ៗ","COMBO")};
+function mid(el){return {x:el.clientWidth/2,y:el.clientHeight/2}}
+var SCh=A.scene($("huntArea")),SCr=A.scene($("rfield"));
+var FXt=A.fx($("typeArea")),FXh=A.fx($("huntArea")),FXr=A.fx($("rfield"));
+var CBs=A.combo($("typeArea"),{healEvery:5,label:cLabel,num:kmNum,onHeal:function(){if(P.end&&!P.done){P.end+=2000;var m=mid($("typeArea"));FXt.text(m.x,m.y,"+"+kmNum(2)+L2(" វិនាទី","s"),"#2fbf71",22);A.play("heal")}}});
+var CBh=A.combo($("huntArea"),{healEvery:10,label:cLabel,num:kmNum,onMult:function(m){A.banner($("huntArea"),"×"+m,"mult")},onHeal:function(){if(H.end&&!H.done){H.end+=3000;var m=mid($("huntArea"));FXh.text(m.x,m.y+50,"+"+kmNum(3)+L2(" វិនាទី","s"),"#5dff9b",22);A.play("heal")}}});
+var CBr=A.combo($("rfield"),{healEvery:5,label:cLabel,num:kmNum,onMult:function(m){A.banner($("rfield"),"×"+m,"mult")},onHeal:function(){if(rain.running&&rain.lives<5){rain.lives++;rainHud();var f=$("rfield");FXr.text(f.clientWidth/2,f.clientHeight-50,"+♥","#5dff9b",26);A.play("heal")}}});
+$("muteSlot").appendChild(A.sfxButton());
+
+// practice engine shared by lessons and the sprint
+var P={items:[],idx:0,typed:"",ok:0,bad:0,t0:0,done:false,words:0};
+function buildTrack(){var t=$("target");t.innerHTML="";P.items.forEach(function(w){var s=document.createElement("span");s.className="w";s.appendChild(document.createTextNode(w));s.appendChild(document.createElement("i"));t.appendChild(s)})}
+function renderTrack(){
+  var t=$("target"),ws=t.children;
+  for(var i=0;i<ws.length;i++){ws[i].className="w"+(i<P.idx?" done":i===P.idx?" cur":"");if(i===P.idx)ws[i].style.setProperty("--p",(100*P.typed.length/P.items[i].length)+"%")}
+  var c=ws[Math.min(P.idx,ws.length-1)];if(c)t.style.transform="translateX("+Math.round(t.parentNode.clientWidth*.3-c.offsetLeft)+"px)";
+  $("echo").textContent=P.typed;$("bar").style.width=(100*P.idx/P.items.length)+"%";
+}
+function nextUnit(){
+  var T0=P.items[P.idx];if(P.done||T0==null)return null;
+  if(P.typed===T0)return P.idx<P.items.length-1?" ":null;
+  var best=null;Object.keys(where).forEach(function(u){if(T0.substr(P.typed.length,u.length)===u&&(!best||u.length>best.length))best=u});return best;
+}
+function practiceInput(u){
+  if(P.done||u==="\b")return;
+  if(!P.t0){P.t0=Date.now();if(active.type==="sprint")startSprintClock()}
+  var T0=P.items[P.idx],ok=u===" "?(P.typed===T0&&P.idx<P.items.length-1):T0.substr(0,(P.typed+u).length)===P.typed+u;
+  if(ok){P.ok++;A.play(u===" "?"space":"key");if(u===" "){P.idx++;P.typed="";P.words++;if(active.type==="sprint")sprintWord()}else{P.typed+=u;if(P.typed===T0&&P.idx===P.items.length-1){P.words++;P.idx++;P.typed="";renderTrack();return finishPractice()}}
+    if(active.type==="sprint"&&P.idx>P.items.length-6){var add=sprintWords(20);P.items=P.items.concat(add);add.forEach(function(w){var s=document.createElement("span");s.className="w";s.appendChild(document.createTextNode(w));s.appendChild(document.createElement("i"));$("target").appendChild(s)})}
+    renderTrack();
+  }else{P.bad++;P.clean=false;if(active.type==="sprint")CBs.miss();A.play("bad");buzz();var e=$("echo");e.classList.remove("err");void e.offsetWidth;e.classList.add("err")}
+  practiceStats();showKeyHint(nextUnit(),$("hintline"));
+}
+function practiceStats(){
+  var mins=P.t0?(Date.now()-P.t0)/60000:0,w=mins>.02?Math.round(P.ok/5/mins):0,a=(P.ok+P.bad)?Math.round(100*P.ok/(P.ok+P.bad)):100;
+  if($("sW"))$("sW").textContent=kmNum(w);if($("sA"))$("sA").textContent=kmNum(a)+"%";return {w:w,a:a};
+}
+function startLesson(i){
+  var les=LESSONS[i];$("runTitle").textContent=T("lessonWord")+kmNum(i+1)+" · "+les.t[lang==="km"?0:1];
+  $("runStats").innerHTML=statBox("sW",T("wpm"),0)+statBox("sA",T("acc"),"100%")+statBox("sB",T("best"),stars(+store("nida_"+plat+"_l"+i)||0));
+  var nk=les.keys().slice(0,14).map(disp).join("  ");$("newKeys").textContent=les.all?"":T("newKeys")+nk;
+  P={items:lessonItems(i),idx:0,typed:"",ok:0,bad:0,t0:0,done:false,words:0};buildTrack();renderTrack();showKeyHint(nextUnit(),$("hintline"));$("nextBtn").hidden=false;
+}
+function finishPractice(){
+  P.done=true;A.play(active.type==="lesson"?"done":"over");clearHint();var s=practiceStats();$("hintline").textContent="";
+  if(active.type==="lesson"){
+    var st=s.a>=97?3:s.a>=90?2:1,k="nida_"+plat+"_l"+active.i;if(st>(+store(k)||0))store(k,String(st));
+    $("resultText").innerHTML="";$("resultText").appendChild(document.createTextNode(T("doneL",{w:kmNum(s.w),a:kmNum(s.a)})));var sp=document.createElement("span");sp.className="stars";sp.innerHTML=stars(st);$("resultText").appendChild(sp);
+    $("nextBtn").hidden=active.i>=LESSONS.length-1;
+  }else{
+    var k2="nida_"+plat+"_g_sprint",prev=+(store(k2)||"0").replace(/\D.*/,"")||0;
+    if(s.w>prev)store(k2,String(s.w)+" "+T("wpm"));
+    $("resultText").textContent=T("sprintEnd",{n:kmNum(P.words),w:kmNum(s.w),a:kmNum(s.a)});$("nextBtn").hidden=true;
+  }
+  $("result").hidden=false;
+}
+// sprint
+function sprintWords(n){var set=allSet(),pool=WORDS.slice(0,1200).filter(function(w){return canType(w,set)});var r=[];for(var i=0;i<n;i++)r.push(pick(pool));return r}
+function startSprint(){
+  $("runTitle").textContent=L2("ប្រណាំង ៦០ វិនាទី","60-second Sprint");$("newKeys").textContent=L2("ការរាប់ម៉ោងចាប់ផ្ដើមនៅពេលអ្នកចុចគ្រាប់ចុចដំបូង។","The clock starts on your first key.");
+  $("runStats").innerHTML=statBox("sT",T("time"),kmNum(60))+statBox("sW",T("wpm"),0)+statBox("sA",T("acc"),"100%");
+  P={items:sprintWords(40),idx:0,typed:"",ok:0,bad:0,t0:0,done:false,words:0,clean:true,end:0};CBs.reset();buildTrack();renderTrack();showKeyHint(nextUnit(),$("hintline"));
+}
+function sprintWord(){var m=P.clean?CBs.hit():1;P.clean=true;var a=$("typeArea"),c=$("target").children[P.idx-1],x=a.clientWidth*.3,y=a.querySelector(".strip").offsetTop+30;if(c)x=c.getBoundingClientRect().left-a.getBoundingClientRect().left+c.offsetWidth/2;FXt.burst(x,y,"#ffb347",16);if(m>1)FXt.text(x,y-10,"×"+kmNum(m),"#e8590c",20);A.play("word")}
+function startSprintClock(){P.end=P.t0+60000;timers.push(setInterval(function(){var left=Math.max(0,Math.ceil((P.end-Date.now())/1000));if($("sT"))$("sT").textContent=kmNum(left);if(left<=0&&!P.done){stopTimers();finishPractice()}},200))}
+
+// key hunt
+var H={end:0,pool:"home",blind:false,target:"",score:0,streak:0,maxStreak:0,ok:0,bad:0,t0:0,done:false,hints:true};
+function huntPool(){return poolFor(H.pool)}
+function poolFor(name){
+  var set;if(name==="home")set=outs(R2,0);else if(name==="base")set=outs(R1.concat(R2,R3),0);else if(name==="shift")set=outs(R1.concat(R2,R3),1);else set=outs(R1.concat(R2,R3),0).concat(outs(R1.concat(R2,R3),1));
+  return set.filter(function(u){return u!==COENG});
+}
+function startHunt(){
+  $("runTitle").textContent=L2("ស្វែងរកគ្រាប់ចុច","Key Hunt");
+  var o=$("runOpts");o.hidden=false;o.innerHTML="";
+  var lab=document.createElement("span");lab.className="note";lab.textContent=T("huntPool");o.appendChild(lab);
+  var seg=document.createElement("div");seg.className="seg";
+  [["home","poolHome"],["base","poolBase"],["shift","poolShift"],["all","poolAll"]].forEach(function(p){var b=document.createElement("button");b.textContent=T(p[1]);b.setAttribute("aria-pressed",H.pool===p[0]);b.onclick=function(){H.pool=p[0];startHunt()};seg.appendChild(b)});o.appendChild(seg);
+  var bl=document.createElement("button");bl.textContent=T("blind");bl.setAttribute("aria-pressed",H.blind);bl.onclick=function(){H.blind=!H.blind;kbEl.classList.toggle("blind",H.blind);bl.setAttribute("aria-pressed",H.blind);if(H.blind)bl.className="primary";else bl.className=""};if(H.blind)bl.className="primary";o.appendChild(bl);
+  kbEl.classList.toggle("blind",H.blind);
+  $("runStats").innerHTML=statBox("sT",T("time"),kmNum(60))+statBox("sS",T("score"),0)+statBox("sK",T("streak"),0);
+  H.score=0;H.streak=0;H.maxStreak=0;H.ok=0;H.bad=0;H.t0=0;H.end=0;H.done=false;CBh.reset();SCh.reset();newTarget();
+}
+function newTarget(){var p=huntPool(),t;do{t=pick(p)}while(p.length>1&&t===H.target);H.target=t;$("huntGlyph").textContent=disp(t);$("huntSub").textContent=where[t]&&where[t].layer===1?"Shift":"";if(H.blind)clearHint();else showKeyHint(t,$("hintline"));if(H.blind)$("hintline").textContent=L2("រកគ្រាប់ចុចដោយមិនមើលអក្សរ","Find the key without the labels");}
+function huntInput(u){
+  if(H.done||u===" "||u==="\b")return;
+  if(!H.t0){H.t0=Date.now();H.end=H.t0+60000;A.banner($("huntArea"),"GO!");timers.push(setInterval(function(){SCh.setTime(Math.min(.86,.9*(Date.now()-H.t0)/60000));var left=Math.max(0,Math.ceil((H.end-Date.now())/1000));$("sT").textContent=kmNum(left);if(left<=0&&!H.done)huntEnd()},200))}
+  if(u===H.target){H.ok++;H.streak++;H.maxStreak=Math.max(H.maxStreak,H.streak);var mu=CBh.hit();H.score+=mu;var a=$("huntArea"),c=mid(a);FXh.burst(c.x,c.y-10,mu>2?"#7af0ff":"#ffd34d",16+4*mu);FXh.text(c.x,c.y-50,"+"+kmNum(mu),"#ffe58a",20);A.play("hit");newTarget()}
+  else{H.bad++;H.streak=0;CBh.miss();A.play("bad");FXh.flash("rgba(255,59,59,.3)");buzz();var g=$("huntGlyph");g.classList.remove("err");void g.offsetWidth;g.classList.add("err")}
+  $("sS").textContent=kmNum(H.score);$("sK").textContent=kmNum(H.streak);
+}
+function huntEnd(){
+  H.done=true;A.play("over");A.banner($("huntArea"),L2("អស់ម៉ោង!","TIME!"));stopTimers();clearHint();kbEl.classList.remove("blind");var a=(H.ok+H.bad)?Math.round(100*H.ok/(H.ok+H.bad)):100;
+  var k="nida_"+plat+"_g_hunt",prev=+(store(k)||"0").replace(/\D.*/,"")||0;if(H.score>prev)store(k,String(H.score)+" "+T("score"));
+  $("resultText").textContent=T("huntEnd",{s:kmNum(H.score),k:kmNum(H.maxStreak),a:kmNum(a)});$("nextBtn").hidden=true;$("result").hidden=false;$("hintline").textContent="";
+}
+
+// word rain
+var rain={items:[],locked:null,score:0,lives:3,speed:1,spawn:0,running:false,last:0,raf:0,words:0,pool:[]};
+function startRainMenu(){
+  $("runTitle").textContent=L2("ពាក្យធ្លាក់","Word Rain");
+  $("runStats").innerHTML=statBox("sS",T("score"),0)+statBox("sL",T("lives"),"♥♥♥")+statBox("sV",L2("ល្បឿន","Speed"),kmNum(1));
+  rain.items.forEach(function(w){w.el.remove()});rain.items=[];rain.locked=null;
+  $("rTitle").textContent=T("ready");$("rText").textContent=T("rainText");$("rStart").textContent=T("start")+" (Enter)";$("rOverlay").hidden=false;clearHint();$("hintline").textContent="";
+}
+$("rStart").onclick=function(){rainStart()};
+function rainStart(){
+  var set=allSet();rain.pool=WORDS.slice(0,900).filter(function(w){return w.length<=7&&canType(w,set)});
+  rain.items.forEach(function(w){w.el.remove()});rain.items=[];rain.locked=null;rain.score=0;rain.lives=3;rain.speed=1;rain.spawn=.3;rain.words=0;rain.last=0;rain.running=true;SCr.reset();CBr.reset();FXr.clear();A.banner($("rfield"),"GO!");A.play("up");
+  $("rOverlay").hidden=true;rainHud();rain.raf=requestAnimationFrame(rainFrame);
+}
+function rainHud(){$("sS").textContent=kmNum(rain.score);$("sL").textContent=new Array(rain.lives+1).join("♥")||"–";$("sV").textContent=kmNum(rain.speed)}
+function rainFrame(ts){
+  if(!rain.running)return;var f=$("rfield"),dt=rain.last?Math.min(.1,(ts-rain.last)/1000):0;rain.last=ts;
+  rain.spawn-=dt;if(rain.spawn<=0){rainSpawn();rain.spawn=Math.max(1.2,2.8*Math.pow(.93,rain.speed-1))}
+  var H0=f.clientHeight,v=34+(rain.speed-1)*6;
+  for(var i=rain.items.length-1;i>=0;i--){var it=rain.items[i];it.y+=v*dt;it.el.style.transform="translate("+it.x+"px,"+it.y+"px)";
+    if(it.y+it.el.offsetHeight>=H0){if(rain.locked===it)rain.locked=null;it.el.remove();rain.items.splice(i,1);rain.lives--;buzz();rainHud();FXr.boom(it.x+it.el.offsetWidth/2,H0-4);FXr.shake(320);CBr.miss();A.play("boom");if(rain.lives<=0)return rainOver()}}
+  rainHint();rain.raf=requestAnimationFrame(rainFrame);
+}
+function rainSpawn(){var f=$("rfield"),el=document.createElement("div");el.className="rw";var text=pick(rain.pool);el.textContent=text;var bar=document.createElement("i");el.appendChild(bar);f.appendChild(el);
+  var x=rnd(Math.max(1,f.clientWidth-el.offsetWidth-8))+4;var it={el:el,bar:bar,text:text,x:x,y:-44,typed:""};el.style.transform="translate("+x+"px,-44px)";rain.items.push(it)}
+function rainLowest(pred){var b=null;rain.items.forEach(function(it){if(pred(it)&&(!b||it.y>b.y))b=it});return b}
+function rainInput(u){
+  if(!rain.running)return;
+  if(u==="\b"){if(rain.locked){rain.locked.typed="";rain.locked.bar.style.width="0";rain.locked.el.classList.remove("lock");rain.locked=null}return}
+  if(u===" ")return;
+  var t=rain.locked||rainLowest(function(it){return it.text.indexOf(u)===0});
+  if(rain.locked&&rain.locked.text.substr(0,(rain.locked.typed+u).length)!==rain.locked.typed+u)t=null;
+  if(!t){buzz();CBr.miss();A.play("bad");FXr.flash("rgba(255,59,59,.25)");return}
+  rain.locked=t;FXr.burst(t.x+t.el.offsetWidth/2,t.y+t.el.offsetHeight/2,"#ffd34d",5);t.typed+=u;t.el.classList.add("lock");t.bar.style.width=(100*t.typed.length/t.text.length)+"%";
+  if(t.typed===t.text){var mu=CBr.hit(),pts=t.text.length*10*mu,cx=t.x+t.el.offsetWidth/2,cy=t.y+t.el.offsetHeight/2;rain.score+=pts;rain.words++;FXr.burst(cx,cy,"#ffd34d",26);FXr.text(cx,cy,"+"+kmNum(pts),"#ffe58a",20);A.play("word");if(rain.words%8===0){rain.speed++;SCr.setTime(((rain.speed-1)%7)/7);A.banner($("rfield"),L2("ល្បឿន ","SPEED ")+kmNum(rain.speed))}t.el.remove();rain.items.splice(rain.items.indexOf(t),1);rain.locked=null;rainHud()}
+}
+function rainHint(){var t=rain.locked||rainLowest(function(){return true});if(!t){clearHint();return}var rem=t.text.substr(t.typed.length),best=null;Object.keys(where).forEach(function(u){if(rem.indexOf(u)===0&&(!best||u.length>best.length))best=u});showKeyHint(best,$("hintline"))}
+function rainOver(){
+  rain.running=false;A.play("over");clearHint();var k="nida_"+plat+"_g_rain",prev=+(store(k)||"0").replace(/\D.*/,"")||0;if(rain.score>prev)store(k,String(rain.score)+" "+T("score"));
+  $("rTitle").textContent=T("gameOver");$("rText").textContent=T("rainEnd",{s:kmNum(rain.score),n:kmNum(rain.words)});$("rStart").textContent=T("playAgain")+" (Enter)";$("rOverlay").hidden=false;$("hintline").textContent="";
+}
+document.addEventListener("visibilitychange",function(){if(document.hidden&&rain.running){rain.running=false;cancelAnimationFrame(rain.raf);$("rTitle").textContent=L2("បានផ្អាក","Paused");$("rText").textContent="";$("rStart").textContent=L2("បន្ត","Resume");$("rOverlay").hidden=false;$("rStart").onclick=function(){$("rStart").onclick=function(){rainStart()};rain.running=true;rain.last=0;$("rOverlay").hidden=true;rain.raf=requestAnimationFrame(rainFrame)}}});
+
+// archer
+var ARCH=null,ARpool="home";
+function startArcher(){
+  $("runTitle").textContent=L2("អ្នកបាញ់ព្រួញ","Archer");$("runStats").innerHTML="";$("hintline").textContent="";
+  var o=$("runOpts");o.hidden=false;o.innerHTML="";
+  var lab=document.createElement("span");lab.className="note";lab.textContent=T("huntPool");o.appendChild(lab);
+  var seg=document.createElement("div");seg.className="seg";
+  [["home","poolHome"],["base","poolBase"],["shift","poolShift"],["all","poolAll"]].forEach(function(p){var b=document.createElement("button");b.textContent=T(p[1]);b.setAttribute("aria-pressed",ARpool===p[0]);b.onclick=function(){ARpool=p[0];startArcher()};seg.appendChild(b)});o.appendChild(seg);
+  if(ARCH)ARCH.destroy();
+  var bk="nida_"+plat+"_g_archer";
+  ARCH=A.archer($("archerArea"),{pool:function(){return poolFor(ARpool)},disp:disp,t:L2,num:kmNum,buzz:buzz,
+    hint:function(u){if(u)showKeyHint(u,$("hintline"));else{clearHint();$("hintline").textContent=""}},
+    best:function(){return +(store(bk)||"0").replace(/\D.*/,"")||0},saveBest:function(n){store(bk,String(n)+" "+T("score"))}});
+}
+
+function input(u){
+  if(!active)return;
+  if(active.type==="lesson"||active.type==="sprint")practiceInput(u);
+  else if(active.type==="hunt")huntInput(u);
+  else if(active.type==="rain")rainInput(u);
+  else if(active.type==="archer"&&ARCH)ARCH.input(u);
+}
+
+// ---------- setup guide ----------
+function renderSetup(){
+  var s=$("setupSteps");s.innerHTML="";
+  var blocks=plat==="mac"?[
+    [L2("១. ដំឡើងក្ដារចុច","1. Install the keyboard"),[L2("ទាញយក «Khmer Unicode Installer.pkg» ពី GitHub (socheatsok78/khmer-unicode-keyboard-for-macos) ហើយបើកវា។","Download “Khmer Unicode Installer.pkg” from GitHub (socheatsok78/khmer-unicode-keyboard-for-macos) and open it."),L2("ឬប្រើ Homebrew៖ brew install --cask khmer-unicode-layout (tap openkhmerfonts/tap)","Or with Homebrew: brew install --cask khmer-unicode-layout (tap openkhmerfonts/tap)")]],
+    [L2("២. បន្ថែមក្នុង System Settings","2. Add it in System Settings"),[L2("System Settings → Keyboard → Text Input → Edit…","System Settings → Keyboard → Text Input → Edit…"),L2("ចុច + → Khmer → «Khmer Unicode» → Add","Click + → Khmer → “Khmer Unicode” → Add")]],
+    [L2("៣. ប្ដូរភាសា","3. Switch languages"),[L2("ចុច Control + Space ឬគ្រាប់ចុច 🌐 (Globe)","Press Control + Space or the 🌐 Globe key"),L2("អក្សរបន្ថែម៖ សង្កត់ ⌥ Option","Extra characters: hold ⌥ Option")]],
+    [L2("គន្លឹះវាយ","Typing tips"),[L2("Space = ដកឃ្លាមើលមិនឃើញ (ZWSP) សម្រាប់បំបែកពាក្យ; Shift + Space = ដកឃ្លាធម្មតា","Space = invisible word break (ZWSP); Shift + Space = normal space"),L2("ជើងអក្សរ៖ ចុច J (្) រួចព្យញ្ជនៈ ឧ. ក + ្ + រ = ក្រ","Subscripts: press J (្) then the consonant, e.g. ក + ្ + រ = ក្រ"),L2("Apple ក៏មានក្ដារចុច «Khmer» ផ្ទាល់ខ្លួន ប៉ុន្តែគ្រាប់ចុចខ្លះអាចខុសពី NiDA។","macOS also has its own built-in “Khmer” keyboard; some keys may differ from NiDA.")]]
+  ]:[
+    [L2("១. បន្ថែមភាសាខ្មែរ","1. Add the Khmer language"),[L2("Settings → Time & language → Language & region","Settings → Time & language → Language & region"),L2("Add a language → ខ្មែរ (Khmer) → Next → Install","Add a language → ខ្មែរ (Khmer) → Next → Install")]],
+    [L2("២. ជ្រើសក្ដារចុច NIDA","2. Choose the NIDA keyboard"),[L2("ចុច ⋯ ក្បែរ ខ្មែរ → Language options → Add a keyboard","Click ⋯ next to Khmer → Language options → Add a keyboard"),L2("ជ្រើស «Khmer (NIDA)» (ក្ដារចុច «Khmer» ធម្មតាមានគ្រាប់ចុចខ្លះខុសគ្នា)","Pick “Khmer (NIDA)” (the plain “Khmer” keyboard differs on some keys)")]],
+    [L2("៣. ប្ដូរភាសា","3. Switch languages"),[L2("ចុច ⊞ Win + Space ឬ Alt + Shift","Press ⊞ Win + Space or Alt + Shift"),L2("អក្សរបន្ថែម៖ សង្កត់ AltGr (Alt ខាងស្ដាំ) ឬ Ctrl + Alt","Extra characters: hold AltGr (right Alt) or Ctrl + Alt")]],
+    [L2("គន្លឹះវាយ","Typing tips"),[L2("Space = ដកឃ្លាមើលមិនឃើញ (ZWSP) សម្រាប់បំបែកពាក្យ; Shift + Space = ដកឃ្លាធម្មតា","Space = invisible word break (ZWSP); Shift + Space = normal space"),L2("ជើងអក្សរ៖ ចុច J (្) រួចព្យញ្ជនៈ ឧ. ក + ្ + រ = ក្រ","Subscripts: press J (្) then the consonant, e.g. ក + ្ + រ = ក្រ"),L2("វាយតាមលំដាប់៖ ព្យញ្ជនៈ → ជើង → ស្រៈ → សញ្ញា","Type in order: consonant → subscript → vowel → sign")]]
+  ];
+  blocks.forEach(function(b){var d=document.createElement("div");d.className="panel";var h=document.createElement("h3");h.style.margin="0";h.textContent=b[0];d.appendChild(h);var ol=document.createElement("ul");ol.style.paddingLeft="1.1em";b[1].forEach(function(t){var li=document.createElement("li");li.textContent=t;ol.appendChild(li)});d.appendChild(ol);s.appendChild(d)});
+}
+
+// ---------- language ----------
+function applyLang(){
+  document.documentElement.lang=lang;store("lang",lang);
+  document.querySelectorAll("[data-t]").forEach(function(el){el.textContent=T(el.getAttribute("data-t"))});
+  $("langBtn").textContent=lang==="km"?"English":"ខ្មែរ";
+  $("backBtn").setAttribute("aria-label",T("back"));$("setupBtn").setAttribute("aria-label",T("setupTitle"));$("setupBtn").title=T("setupTitle");
+  document.querySelectorAll("[data-close]").forEach(function(b){b.setAttribute("aria-label",T("close"))});
+  document.title=L2("រៀនវាយក្ដារចុចខ្មែរ NiDA","Learn the NiDA Khmer keyboard");
+  $("platNote").textContent=T(plat==="mac"?"noteMac":"noteWin");
+  renderMenus();renderSetup();if(keyEls.Space)keyEls.Space.children[0].textContent=T("space");
+  if(active)restart();
+}
+$("langBtn").onclick=function(){lang=lang==="km"?"en":"km";applyLang()};
+$("platWin").onclick=function(){setPlatform("windows");renderMenus()};
+$("platMac").onclick=function(){setPlatform("mac");renderMenus()};
+function updateHint(){}
+
+// sheets: open with showModal; Esc and a backdrop click close them
+document.querySelectorAll("[data-sheet]").forEach(function(b){b.addEventListener("click",function(){var d=$(b.dataset.sheet);if(d.showModal)d.showModal();else d.setAttribute("open","")})});
+document.querySelectorAll("dialog.sheet").forEach(function(d){d.addEventListener("click",function(e){if(e.target===d)d.close()});d.querySelectorAll("[data-close]").forEach(function(b){b.onclick=function(){d.close()}})});
+// highlight the tab for the section in view
+function markTabs(){var y=scrollY+innerHeight*.35,cur=$("games").offsetTop<=y&&$("games").offsetTop>0?"#games":"#learn";
+  document.querySelectorAll(".tabs a,.tabbar a").forEach(function(a){a.classList.toggle("on",a.getAttribute("href")===cur)})}
+window.addEventListener("scroll",markTabs,{passive:true});
+// the section tabs also leave a lesson or game
+document.querySelectorAll(".tabs a,.tabbar a").forEach(function(a){a.addEventListener("click",function(){if(active)$("backBtn").click()})});
+setPlatform(plat);applyLang();markTabs();
+window.__nida={state:function(){return{active:active,P:P,H:H,rain:{score:rain.score,lives:rain.lives,running:rain.running,items:rain.items.map(function(i){return{text:i.text,typed:i.typed,y:i.y}})}}},where:function(){return where},archer:function(){return ARCH&&ARCH.state()},arch:function(){return ARCH}};
 })();
 </script>
 </body>
