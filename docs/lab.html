@@ -154,6 +154,14 @@ body.mode-game #mback{display:inline-flex}
   .rw{font-size:1.25rem}
 }
 /* ---- lab shell ---- */
+.labhero{position:relative;display:grid;grid-template-columns:minmax(0,.55fr) minmax(0,1fr);align-items:center;gap:20px;padding:6px 8px 10px;border-radius:var(--r-lg);
+  background:radial-gradient(120% 140% at 85% 0%,#fbeaea 0%,rgba(251,234,234,0) 60%),linear-gradient(180deg,#fff,#f8f7f3);box-shadow:var(--shadow);overflow:hidden}
+.lh-chip{display:flex;align-items:center;gap:10px;padding-left:14px;font-weight:600;font-size:1.05rem;line-height:1.4}
+.lh-chip .mark{flex:none}
+#labKb{max-width:460px;justify-self:center;width:100%}
+body.mode-game .labhero{display:none}
+#gpick button{gap:8px;padding:5px 14px 5px 6px}
+@media (max-width:640px){.labhero{grid-template-columns:1fr;gap:4px;padding:10px 6px 8px}.lh-chip{justify-content:center;padding:0;font-size:.95rem}#labKb .vkb-wrap{padding-top:46px}#gpick .gthumb{display:none}}
 #practice{padding-block:20px 32px}
 .app{display:flex;flex-direction:column;gap:14px}
 .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
@@ -219,6 +227,7 @@ html[lang="km"] .steps4 p{line-height:1.7}
 <main id="top">
   <section id="practice">
     <div class="wrap app">
+      <div class="labhero" aria-hidden="true"><div class="lh-chip"><span class="mark kh">ក</span><span id="lhName"></span></div><div id="labKb"></div></div>
       <div id="lessonView" class="app">
         <div class="bar">
           <select id="lesson" aria-label="Lesson"></select>
@@ -244,7 +253,7 @@ html[lang="km"] .steps4 p{line-height:1.7}
 
       <div id="gameView" class="app" hidden>
         <div class="bar">
-          <div class="seg" id="gpick" role="group" aria-label="Game"><button id="pickRain" type="button" aria-pressed="true">Word Rain</button><button id="pickArch" type="button" aria-pressed="false">Archer</button></div>
+          <div class="seg" id="gpick" role="group" aria-label="Game"><button id="pickRain" type="button" aria-pressed="true"><canvas class="gthumb" data-prev="rain"></canvas>Word Rain</button><button id="pickArch" type="button" aria-pressed="false"><canvas class="gthumb" data-prev="archer"></canvas>Archer</button></div>
           <select id="glevel" aria-label="Keys"></select>
           <button class="primary" id="gstart">Start</button>
           <span id="muteSlot"></span>
@@ -330,6 +339,7 @@ html[lang="km"] .steps4 p{line-height:1.7}
 <script src="layout.js"></script>
 <script src="words.js"></script>
 <script src="arcade.js"></script>
+<script src="visuals.js"></script>
 <script>
 (function(){
 "use strict";
@@ -790,7 +800,8 @@ function renderCompare(){
   });
 }
 function renderHero(){
-  if(!$("herokeys"))return; // the home-row showcase was removed in the minimal design
+  if(!$("herokeys")){ // the minimal design shows a live keyboard banner instead
+    if(LKB){LKB.setMap(K);$("lhName").textContent=T(L.info.name)}return}
   var hk=$("herokeys");hk.innerHTML="";
   ["KeyA","KeyS","KeyD","KeyF","KeyJ","KeyK","KeyL","Semicolon"].forEach(function(c){
     var d=document.createElement("div");d.className="hk home";
@@ -855,6 +866,8 @@ window.addEventListener("scroll",markNav,{passive:true});
 // sheets: open with showModal; Esc and a backdrop click close them
 document.querySelectorAll("[data-sheet]").forEach(function(b){b.addEventListener("click",function(){var d=$(b.dataset.sheet);if(d.showModal)d.showModal();else d.setAttribute("open","")})});
 document.querySelectorAll("dialog.sheet").forEach(function(d){d.addEventListener("click",function(e){if(e.target===d)d.close()});d.querySelectorAll("[data-close]").forEach(function(b){b.onclick=function(){d.close()}})});
+var LKB=window.Vis?Vis.keyboard($("labKb")):null;
+if(window.Vis)document.querySelectorAll("canvas[data-prev]").forEach(function(cv){Vis.preview(cv,cv.dataset.prev)});
 renderCompare();
 var saved=store("layout");
 applyLayout(saved&&LAYOUTS[saved]?saved:window.LAYOUT_DEFAULT);

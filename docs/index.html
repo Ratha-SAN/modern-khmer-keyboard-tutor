@@ -15,6 +15,13 @@
 <link rel="stylesheet" href="ui.css">
 <style>
 /* ---- home ---- */
+.hero-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:32px;align-items:center;text-align:left}
+.hero-grid .actions{align-items:flex-start}
+#heroKb{min-width:0}
+.setmk{max-width:300px;margin:0 auto 14px;padding:12px;border-radius:16px;background:var(--raise)}
+.lcard .mkwrap{padding:8px;border-radius:12px;background:var(--raise)}
+.gcard .gprev{margin-bottom:2px}
+@media (max-width:860px){.hero-grid{grid-template-columns:1fr;text-align:center;gap:18px}.hero-grid .actions{align-items:center}#heroKb{max-width:520px;margin:0 auto;width:100%}}
 .hero{padding-block:clamp(40px,8vw,84px) 28px;text-align:center}
 .hero h1{font-size:clamp(2.1rem,5.4vw,3.4rem);font-weight:600;margin:0 0 8px;letter-spacing:-.02em;line-height:1.15;text-wrap:balance}
 html[lang="km"] .hero h1{line-height:1.45}
@@ -38,8 +45,8 @@ section[id]{scroll-margin-top:70px}
 .stars{color:var(--star);font-size:.95rem;letter-spacing:.12em;min-height:1.2em;line-height:1}
 .stars .off{color:var(--line)}
 .games{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
-.gcard{min-height:168px;justify-content:space-between;padding:18px;border:0}
-.gcard .big{font:600 2.5rem/1 var(--text)}
+.gcard{min-height:0;justify-content:flex-start;padding:10px 10px 14px;border:0;gap:10px}
+.gcard h3,.gcard .pill{margin-inline:6px}
 .gcard h3{font-size:1.08rem}
 .gcard .pill{align-self:flex-start;background:rgba(255,255,255,.75)}
 .gcard[data-g=hunt]{background:linear-gradient(150deg,#fff6e6,#ffe7c2)}
@@ -155,7 +162,8 @@ body.playing .hero,body.playing #learn,body.playing #games,body.playing footer{d
 
 <main>
   <section class="hero">
-    <div class="wrap">
+    <div class="wrap hero-grid">
+     <div class="hero-text">
       <h1 data-t="heroTitle">រៀនវាយអក្សរខ្មែរ</h1>
       <p class="sub" data-t="heroSub">ក្ដារចុចស្តង់ដារ NiDA សម្រាប់ Windows និង Mac</p>
       <div class="actions">
@@ -166,6 +174,8 @@ body.playing .hero,body.playing #learn,body.playing #games,body.playing footer{d
         <button class="btn primary" type="button" id="contBtn"></button>
         <button class="linkbtn" type="button" data-sheet="setupSheet"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg><span data-t="setupLink">ដំឡើងក្ដារចុចលើកុំព្យូទ័រ</span></button>
       </div>
+     </div>
+     <div id="heroKb"></div>
     </div>
   </section>
 
@@ -212,7 +222,7 @@ body.playing .hero,body.playing #learn,body.playing #games,body.playing footer{d
 
 <dialog class="sheet" id="setupSheet" aria-labelledby="setupTitle">
   <header><h2 id="setupTitle" data-t="setupTitle">ដំឡើងក្ដារចុចខ្មែរ</h2><button class="ibtn" type="button" data-close><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-  <div class="body"><p class="note" id="platNote" style="margin-top:0"></p><div class="steps" id="setupSteps"></div></div>
+  <div class="body"><div class="setmk" id="setupKeys"></div><p class="note" id="platNote" style="margin-top:0"></p><div class="steps" id="setupSteps"></div></div>
 </dialog>
 
 <footer><div class="wrap"><a href="lab.html" data-t="footLab">ប្លង់សាកល្បង →</a><a href="https://github.com/Ratha-SAN/modern-khmer-keyboard-tutor">GitHub</a></div></footer>
@@ -226,6 +236,7 @@ body.playing .hero,body.playing #learn,body.playing #games,body.playing footer{d
 <script src="nida-layouts.js"></script>
 <script src="words.js"></script>
 <script src="arcade.js"></script>
+<script src="visuals.js"></script>
 <script>
 (function(){
 "use strict";
@@ -296,6 +307,7 @@ function modName(){return plat==="mac"?"⌥ Option":"AltGr"}
 function setPlatform(p){
   plat=p==="mac"?"mac":"windows";store("nidaPlat",plat);K=window.NIDA[plat];where={};
   Object.keys(K).forEach(function(c){K[c].forEach(function(u,l){if(u&&(!where[u]||where[u].layer>l))where[u]={code:c,layer:l}})});
+  if(HKB)HKB.setMap(K);
   $("platWin").setAttribute("aria-pressed",plat==="windows");$("platMac").setAttribute("aria-pressed",plat==="mac");
   $("platNote").textContent=T(plat==="mac"?"noteMac":"noteWin");
   renderKeyboard();renderSetup();
@@ -447,22 +459,27 @@ function renderMenus(){
     var b=document.createElement("button");b.type="button";
     var st=+store("nida_"+plat+"_l"+i)||0;
     b.className="lcard"+(i===cur?" cur":st>=3?" done":"");
-    b.innerHTML='<span class="n"></span><h3></h3><span class="stars"></span>';
-    b.children[0].textContent=kmNum(i+1);b.children[1].textContent=les.t[lang==="km"?0:1];b.children[2].innerHTML=stars(st);
+    b.innerHTML='<span class="n"></span><h3></h3><span class="mkwrap"></span><span class="stars"></span>';
+    b.children[0].textContent=kmNum(i+1);b.children[1].textContent=les.t[lang==="km"?0:1];b.children[3].innerHTML=stars(st);
+    if(window.Vis){var lit={};if(les.all)Object.keys(where).forEach(function(u){if(where[u].layer<2)lit[where[u].code]=2});
+      (les.coeng?["\u17d2"]:les.keys()).forEach(function(u){if(where[u])lit[where[u].code]=1});Vis.miniKeys(b.children[2],lit)}
     b.title=les.d[lang==="km"?0:1];b.setAttribute("aria-label",T("lessonWord")+kmNum(i+1)+" · "+les.t[lang==="km"?0:1]+" · "+st+"/3 ★");
     b.onclick=function(){open({type:"lesson",i:i})};g.appendChild(b);
   });
   var cb=$("contBtn"),fresh=store("nida_"+plat+"_l0")==null;
   cb.innerHTML="";cb.appendChild(document.createTextNode(cur<0?T("allDone"):fresh?T("startL"):T("cont")+kmNum(cur+1)));
   cb.onclick=function(){open({type:"lesson",i:cur<0?0:cur})};
-  var gg=$("gameGrid");gg.innerHTML="";
+  // game cards are built once (their live previews keep running); later calls only refresh the words
+  var gg=$("gameGrid");
   GAMES.forEach(function(gm){
-    var b=document.createElement("button");b.className="lcard gcard";b.type="button";b.dataset.g=gm.id;
+    var b=gg.querySelector('[data-g="'+gm.id+'"]');
+    if(!b){b=document.createElement("button");b.className="lcard gcard";b.type="button";b.dataset.g=gm.id;
+      b.innerHTML='<canvas class="gprev"></canvas><h3></h3><span class="pill"></span>';
+      b.onclick=function(){open({type:gm.id})};gg.appendChild(b);
+      if(window.Vis)Vis.preview(b.children[0],gm.id)}
     var best=store("nida_"+plat+"_g_"+gm.id);
-    b.innerHTML='<span class="big kh" aria-hidden="true"></span><h3></h3>'+(best?'<span class="pill"></span>':'');
-    b.children[0].textContent=gm.icon;b.children[1].textContent=gm.t[lang==="km"?0:1];if(best)b.children[2].textContent="★ "+best;
+    b.children[1].textContent=gm.t[lang==="km"?0:1];b.children[2].textContent=best?"★ "+best:"";b.children[2].hidden=!best;
     b.title=gm.d[lang==="km"?0:1];
-    b.onclick=function(){open({type:gm.id})};gg.appendChild(b);
   });
 }
 var GAMES=[
@@ -705,6 +722,7 @@ function markTabs(){var y=scrollY+innerHeight*.35,cur=$("games").offsetTop<=y&&$
 window.addEventListener("scroll",markTabs,{passive:true});
 // the section tabs also leave a lesson or game
 document.querySelectorAll(".tabs a,.tabbar a").forEach(function(a){a.addEventListener("click",function(){if(active)$("backBtn").click()})});
+var HKB=null;if(window.Vis){HKB=Vis.keyboard($("heroKb"));Vis.miniKeys($("setupKeys"),{AltGr:1,KeyJ:1},{mods:true})}
 setPlatform(plat);applyLang();markTabs();
 window.__nida={state:function(){return{active:active,P:P,H:H,rain:{score:rain.score,lives:rain.lives,running:rain.running,items:rain.items.map(function(i){return{text:i.text,typed:i.typed,y:i.y}})}}},where:function(){return where},archer:function(){return ARCH&&ARCH.state()},arch:function(){return ARCH}};
 })();
