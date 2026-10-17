@@ -19,7 +19,6 @@
 .hero-grid .actions{align-items:flex-start}
 #heroKb{min-width:0}
 .setmk{max-width:300px;margin:0 auto 14px;padding:12px;border-radius:16px;background:var(--raise)}
-.lcard .mkwrap{padding:8px;border-radius:12px;background:var(--raise)}
 .gcard .gprev{margin-bottom:2px}
 @media (max-width:860px){.hero-grid{grid-template-columns:1fr;text-align:center;gap:18px}.hero-grid .actions{align-items:center}#heroKb{max-width:520px;margin:0 auto;width:100%}}
 .hero{padding-block:clamp(40px,8vw,84px) 28px;text-align:center}
@@ -37,10 +36,38 @@ section[id]{scroll-margin-top:70px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:12px}
 .lcard{position:relative;text-align:left;background:var(--panel);border:1.5px solid transparent;border-radius:20px;padding:16px;box-shadow:var(--shadow);cursor:pointer;display:flex;flex-direction:column;gap:10px;min-width:0;transition:transform .15s,box-shadow .15s}
 .lcard:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:transparent}
-.lcard .n{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:var(--raise);font:600 .92rem var(--ui);color:var(--ink)}
-.lcard.cur{border-color:var(--accent)}
-.lcard.cur .n{background:var(--accent);color:#fff}
-.lcard.done .n{background:var(--home);color:var(--good)}
+/* lessons: an expandable list, one row open at a time */
+.llist{list-style:none;margin:0 auto;padding:0;max-width:760px;display:flex;flex-direction:column;gap:10px}
+.litem{background:var(--panel);border-radius:20px;box-shadow:var(--shadow);border:1.5px solid transparent;transition:box-shadow .2s,border-color .2s}
+.litem:hover{box-shadow:var(--shadow-lg)}
+.litem.cur{border-color:var(--accent)}
+.litem.open{box-shadow:var(--shadow-lg)}
+.lrow{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:14px;width:100%;padding:12px 16px;min-height:64px;cursor:pointer;border-radius:20px}
+.lrow:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.lrow .n{flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--raise);font:600 .95rem var(--ui);color:var(--ink)}
+.litem.cur .lrow .n{background:var(--accent);color:#fff}
+.litem.done .lrow .n{background:var(--home);color:var(--good)}
+.lrow .tt{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.lrow .tt b{font-weight:600;font-size:1rem;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lrow .pbar{height:4px;border-radius:2px;background:var(--raise);overflow:hidden;max-width:220px}
+.lrow .pbar i{display:block;height:100%;width:var(--p,0%);background:var(--star);border-radius:2px;transition:width .4s}
+.lrow .stars{flex:none}
+.lrow .chev{flex:none;width:30px;height:30px;border-radius:999px;display:grid;place-items:center;background:var(--raise);color:var(--muted);transition:transform .25s,background .2s}
+.litem.open .lrow .chev{transform:rotate(90deg);background:var(--ink);color:#fff}
+.lpanel{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease}
+.litem.open .lpanel{grid-template-rows:1fr}
+.lpanel>div{overflow:hidden;min-height:0}
+.lbody{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:18px;padding:4px 18px 18px;align-items:start}
+.lbody .mkwrap{padding:12px;border-radius:16px;background:var(--raise)}
+.lbody h4{margin:0 0 8px;font-size:.78rem;font-weight:600;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.kc{position:relative;min-width:38px;height:40px;padding:0 8px;display:grid;place-items:center;border-radius:10px;background:#fff;border:1px solid var(--line);border-bottom:3px solid var(--key-edge);font:1.2rem/1 var(--text)}
+.kc sup{position:absolute;right:3px;top:2px;font:600 .52rem/1 var(--ui);color:var(--accent)}
+.samples{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.samples span{padding:4px 12px;border-radius:999px;background:var(--raise);font:1.1rem/1.7 var(--text)}
+.ldesc{margin:0 0 14px;color:var(--muted);font-size:.9rem}
+.lfoot{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.lfoot .btn{padding:10px 22px}
 .lcard h3{margin:0;font-size:.98rem;font-weight:600;line-height:1.4}
 .stars{color:var(--star);font-size:.95rem;letter-spacing:.12em;min-height:1.2em;line-height:1}
 .stars .off{color:var(--line)}
@@ -133,6 +160,9 @@ body.playing .hero,body.playing #learn,body.playing #games,body.playing footer{d
   .actions .btn.primary{min-width:0;width:100%}
   .grid{grid-template-columns:1fr 1fr;gap:10px}
   .lcard{padding:14px}
+  .lrow{gap:10px;padding:10px 12px}.lrow .pbar{max-width:none}
+  .lbody{grid-template-columns:1fr;padding:2px 12px 14px;gap:12px}
+  .lbody .mkwrap{max-width:240px;padding:8px}
   .gcard{min-height:140px}
   .stage{padding:12px}
   .strip{height:4.4rem}#target{font-size:1.6rem;gap:18px}
@@ -182,7 +212,7 @@ body.playing .hero,body.playing #learn,body.playing #games,body.playing footer{d
   <section class="band" id="learn">
     <div class="wrap">
       <div class="shead"><h2 data-t="lessonsTitle">មេរៀន</h2></div>
-      <div class="grid" id="lessonGrid"></div>
+      <ol class="llist" id="lessonGrid"></ol>
     </div>
   </section>
 
@@ -256,7 +286,7 @@ var TX={
  heroSub:["ក្ដារចុចស្តង់ដារ NiDA សម្រាប់ Windows និង Mac","The standard NiDA keyboard, for Windows and Mac"],
  setupLink:["ដំឡើងក្ដារចុចលើកុំព្យូទ័រ","Set up the keyboard on your computer"],
  footLab:["ប្លង់សាកល្បង →","Experimental layout →"],
- cont:["បន្ត · មេរៀនទី ","Continue · Lesson "],startL:["ចាប់ផ្ដើមរៀន","Start learning"],allDone:["ហាត់ម្ដងទៀត","Practise again"],
+ cont:["បន្ត · មេរៀនទី ","Continue · Lesson "],newLetters:["អក្សរថ្មី","New letters"],sample:["ឧទាហរណ៍","Examples"],startL:["ចាប់ផ្ដើមរៀន","Start learning"],allDone:["ហាត់ម្ដងទៀត","Practise again"],
  heroLede:["មេរៀនតាមលំដាប់ពីជួរគោល ដល់ជើងអក្សរ និងល្បែងសម្រាប់ហាត់ ដោយប្រើប្លង់ Khmer Unicode (NiDA) របស់ Windows និង Mac។ ជ្រើសកុំព្យូទ័ររបស់អ្នក រួចចាប់ផ្ដើម។","Step-by-step lessons from the home row to subscript consonants, plus practice games, on the Khmer Unicode (NiDA) layout for Windows and Mac. Pick your computer and start."],
  noteWin:["Windows៖ ក្ដារចុច «Khmer (NIDA)»។ អក្សរបន្ថែមប្រើគ្រាប់ចុច AltGr (Alt ខាងស្ដាំ)។","Windows: the “Khmer (NIDA)” keyboard. Extra characters use AltGr (right Alt)."],
  noteMac:["Mac៖ ក្ដារចុច «Khmer Unicode» (NiDA)។ អក្សរបន្ថែមប្រើគ្រាប់ចុច ⌥ Option។","Mac: the “Khmer Unicode” (NiDA) keyboard. Extra characters use ⌥ Option."],
@@ -453,19 +483,51 @@ function lessonItems(i){
 // ---------- menus ----------
 function stars(n){var s="";for(var i=0;i<3;i++)s+=i<n?"★":'<span class="off">★</span>';return s}
 function nextLesson(){for(var i=0;i<LESSONS.length;i++)if((+store("nida_"+plat+"_l"+i)||0)<3)return i;return -1}
+var openLesson=null; // the expanded row; null = the lesson you are on
+function lessonRow(les,i,cur){
+  var st=+store("nida_"+plat+"_l"+i)||0,li=document.createElement("li"),k=lang==="km"?0:1,id="lp"+i;
+  li.className="litem"+(i===cur?" cur":st>=3?" done":"");li.dataset.i=i;
+  li.innerHTML='<button class="lrow" type="button" aria-expanded="false" aria-controls="'+id+'"><span class="n"></span><span class="tt"><b></b><span class="pbar"><i></i></span></span><span class="stars"></span><span class="chev"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></span></button>'+
+    '<div class="lpanel" id="'+id+'" role="region"><div><div class="lbody"><span class="mkwrap"></span><div class="linfo"></div></div></div></div>';
+  var row=li.firstChild;
+  row.querySelector(".n").textContent=st>=3?"✓":kmNum(i+1);
+  row.querySelector("b").textContent=les.t[k];
+  row.querySelector(".pbar i").style.setProperty("--p",(st*100/3)+"%");
+  row.querySelector(".stars").innerHTML=stars(st);
+  row.setAttribute("aria-label",T("lessonWord")+kmNum(i+1)+" · "+les.t[k]+" · "+st+"/3 ★");
+  li.querySelector(".lpanel").setAttribute("aria-label",les.t[k]);
+  row.onclick=function(){toggleLesson(i)};
+  row.addEventListener("keydown",function(e){var rows=[].slice.call(document.querySelectorAll("#lessonGrid .lrow")),n=rows.indexOf(row),to=-1;
+    if(e.key==="ArrowDown")to=Math.min(rows.length-1,n+1);else if(e.key==="ArrowUp")to=Math.max(0,n-1);else if(e.key==="Home")to=0;else if(e.key==="End")to=rows.length-1;
+    if(to>=0){e.preventDefault();rows[to].focus()}});
+  return li;
+}
+function fillLesson(li,i){ // the details are built when a row first opens
+  if(li.dataset.built)return;li.dataset.built=1;
+  var les=LESSONS[i],k=lang==="km"?0:1,st=+store("nida_"+plat+"_l"+i)||0,info=li.querySelector(".linfo");
+  if(window.Vis){var lit={};if(les.all)Object.keys(where).forEach(function(u){if(where[u].layer<2)lit[where[u].code]=2});
+    (les.coeng?["\u17d2"]:les.keys()).forEach(function(u){if(where[u])lit[where[u].code]=1});Vis.miniKeys(li.querySelector(".mkwrap"),lit,{mods:true})}
+  var h="";
+  if(!les.all){h+='<h4>'+T("newLetters")+'</h4><div class="chips kh">';
+    les.keys().slice(0,16).forEach(function(u){var w=where[u];h+='<span class="kc">'+esc(disp(u))+(w&&w.layer===1?'<sup>⇧</sup>':w&&w.layer===2?'<sup>'+(plat==="mac"?"⌥":"AltGr")+'</sup>':'')+'</span>'});h+='</div>'}
+  var ex=[];try{ex=lessonItems(i).filter(function(x){return x.length>1&&/^[\u1780-\u17ff]+$/.test(x)}).slice(0,4)}catch(e){}
+  if(ex.length){h+='<h4>'+T("sample")+'</h4><div class="samples kh">';ex.forEach(function(x){h+='<span>'+esc(x)+'</span>'});h+='</div>'}
+  h+='<p class="ldesc">'+esc(les.d[k])+'</p><div class="lfoot"><button class="btn primary lstart" type="button">'+T(st?"again":"start")+'</button>'+(st?'<span class="note">'+T("best")+' <span class="stars">'+stars(st)+'</span></span>':'')+'</div>';
+  info.innerHTML=h;
+  info.querySelector(".lstart").onclick=function(){open({type:"lesson",i:i})};
+}
+function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function toggleLesson(i,quiet){
+  openLesson=openLesson===i&&!quiet?-1:i;
+  document.querySelectorAll("#lessonGrid .litem").forEach(function(li){var on=+li.dataset.i===openLesson;
+    if(on)fillLesson(li,+li.dataset.i);li.classList.toggle("open",on);li.firstChild.setAttribute("aria-expanded",on)});
+  if(!quiet&&openLesson>=0){var li=document.querySelector('#lessonGrid .litem[data-i="'+openLesson+'"]');
+    setTimeout(function(){var r=li.getBoundingClientRect();if(r.bottom>innerHeight-70||r.top<70)li.scrollIntoView({behavior:"smooth",block:"nearest"})},320)}
+}
 function renderMenus(){
   var g=$("lessonGrid"),cur=nextLesson();g.innerHTML="";
-  LESSONS.forEach(function(les,i){
-    var b=document.createElement("button");b.type="button";
-    var st=+store("nida_"+plat+"_l"+i)||0;
-    b.className="lcard"+(i===cur?" cur":st>=3?" done":"");
-    b.innerHTML='<span class="n"></span><h3></h3><span class="mkwrap"></span><span class="stars"></span>';
-    b.children[0].textContent=kmNum(i+1);b.children[1].textContent=les.t[lang==="km"?0:1];b.children[3].innerHTML=stars(st);
-    if(window.Vis){var lit={};if(les.all)Object.keys(where).forEach(function(u){if(where[u].layer<2)lit[where[u].code]=2});
-      (les.coeng?["\u17d2"]:les.keys()).forEach(function(u){if(where[u])lit[where[u].code]=1});Vis.miniKeys(b.children[2],lit)}
-    b.title=les.d[lang==="km"?0:1];b.setAttribute("aria-label",T("lessonWord")+kmNum(i+1)+" · "+les.t[lang==="km"?0:1]+" · "+st+"/3 ★");
-    b.onclick=function(){open({type:"lesson",i:i})};g.appendChild(b);
-  });
+  LESSONS.forEach(function(les,i){g.appendChild(lessonRow(les,i,cur))});
+  toggleLesson(openLesson==null?Math.max(0,cur):openLesson,true);
   var cb=$("contBtn"),fresh=store("nida_"+plat+"_l0")==null;
   cb.innerHTML="";cb.appendChild(document.createTextNode(cur<0?T("allDone"):fresh?T("startL"):T("cont")+kmNum(cur+1)));
   cb.onclick=function(){open({type:"lesson",i:cur<0?0:cur})};
