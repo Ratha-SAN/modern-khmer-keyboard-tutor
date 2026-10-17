@@ -103,6 +103,123 @@ function combo(box,o){
   draw(false);return api;
 }
 
+// ---------- living scene: Angkor Wat from dawn to night, sparkling stars, wind in the sugar palms ----------
+function towerPath(c,x,b,w,h){c.moveTo(x-w/2,b);c.lineTo(x-w/2,b-h*.25);c.bezierCurveTo(x-w/2,b-h*.62,x-w*.2,b-h*.86,x,b-h);c.bezierCurveTo(x+w*.2,b-h*.86,x+w/2,b-h*.62,x+w/2,b-h*.25);c.lineTo(x+w/2,b);c.closePath()}
+var TOWERS=[[0,110,40,60],[-62,80,30,45],[62,80,30,45],[-142,62,25,30],[142,62,25,30]];
+function angkor(c,cx,g,k,col,rim){
+  c.fillStyle=col;c.beginPath();
+  c.rect(cx-225*k,g-30*k,450*k,30*k);c.rect(cx-172*k,g-45*k,344*k,15*k);c.rect(cx-100*k,g-60*k,200*k,15*k);
+  TOWERS.forEach(function(t){towerPath(c,cx+t[0]*k,g-t[3]*k,t[2]*k,t[1]*k)});c.fill();
+  // finials and carved tiers catch the light
+  c.strokeStyle=rim;c.lineWidth=1;c.beginPath();
+  TOWERS.forEach(function(t){var x=cx+t[0]*k,b=g-t[3]*k,w=t[2]*k,h=t[1]*k;c.moveTo(x,b-h);c.lineTo(x,b-h-8*k);
+    for(var i=1;i<6;i++){var y=b-h*(.18+i*.13),f=i<3?1:1-(i-2)*.22;c.moveTo(x-w*f/2,y);c.lineTo(x+w*f/2,y)}});
+  c.moveTo(cx-225*k,g-30*k);c.lineTo(cx+225*k,g-30*k);c.moveTo(cx-172*k,g-45*k);c.lineTo(cx+172*k,g-45*k);
+  for(var x=-210;x<=210;x+=14){c.moveTo(cx+x*k,g-30*k);c.lineTo(cx+x*k,g-22*k)}c.stroke();
+}
+function palm(c,x,g,h,lean,col,t,wind,ph){
+  // the whole tree bends with the wind; fronds flutter on their own phases
+  var sway=RM?0:(Math.sin(t*1.1+ph)*.035+Math.sin(t*2.3+ph*2)*.012)*h*wind+h*.045*wind;
+  var tx=x+lean+sway,ty=g-h+Math.abs(sway)*.08,r=h*.2;
+  c.strokeStyle=col;c.fillStyle=col;c.lineCap="round";c.lineWidth=Math.max(2,h*.026);
+  c.beginPath();c.moveTo(x,g);c.quadraticCurveTo(x+lean*.4,g-h*.5,tx,ty);c.stroke();
+  c.lineWidth=Math.max(1.4,h*.012);c.beginPath();
+  for(var i=0;i<22;i++){var a=i/22*6.283+(RM?0:Math.sin(t*3.1+i*1.3+ph)*.07*wind),blow=wind*r*(.12+.1*Math.cos(a)),
+      ex=tx+Math.cos(a)*r+blow,ey=ty+Math.sin(a)*r*.82+(Math.sin(a)>0?r*.18:0)+(RM?0:Math.sin(t*2.6+i+ph)*r*.04*wind);
+    c.moveTo(tx,ty);c.quadraticCurveTo(tx+Math.cos(a)*r*.6+blow*.5,ty+Math.sin(a)*r*.4-r*.15,ex,ey)}
+  c.stroke();c.beginPath();c.arc(tx,ty,r*.3,0,6.283);c.fill();
+}
+function kbach(c,x,y,w,h){ // stylised flame-leaf ornament (kbach phni tes)
+  c.beginPath();c.moveTo(x-w/2,y);c.bezierCurveTo(x-w/2,y-h*.5,x-w*.12,y-h*.62,x,y-h);c.bezierCurveTo(x+w*.12,y-h*.62,x+w/2,y-h*.5,x+w/2,y);
+  c.moveTo(x,y);c.quadraticCurveTo(x-w*.28,y-h*.42,x,y-h*.64);c.stroke();
+}
+// seven moments of the day; tod 0 = dawn, 1/7 morning … 6/7 night, then back to dawn
+var DAY=[
+  {top:"#2c2a63",mid:"#a86a92",hor:"#ffb48a",sil:"#3b2a4c",palm:"#26172f",stars:.35,cloud:"#ffd2c0",ter:["#7a5a62","#3c2834"]},
+  {top:"#4d93d8",mid:"#8cc3ea",hor:"#e8f3f7",sil:"#7a6956",palm:"#2b3a25",stars:0,cloud:"#ffffff",ter:["#9a7d62","#5a4434"]},
+  {top:"#2a76c6",mid:"#68aee6",hor:"#cfe9f6",sil:"#857160",palm:"#29381f",stars:0,cloud:"#ffffff",ter:["#a3876a","#604937"]},
+  {top:"#3d82c6",mid:"#8fbcdc",hor:"#f6d8a0",sil:"#7a6250",palm:"#2d3420",stars:0,cloud:"#fff2d8",ter:["#9b7a5a","#5c4232"]},
+  {top:"#3a3a7e",mid:"#c4686c",hor:"#ff9a48",sil:"#3c2638",palm:"#22131e",stars:0,cloud:"#ffc39a",ter:["#7d5248","#3c242a"]},
+  {top:"#15163c",mid:"#4a2c5c",hor:"#a2506a",sil:"#22163a",palm:"#150c24",stars:.65,cloud:"#8a6a8a",ter:["#5e4258","#2c1e30"]},
+  {top:"#0b0a1f",mid:"#22163f",hor:"#4a2346",sil:"#1d1334",palm:"#120b24",stars:1,cloud:"#4a3a5a",ter:["#5a4058","#2a1c30"]}
+];
+function hex(h){return [parseInt(h.substr(1,2),16),parseInt(h.substr(3,2),16),parseInt(h.substr(5,2),16)]}
+function mix(a,b,f){var x=hex(a),y=hex(b);return "rgb("+Math.round(x[0]+(y[0]-x[0])*f)+","+Math.round(x[1]+(y[1]-x[1])*f)+","+Math.round(x[2]+(y[2]-x[2])*f)+")"}
+function mixHex(a,b,f){var x=hex(a),y=hex(b);return "#"+[0,1,2].map(function(i){return ("0"+Math.round(x[i]+(y[i]-x[i])*f).toString(16)).slice(-2)}).join("")}
+function dayAt(tod){
+  var s=((tod%1)+1)%1*7,i=Math.floor(s),f=s-i;f=f*f*(3-2*f);var a=DAY[i],b=DAY[(i+1)%7];
+  return {top:mixHex(a.top,b.top,f),mid:mixHex(a.mid,b.mid,f),hor:mixHex(a.hor,b.hor,f),sil:mixHex(a.sil,b.sil,f),palm:mixHex(a.palm,b.palm,f),cloud:mixHex(a.cloud,b.cloud,f),
+    stars:a.stars+(b.stars-a.stars)*f,ter:[mixHex(a.ter[0],b.ter[0],f),mixHex(a.ter[1],b.ter[1],f)],s:s};
+}
+function sceneState(){
+  var st={stars:[],clouds:[],shoot:null,last:0,cx:0};
+  for(var i=0;i<72;i++)st.stars.push({x:Math.random(),y:Math.random()*.7,r:Math.random()*1.2+.4,sp:.6+Math.random()*2.2,ph:Math.random()*6.28,big:i<10});
+  for(i=0;i<3;i++)st.clouds.push({x:Math.random(),y:.1+Math.random()*.28,s:.6+Math.random()*.7});
+  return st;
+}
+function windAt(t){return RM?.4:.55+.3*Math.sin(t*.23)+.45*Math.pow(Math.max(0,Math.sin(t*.71)),4)}
+function paintScene(c,W,H,g,tod,t,st,o){
+  var d=dayAt(tod),wind=windAt(t),dt=st.last?Math.min(.1,t-st.last):0;st.last=t;
+  // sky
+  var sk=c.createLinearGradient(0,0,0,g);sk.addColorStop(0,d.top);sk.addColorStop(.6,d.mid);sk.addColorStop(1,d.hor);c.fillStyle=sk;c.fillRect(0,0,W,g);
+  // stars sparkle; the brightest flare into four-point glints
+  if(d.stars>.02){c.fillStyle="#fff";c.strokeStyle="#fff";
+    st.stars.forEach(function(s){var tw=.35+.65*Math.abs(Math.sin(t*s.sp+s.ph)),a=d.stars*tw*(s.big?1:.8);if(a<.03)return;
+      var x=s.x*W,y=16+s.y*(g-16);c.globalAlpha=a;c.fillRect(x-s.r/2,y-s.r/2,s.r,s.r);
+      if(s.big){var fl=Math.pow(Math.max(0,Math.sin(t*s.sp*.45+s.ph)),6),L=2.5+7*fl;c.globalAlpha=a*(.35+.65*fl);c.lineWidth=.8;c.beginPath();c.moveTo(x-L,y);c.lineTo(x+L,y);c.moveTo(x,y-L);c.lineTo(x,y+L);c.stroke();
+        c.globalAlpha=a*.25*fl;c.beginPath();c.arc(x,y,3+3*fl,0,6.283);c.fill()}});
+    // an occasional shooting star on clear nights
+    if(!RM&&d.stars>.8&&!st.shoot&&Math.random()<dt*.06)st.shoot={x:W*(.2+Math.random()*.6),y:20+Math.random()*g*.25,a:0};
+    if(st.shoot){var sh=st.shoot;sh.a+=dt;var p=sh.a/.9,x0=sh.x+p*W*.25,y0=sh.y+p*W*.1;c.globalAlpha=Math.max(0,1-p)*d.stars;c.lineWidth=1.4;
+      var gr=c.createLinearGradient(x0,y0,x0-60,y0-24);gr.addColorStop(0,"#fff");gr.addColorStop(1,"rgba(255,255,255,0)");c.strokeStyle=gr;c.beginPath();c.moveTo(x0,y0);c.lineTo(x0-60,y0-24);c.stroke();if(p>=1)st.shoot=null}
+    c.globalAlpha=1}
+  // the sun crosses the sky from dawn to sunset; the moon rises at dusk
+  var sp=d.s/4.7;
+  if(sp<1){var sx=W*(.08+.84*sp),sy=g-Math.sin(sp*Math.PI)*g*.78+8,alt=Math.sin(sp*Math.PI),sr=Math.min(W,H)*.045+10,sc=alt>.45?"#fff6d8":mixHex("#ff9a48","#fff6d8",alt/.45);
+    var gl=c.createRadialGradient(sx,sy,sr*.5,sx,sy,sr*5);gl.addColorStop(0,"rgba(255,240,200,.55)");gl.addColorStop(1,"rgba(255,240,200,0)");c.fillStyle=gl;c.fillRect(sx-sr*5,sy-sr*5,sr*10,sr*10);
+    c.fillStyle=sc;c.beginPath();c.arc(sx,sy,sr,0,6.283);c.fill()}
+  if(d.s>4.9){var mp=Math.min(1,(d.s-4.9)/2),ma=Math.min(1,(d.s-4.9)*1.4),mx=W*(.88-.12*mp),my=g*.62-mp*g*.42,mr=Math.min(W,H)*.05+12;
+    c.globalAlpha=ma;var mg=c.createRadialGradient(mx,my,mr*.6,mx,my,mr*4);mg.addColorStop(0,"rgba(246,231,184,.35)");mg.addColorStop(1,"rgba(246,231,184,0)");
+    c.fillStyle=mg;c.fillRect(mx-mr*4,my-mr*4,mr*8,mr*8);c.fillStyle="#f6e7b8";c.beginPath();c.arc(mx,my,mr,0,6.283);c.fill();
+    c.fillStyle="rgba(200,180,130,.25)";c.beginPath();c.arc(mx-mr*.3,my-mr*.2,mr*.22,0,6.283);c.arc(mx+mr*.35,my+mr*.25,mr*.15,0,6.283);c.fill();c.globalAlpha=1}
+  // clouds drift with the wind and thin out at night
+  var ca=(1-d.stars)*.85;st.cx+=dt*(6+14*wind)/Math.max(300,W);
+  if(ca>.03){c.fillStyle=d.cloud;st.clouds.forEach(function(cl,i){var x=((cl.x+st.cx*(1+i*.3))%1.3-.15)*W,y=cl.y*g,s=cl.s*Math.min(1.2,W/600+.4);c.globalAlpha=ca*.75;
+    c.beginPath();c.ellipse(x,y,46*s,13*s,0,0,6.283);c.ellipse(x-22*s,y+3*s,26*s,10*s,0,0,6.283);c.ellipse(x+18*s,y-6*s,24*s,12*s,0,0,6.283);c.fill()});c.globalAlpha=1}
+  // Angkor Wat and the sugar palms
+  var k=Math.min(W*.62/450,H*.42/170);angkor(c,W/2,g,k,d.sil,d.stars>.5?"rgba(246,214,140,.22)":"rgba(255,240,210,.28)");
+  palm(c,W*.07,g,H*.46,-6,d.palm,t,wind,0);palm(c,W*.15,g,H*.36,5,d.palm,t,wind,1.7);palm(c,W*.93,g,H*.42,4,d.palm,t,wind,3.1);if(W>520)palm(c,W*.86,g,H*.3,-4,d.palm,t,wind,4.4);
+  if(o&&o.terrace){
+    // sandstone terrace with a carved kbach frieze, and a temple-lintel border along the top
+    var tg=c.createLinearGradient(0,g,0,H);tg.addColorStop(0,d.ter[0]);tg.addColorStop(1,d.ter[1]);c.fillStyle=tg;c.fillRect(0,g,W,H-g);
+    c.fillStyle="#e2b55a";c.fillRect(0,g,W,1.5);c.fillRect(0,H-3,W,1);
+    c.strokeStyle="rgba(240,200,110,.6)";c.lineWidth=1.1;for(var x=13;x<W;x+=26)kbach(c,x,H-6,16,15);
+    c.fillStyle="rgba(240,200,110,.6)";for(x=26;x<W;x+=26){c.beginPath();c.arc(x,H-9,1.6,0,6.283);c.fill()}
+    c.fillStyle="rgba(0,0,0,.35)";c.fillRect(0,0,W,13);c.fillStyle="#e2b55a";c.fillRect(0,13,W,1);
+    c.strokeStyle="rgba(240,200,110,.55)";c.save();c.scale(1,-1);for(x=11;x<W;x+=22)kbach(c,x,-1,13,11);c.restore();
+  }
+  return d.stars<.3;
+}
+// a living backdrop for any game box (Word Rain, Key Hunt); runs only while the box is on screen
+var scenes=[];
+function scene(box){
+  var cv=document.createElement("canvas");cv.className="arc-bg";cv.setAttribute("aria-hidden","true");box.insertBefore(cv,box.firstChild);
+  var c=cv.getContext("2d"),st=sceneState(),W=0,H=0,dpr=1,raf=0,vis=false,cur=0,target=0,last=0,day=null;
+  function size(){var r=box.getBoundingClientRect();dpr=Math.min(2,window.devicePixelRatio||1);W=r.width;H=r.height;cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);c.setTransform(dpr,0,0,dpr,0,0)}
+  function frame(ts){
+    raf=0;if(!vis||!W)return;var t=ts/1000,dt=last?Math.min(.1,t-last):0;last=t;
+    var dd=((target-cur)%1+1)%1;cur=RM?target:(cur+dd*Math.min(1,dt*1.2))%1;if(dd<.0005)cur=target;
+    c.clearRect(0,0,W,H);var isDay=paintScene(c,W,H,H,cur,t,st);
+    if(isDay!==day){day=isDay;box.classList.toggle("arc-day",isDay)}
+    raf=requestAnimationFrame(frame);
+  }
+  function go(){if(!raf&&vis){last=0;raf=requestAnimationFrame(frame)}}
+  if(window.ResizeObserver)new ResizeObserver(function(){size();go()}).observe(box);else size();
+  if(window.IntersectionObserver)new IntersectionObserver(function(es){vis=es[es.length-1].isIntersecting;if(vis){size();go()}}).observe(box);else{vis=true;go()}
+  var api={setTime:function(p){target=((p%1)+1)%1;go()},reset:function(){cur=target=0;go()},get time(){return cur},get day(){return day},get running(){return !!raf}};
+  scenes.push(api);return api;
+}
+
 // ---------- Archer: shoot the falling letters before they explode ----------
 /* opts: pool() -> units, disp(u), hint(u|null), t(km,en), num(n), best() -> number, saveBest(n), buzz() */
 function archer(box,opts){
@@ -112,9 +229,9 @@ function archer(box,opts){
   var ov=document.createElement("div");ov.className="arc-ov";ov.innerHTML='<h4></h4><p></p><button class="primary" type="button"></button>';box.appendChild(ov);
   ov.children[2].onclick=function(){if(S.paused)pause(false);else start()};
   var ctx=cv.getContext("2d"),W=0,H=0,dpr=1,raf=0,last=0,font=getComputedStyle(box).fontFamily||"serif";
-  var S={running:false,paused:false,over:false,hp:100,score:0,wave:1,spawned:0,left:0,spawnT:0,letters:[],arrows:[],shots:0,hits:0,hurt:0,release:0,aim:-1.5708,lastHint:undefined,t0:0,banner:0};
-  var PER_WAVE=15;
-  function size(){var r=box.getBoundingClientRect();dpr=Math.min(2,window.devicePixelRatio||1);W=r.width;H=r.height;cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);F.resize();scenery()}
+  var S={running:false,paused:false,over:false,hp:100,score:0,wave:1,spawned:0,left:0,spawnT:0,letters:[],arrows:[],shots:0,hits:0,hurt:0,release:0,tod:0,todT:0,aim:-1.5708,lastHint:undefined,t0:0,banner:0};
+  var PER_WAVE=15,SC=sceneState();
+  function size(){var r=box.getBoundingClientRect();dpr=Math.min(2,window.devicePixelRatio||1);W=r.width;H=r.height;cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);F.resize()}
   var ro=null;if(window.ResizeObserver){ro=new ResizeObserver(function(){size();if(!S.running||S.paused)draw()});ro.observe(box)}
   function ground(){return H-28}
   function ax(){return W/2}
@@ -123,13 +240,13 @@ function archer(box,opts){
   function notify(){if(opts.onState)opts.onState({running:S.running,paused:S.paused,over:S.over})}
   function overlay(h,p,b){ov.children[0].textContent=h;ov.children[1].textContent=p;ov.children[2].textContent=b;ov.hidden=false}
   function menu(){
-    stop();S.over=false;size();draw();
+    stop();S.over=false;S.tod=S.todT=0;size();draw();
     overlay(opts.t("អ្នកបាញ់ព្រួញ","ARCHER"),opts.t("វាយអក្សរដែលធ្លាក់ ដើម្បីបាញ់វា។ អក្សរដែលធ្លាក់ដល់ដីនឹងផ្ទុះ ហើយធ្វើឱ្យអ្នកបាញ់របួស។ ជាប់ៗ ១០ ដង = ព្យាបាល។ អក្សរពណ៌បៃតង ✚ ព្យាបាលបន្ថែម។","Type a falling letter to shoot it. Letters that land explode and hurt the archer. Every 10-hit combo heals; green ✚ letters heal more."),opts.t("ចាប់ផ្ដើម (Enter)","START (Enter)"));
     var b=opts.best();if(b)ov.children[1].textContent+="  ·  "+opts.t("ល្អបំផុត ","Best ")+opts.num(b);notify();
   }
   function start(){
     var pool=opts.pool();if(!pool.length)return;S.pool=pool;
-    S.letters=[];S.arrows=[];S.hp=100;S.score=0;S.wave=1;S.spawned=0;S.spawnT=.6;S.shots=0;S.hits=0;S.hurt=0;S.over=false;S.paused=false;S.running=true;S.lastHint=undefined;S.t0=Date.now();
+    S.letters=[];S.arrows=[];S.hp=100;S.score=0;S.wave=1;S.tod=S.todT=0;S.spawned=0;S.spawnT=.6;S.shots=0;S.hits=0;S.hurt=0;S.over=false;S.paused=false;S.running=true;S.lastHint=undefined;S.t0=Date.now();
     C.reset();F.clear();ov.hidden=true;size();banner(box,opts.t("រលកទី ","WAVE ")+opts.num(1));play("up");last=0;cancelAnimationFrame(raf);raf=requestAnimationFrame(frame);notify();
   }
   function stop(){S.running=false;cancelAnimationFrame(raf);raf=0}
@@ -183,7 +300,7 @@ function archer(box,opts){
     var dt=last?Math.min(.05,(ts-last)/1000):0;last=ts;
     // spawning and waves
     if(S.spawned<PER_WAVE){S.spawnT-=dt;if(S.spawnT<=0){spawn();S.spawnT=spawnEvery()}}
-    else if(!S.letters.length&&!S.arrows.length){S.wave++;S.spawned=0;S.spawnT=1.4;banner(box,opts.t("រលកទី ","WAVE ")+opts.num(S.wave));play("up");heal(5)}
+    else if(!S.letters.length&&!S.arrows.length){S.wave++;S.todT=((S.wave-1)%7)/7;S.spawned=0;S.spawnT=1.4;banner(box,opts.t("រលកទី ","WAVE ")+opts.num(S.wave));play("up");heal(5)}
     // letters fall
     var g=ground();
     for(var i=S.letters.length-1;i>=0;i--){var l=S.letters[i];l.y+=l.v*dt;l.wob+=dt*3;if(l.y>=g-14)land(l);if(!S.running)return}
@@ -191,54 +308,9 @@ function archer(box,opts){
     for(i=S.arrows.length-1;i>=0;i--){var a=S.arrows[i],dx=a.tgt.x-a.x,dy=a.tgt.y-a.y,d=Math.sqrt(dx*dx+dy*dy),st=1100*dt;
       a.ang=Math.atan2(dy,dx);if(d<=st+12||S.letters.indexOf(a.tgt)<0){if(S.letters.indexOf(a.tgt)>=0)hitLetter(a);S.arrows.splice(i,1)}else{a.x+=dx/d*st;a.y+=dy/d*st}}
     S.hurt=Math.max(0,S.hurt-dt);S.release=Math.max(0,S.release-dt);
+    var dd=((S.todT-S.tod)%1+1)%1;S.tod=RM?S.todT:(S.tod+dd*Math.min(1,dt*.8))%1;if(dd<.0005)S.tod=S.todT;
     var nx=lowest(function(l){return !l.doomed});var hu=nx?nx.u:null;if(hu!==S.lastHint){S.lastHint=hu;opts.hint(hu)}
     draw();raf=requestAnimationFrame(frame);
-  }
-  // ---------- scenery, cached on resize: moonlit Angkor Wat, sugar palms, carved terrace, lintel ----------
-  var bg=document.createElement("canvas"),bgc=bg.getContext("2d"),tw=[];
-  function towerPath(c,x,b,w,h){c.moveTo(x-w/2,b);c.lineTo(x-w/2,b-h*.25);c.bezierCurveTo(x-w/2,b-h*.62,x-w*.2,b-h*.86,x,b-h);c.bezierCurveTo(x+w*.2,b-h*.86,x+w/2,b-h*.62,x+w/2,b-h*.25);c.lineTo(x+w/2,b);c.closePath()}
-  var TOWERS=[[0,110,40,60],[-62,80,30,45],[62,80,30,45],[-142,62,25,30],[142,62,25,30]];
-  function angkor(c,cx,g,k){
-    c.fillStyle="#1d1334";c.beginPath();
-    c.rect(cx-225*k,g-30*k,450*k,30*k);c.rect(cx-172*k,g-45*k,344*k,15*k);c.rect(cx-100*k,g-60*k,200*k,15*k);
-    TOWERS.forEach(function(t){towerPath(c,cx+t[0]*k,g-t[3]*k,t[2]*k,t[1]*k)});c.fill();
-    // finials and carved tiers catch the moonlight
-    c.strokeStyle="rgba(246,214,140,.22)";c.lineWidth=1;c.beginPath();
-    TOWERS.forEach(function(t){var x=cx+t[0]*k,b=g-t[3]*k,w=t[2]*k,h=t[1]*k;c.moveTo(x,b-h);c.lineTo(x,b-h-8*k);
-      for(var i=1;i<6;i++){var y=b-h*(.18+i*.13),f=i<3?1:1-(i-2)*.22;c.moveTo(x-w*f/2,y);c.lineTo(x+w*f/2,y)}});
-    c.moveTo(cx-225*k,g-30*k);c.lineTo(cx+225*k,g-30*k);c.moveTo(cx-172*k,g-45*k);c.lineTo(cx+172*k,g-45*k);
-    for(var x=-210;x<=210;x+=14){c.moveTo(cx+x*k,g-30*k);c.lineTo(cx+x*k,g-22*k)}c.stroke();
-  }
-  function palm(c,x,g,h,lean){
-    c.strokeStyle="#120b24";c.fillStyle="#120b24";c.lineWidth=Math.max(2,h*.026);c.lineCap="round";
-    c.beginPath();c.moveTo(x,g);c.quadraticCurveTo(x+lean*.4,g-h*.5,x+lean,g-h);c.stroke();
-    var tx=x+lean,ty=g-h,r=h*.2;c.lineWidth=Math.max(1.4,h*.012);
-    for(var i=0;i<22;i++){var a=i/22*6.283,ex=tx+Math.cos(a)*r,ey=ty+Math.sin(a)*r*.82+(Math.sin(a)>0?r*.18:0);
-      c.beginPath();c.moveTo(tx,ty);c.quadraticCurveTo(tx+Math.cos(a)*r*.6,ty+Math.sin(a)*r*.4-r*.15,ex,ey);c.stroke()}
-    c.beginPath();c.arc(tx,ty,r*.3,0,6.283);c.fill();
-  }
-  function kbach(c,x,y,w,h){ // stylised flame-leaf ornament (kbach phni tes)
-    c.beginPath();c.moveTo(x-w/2,y);c.bezierCurveTo(x-w/2,y-h*.5,x-w*.12,y-h*.62,x,y-h);c.bezierCurveTo(x+w*.12,y-h*.62,x+w/2,y-h*.5,x+w/2,y);
-    c.moveTo(x,y);c.quadraticCurveTo(x-w*.28,y-h*.42,x,y-h*.64);c.stroke();
-  }
-  function scenery(){
-    bg.width=cv.width;bg.height=cv.height;var c=bgc;c.setTransform(dpr,0,0,dpr,0,0);
-    tw=[];for(var j=0;j<9;j++)tw.push([Math.random()*W,16+Math.random()*(H-28)*.55]);
-    var g=ground(),sk=c.createLinearGradient(0,0,0,g);sk.addColorStop(0,"#0b0a1f");sk.addColorStop(.62,"#22163f");sk.addColorStop(1,"#4a2346");c.fillStyle=sk;c.fillRect(0,0,W,g);
-    for(var i=0;i<70;i++){c.globalAlpha=.25+Math.random()*.55;c.fillStyle="#fff";var s=Math.random()*1.3+.3;c.fillRect(Math.random()*W,Math.random()*g*.75,s,s)}c.globalAlpha=1;
-    var mx=W*.8,my=Math.max(48,H*.2),mr=Math.min(W,H)*.05+12,gl=c.createRadialGradient(mx,my,mr*.6,mx,my,mr*4);gl.addColorStop(0,"rgba(246,231,184,.35)");gl.addColorStop(1,"rgba(246,231,184,0)");
-    c.fillStyle=gl;c.fillRect(mx-mr*4,my-mr*4,mr*8,mr*8);c.fillStyle="#f6e7b8";c.beginPath();c.arc(mx,my,mr,0,6.283);c.fill();
-    c.fillStyle="rgba(200,180,130,.25)";c.beginPath();c.arc(mx-mr*.3,my-mr*.2,mr*.22,0,6.283);c.arc(mx+mr*.35,my+mr*.25,mr*.15,0,6.283);c.fill();
-    var k=Math.min(W*.62/450,H*.42/170);angkor(c,W/2,g,k);
-    palm(c,W*.07,g,H*.46,-6);palm(c,W*.15,g,H*.36,5);palm(c,W*.93,g,H*.42,4);if(W>520)palm(c,W*.86,g,H*.3,-4);
-    // sandstone terrace with a carved kbach frieze
-    var gr=c.createLinearGradient(0,g,0,H);gr.addColorStop(0,"#5a4058");gr.addColorStop(1,"#2a1c30");c.fillStyle=gr;c.fillRect(0,g,W,H-g);
-    c.fillStyle="#e2b55a";c.fillRect(0,g,W,1.5);c.fillRect(0,H-3,W,1);
-    c.strokeStyle="rgba(240,200,110,.6)";c.lineWidth=1.1;for(var x=13;x<W;x+=26)kbach(c,x,H-6,16,15);
-    c.fillStyle="rgba(240,200,110,.6)";for(x=26;x<W;x+=26){c.beginPath();c.arc(x,H-9,1.6,0,6.283);c.fill()}
-    // temple-lintel border along the top
-    c.fillStyle="rgba(0,0,0,.35)";c.fillRect(0,0,W,13);c.fillStyle="#e2b55a";c.fillRect(0,13,W,1);
-    c.strokeStyle="rgba(240,200,110,.55)";c.save();c.translate(0,0);c.scale(1,-1);for(x=11;x<W;x+=22)kbach(c,x,-1,13,11);c.restore();
   }
   // ---------- the archer: a Khmer foot soldier after the Bayon bas-reliefs ----------
   function drawArcher(x,g,s,aim,drawn,hurt,t){
@@ -301,9 +373,7 @@ function archer(box,opts){
   }
   function draw(){
     if(!W)return;var g=ground(),t=Date.now()/1000;
-    ctx.clearRect(0,0,W,H);ctx.drawImage(bg,0,0,W,H);
-    // a few twinkling stars over the cached sky
-    ctx.fillStyle="#fff";tw.forEach(function(p,i){ctx.globalAlpha=.25+.6*Math.abs(Math.sin(t*1.3+i*1.7));ctx.fillRect(p[0],p[1],1.7,1.7)});ctx.globalAlpha=1;
+    ctx.clearRect(0,0,W,H);paintScene(ctx,W,H,g,S.tod,t,SC,{terrace:true});
     // letters
     ctx.textAlign="center";ctx.textBaseline="middle";
     S.letters.forEach(function(l){
@@ -329,8 +399,8 @@ function archer(box,opts){
     ctx.fillStyle=hg;ctx.beginPath();ctx.roundRect?ctx.roundRect(hx+3,hy+3,Math.max(0,bw*hp),8,4):ctx.rect(hx+3,hy+3,bw*hp,8);ctx.fill();
     ctx.strokeStyle="#e2b55a";ctx.lineWidth=1.2;ctx.beginPath();ctx.roundRect?ctx.roundRect(hx,hy,bw+6,14,7):ctx.rect(hx,hy,bw+6,14);ctx.stroke();
     ctx.fillStyle="#ffd1e6";ctx.font="700 13px sans-serif";ctx.textAlign="left";ctx.fillText("❤",hx+bw+12,hy+7.5);
-    ctx.textAlign="right";ctx.font="700 22px "+font;ctx.fillStyle="#f6d77c";ctx.fillText(opts.num(S.score),W-14,hy+9);
-    ctx.font="600 12px "+font;ctx.fillStyle="#d9cdea";ctx.fillText(opts.t("រលកទី ","Wave ")+opts.num(S.wave)+"  ·  "+opts.num(Math.min(S.spawned,PER_WAVE))+"/"+opts.num(PER_WAVE),W-14,hy+30);
+    ctx.textAlign="right";ctx.font="700 22px "+font;ctx.lineWidth=3.5;ctx.strokeStyle="rgba(20,10,30,.55)";ctx.strokeText(opts.num(S.score),W-14,hy+9);ctx.fillStyle="#f6d77c";ctx.fillText(opts.num(S.score),W-14,hy+9);
+    ctx.font="600 12px "+font;var wv=opts.t("រលកទី ","Wave ")+opts.num(S.wave)+"  ·  "+opts.num(Math.min(S.spawned,PER_WAVE))+"/"+opts.num(PER_WAVE);ctx.strokeText(wv,W-14,hy+30);ctx.fillStyle="#f3ecff";ctx.fillText(wv,W-14,hy+30);
   }
   function onVis(){if(document.hidden&&S.running)pause(true)}
   document.addEventListener("visibilitychange",onVis);
@@ -349,5 +419,5 @@ function archer(box,opts){
   window.__arcade=api;return api;
 }
 
-window.Arcade={play:play,sfxButton:sfxButton,fx:fx,banner:banner,combo:combo,archer:archer,reducedMotion:RM};
+window.Arcade={scene:scene,_scenes:scenes,play:play,sfxButton:sfxButton,fx:fx,banner:banner,combo:combo,archer:archer,reducedMotion:RM};
 })();
