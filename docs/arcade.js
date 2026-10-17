@@ -1,4 +1,4 @@
-/* Arcade kit shared by index.html and nida.html: effects, combo meter, sounds and the Archer game.
+/* Arcade kit shared by index.html (standard keyboard) and lab.html (experimental layout): effects, combo meter, sounds and the Archer game.
    No dependencies. Each page passes an adapter with its own key map, hints and strings. */
 (function(){
 "use strict";
