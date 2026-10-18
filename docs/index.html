@@ -36,6 +36,21 @@ section[id]{scroll-margin-top:70px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:12px}
 .lcard{position:relative;text-align:left;background:var(--panel);border:1.5px solid transparent;border-radius:20px;padding:16px;box-shadow:var(--shadow);cursor:pointer;display:flex;flex-direction:column;gap:10px;min-width:0;transition:transform .15s,box-shadow .15s}
 .lcard:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:transparent}
+/* lessons: units of expandable rows */
+#lessonGrid{gap:14px}
+.ugroup{list-style:none}
+.uhead{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:14px;width:100%;padding:12px 16px;border-radius:20px;cursor:pointer;background:linear-gradient(135deg,#fff,#f4f2ec);box-shadow:var(--shadow)}
+.uhead:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.uicon{flex:none;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:1.4rem;background:var(--accent-soft)}
+.ut{flex:1;min-width:0;display:flex;flex-direction:column}
+.ut b{font-weight:600;font-size:1.05rem;line-height:1.4}
+.uring{flex:none;width:30px;height:30px;border-radius:50%;background:conic-gradient(var(--star) var(--p,0%),var(--raise) 0)}
+.uring::after{content:"";display:block;width:20px;height:20px;margin:5px;border-radius:50%;background:#fff}
+.uhead .chev{flex:none;width:30px;height:30px;border-radius:999px;display:grid;place-items:center;background:var(--raise);color:var(--muted);transition:transform .25s}
+.ugroup.uopen .uhead .chev{transform:rotate(90deg);background:var(--ink);color:#fff}
+.ugroup .ulist{display:none;max-width:none;margin-right:0;margin-top:10px;padding-left:14px;border-left:2px dashed var(--line);margin-left:22px}
+.ugroup.uopen .ulist{display:flex}
+.lpreview{margin:0 0 8px;font-size:1.15rem;line-height:1.9;padding:10px 14px;border-radius:14px;background:var(--raise)}
 /* lessons: an expandable list, one row open at a time */
 .llist{list-style:none;margin:0 auto;padding:0;max-width:760px;display:flex;flex-direction:column;gap:10px}
 .litem{background:var(--panel);border-radius:20px;box-shadow:var(--shadow);border:1.5px solid transparent;transition:box-shadow .2s,border-color .2s}
@@ -163,6 +178,7 @@ body.playing .hero,body.playing #learn,body.playing #games,body.playing footer{d
   .lrow{gap:10px;padding:10px 12px}.lrow .pbar{max-width:none}
   .lbody{grid-template-columns:1fr;padding:2px 12px 14px;gap:12px}
   .lbody .mkwrap{max-width:240px;padding:8px}
+  .ugroup .ulist{padding-left:8px;margin-left:10px}.uhead{gap:10px;padding:10px 12px}.uicon{width:38px;height:38px}
   .gcard{min-height:140px}
   .stage{padding:12px}
   .strip{height:4.4rem}#target{font-size:1.6rem;gap:18px}
@@ -265,6 +281,7 @@ body.playing .hero,body.playing #learn,body.playing #games,body.playing footer{d
 
 <script src="nida-layouts.js"></script>
 <script src="words.js"></script>
+<script src="texts-km.js"></script>
 <script src="arcade.js"></script>
 <script src="visuals.js"></script>
 <script>
@@ -286,7 +303,7 @@ var TX={
  heroSub:["ក្ដារចុចស្តង់ដារ NiDA សម្រាប់ Windows និង Mac","The standard NiDA keyboard, for Windows and Mac"],
  setupLink:["ដំឡើងក្ដារចុចលើកុំព្យូទ័រ","Set up the keyboard on your computer"],
  footLab:["ប្លង់សាកល្បង →","Experimental layout →"],
- cont:["បន្ត · មេរៀនទី ","Continue · Lesson "],newLetters:["អក្សរថ្មី","New letters"],sample:["ឧទាហរណ៍","Examples"],startL:["ចាប់ផ្ដើមរៀន","Start learning"],allDone:["ហាត់ម្ដងទៀត","Practise again"],
+ cont:["បន្ត · មេរៀនទី ","Continue · Lesson "],contT:["បន្ត · ","Continue · "],unitWord:["ផ្នែកទី ","Unit "],preview:["អត្ថបទ","Text"],textInfo:["{n} ពាក្យ · ប្រហែល {m} នាទី","{n} words · about {m} min"],newLetters:["អក្សរថ្មី","New letters"],sample:["ឧទាហរណ៍","Examples"],startL:["ចាប់ផ្ដើមរៀន","Start learning"],allDone:["ហាត់ម្ដងទៀត","Practise again"],
  heroLede:["មេរៀនតាមលំដាប់ពីជួរគោល ដល់ជើងអក្សរ និងល្បែងសម្រាប់ហាត់ ដោយប្រើប្លង់ Khmer Unicode (NiDA) របស់ Windows និង Mac។ ជ្រើសកុំព្យូទ័ររបស់អ្នក រួចចាប់ផ្ដើម។","Step-by-step lessons from the home row to subscript consonants, plus practice games, on the Khmer Unicode (NiDA) layout for Windows and Mac. Pick your computer and start."],
  noteWin:["Windows៖ ក្ដារចុច «Khmer (NIDA)»។ អក្សរបន្ថែមប្រើគ្រាប់ចុច AltGr (Alt ខាងស្ដាំ)។","Windows: the “Khmer (NIDA)” keyboard. Extra characters use AltGr (right Alt)."],
  noteMac:["Mac៖ ក្ដារចុច «Khmer Unicode» (NiDA)។ អក្សរបន្ថែមប្រើគ្រាប់ចុច ⌥ Option។","Mac: the “Khmer Unicode” (NiDA) keyboard. Extra characters use ⌥ Option."],
@@ -443,6 +460,12 @@ var LESSONS=[
  {t:["ពាក្យប្រើញឹកញាប់","Common words"],d:["ពាក្យ ៣០០ ដែលប្រើច្រើនបំផុត","The 300 most used words"],all:true,keys:function(){return []}},
  {t:["ពាក្យវែង","Long words"],d:["ពាក្យវែង ដែលមានជើង និងស្រៈច្រើន","Longer words with more subscripts and vowels"],all:true,long:true,keys:function(){return []}}
 ];
+// topic lessons (units 2+) come from texts-km.js and are appended after the 10 keyboard lessons
+var UNITS=[{id:1,icon:"⌨️",t:["មូលដ្ឋានក្ដារចុច","Keyboard basics"]}].concat(window.TEXT_UNITS||[]);
+LESSONS.forEach(function(l){l.unit=1});
+(window.TEXTS||[]).forEach(function(x){LESSONS.push({t:x.t,d:x.t,unit:x.unit,icon:x.icon,tid:x.id,text:x.text,keys:function(){return []}})});
+function skey(i){var l=LESSONS[i];return "nida_"+plat+(l.tid?"_t"+l.tid:"_l"+i)}
+function lessonName(i){var l=LESSONS[i];return (l.tid?l.icon+" ":T("lessonWord")+kmNum(i+1)+" · ")+l.t[lang==="km"?0:1]}
 function learnedUpTo(i){var s={};for(var j=0;j<=i&&j<7;j++)LESSONS[j].keys().forEach(function(u){s[u]=1});if(i>=6)Object.keys(where).forEach(function(u){if(where[u].layer<2)s[u]=1});return s}
 function allSet(){var s={};Object.keys(where).forEach(function(u){s[u]=1});return s}
 function canType(w,set){ // can the word be typed with these key outputs?
@@ -453,6 +476,7 @@ function canType(w,set){ // can the word be typed with these key outputs?
 function isCons(u){var c=u.charCodeAt(0);return u.length===1&&c>=0x1780&&c<=0x17B3}
 function lessonItems(i){
   var les=LESSONS[i],items=[],N=20;
+  if(les.text)return les.text.split(" ");
   if(les.all){
     var set=allSet(),pool=WORDS.filter(function(w){return canType(w,set)});
     if(les.long)pool=pool.filter(function(w){return w.length>=6}).slice(0,600);else pool=pool.slice(0,300);
@@ -482,32 +506,39 @@ function lessonItems(i){
 
 // ---------- menus ----------
 function stars(n){var s="";for(var i=0;i<3;i++)s+=i<n?"★":'<span class="off">★</span>';return s}
-function nextLesson(){for(var i=0;i<LESSONS.length;i++)if((+store("nida_"+plat+"_l"+i)||0)<3)return i;return -1}
+function nextLesson(){for(var i=0;i<LESSONS.length;i++)if((+store(skey(i))||0)<3)return i;return -1}
 var openLesson=null; // the expanded row; null = the lesson you are on
+var openUnits=null;  // which unit groups are expanded
 function lessonRow(les,i,cur){
-  var st=+store("nida_"+plat+"_l"+i)||0,li=document.createElement("li"),k=lang==="km"?0:1,id="lp"+i;
+  var st=+store(skey(i))||0,li=document.createElement("li"),k=lang==="km"?0:1,id="lp"+i;
   li.className="litem"+(i===cur?" cur":st>=3?" done":"");li.dataset.i=i;
   li.innerHTML='<button class="lrow" type="button" aria-expanded="false" aria-controls="'+id+'"><span class="n"></span><span class="tt"><b></b><span class="pbar"><i></i></span></span><span class="stars"></span><span class="chev"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></span></button>'+
     '<div class="lpanel" id="'+id+'" role="region"><div><div class="lbody"><span class="mkwrap"></span><div class="linfo"></div></div></div></div>';
   var row=li.firstChild;
-  row.querySelector(".n").textContent=st>=3?"✓":kmNum(i+1);
+  row.querySelector(".n").textContent=st>=3?"✓":les.tid?les.icon:kmNum(i+1);
   row.querySelector("b").textContent=les.t[k];
   row.querySelector(".pbar i").style.setProperty("--p",(st*100/3)+"%");
   row.querySelector(".stars").innerHTML=stars(st);
-  row.setAttribute("aria-label",T("lessonWord")+kmNum(i+1)+" · "+les.t[k]+" · "+st+"/3 ★");
+  row.setAttribute("aria-label",lessonName(i)+" · "+st+"/3 ★");
   li.querySelector(".lpanel").setAttribute("aria-label",les.t[k]);
   row.onclick=function(){toggleLesson(i)};
-  row.addEventListener("keydown",function(e){var rows=[].slice.call(document.querySelectorAll("#lessonGrid .lrow")),n=rows.indexOf(row),to=-1;
+  row.addEventListener("keydown",function(e){var rows=[].slice.call(document.querySelectorAll("#lessonGrid .lrow")).filter(function(r){return r.offsetParent}),n=rows.indexOf(row),to=-1;
     if(e.key==="ArrowDown")to=Math.min(rows.length-1,n+1);else if(e.key==="ArrowUp")to=Math.max(0,n-1);else if(e.key==="Home")to=0;else if(e.key==="End")to=rows.length-1;
     if(to>=0){e.preventDefault();rows[to].focus()}});
   return li;
 }
 function fillLesson(li,i){ // the details are built when a row first opens
   if(li.dataset.built)return;li.dataset.built=1;
-  var les=LESSONS[i],k=lang==="km"?0:1,st=+store("nida_"+plat+"_l"+i)||0,info=li.querySelector(".linfo");
+  var les=LESSONS[i],k=lang==="km"?0:1,st=+store(skey(i))||0,info=li.querySelector(".linfo");
   if(window.Vis){var lit={};if(les.all)Object.keys(where).forEach(function(u){if(where[u].layer<2)lit[where[u].code]=2});
     (les.coeng?["\u17d2"]:les.keys()).forEach(function(u){if(where[u])lit[where[u].code]=1});Vis.miniKeys(li.querySelector(".mkwrap"),lit,{mods:true})}
   var h="";
+  if(les.text){
+    if(window.Vis){var used={};les.text.replace(/ /g,"").split("").forEach(function(c){if(where[c])used[where[c].code]=where[c].layer?2:1});Vis.miniKeys(li.querySelector(".mkwrap"),used,{mods:true})}
+    var first=les.text.split("។")[0]+"។",n=les.text.split(" ").length,mins=Math.max(1,Math.round(les.text.replace(/ /g,"").length/5/12));
+    h+='<h4>'+T("preview")+'</h4><p class="lpreview kh">'+esc(first)+'</p><p class="ldesc">'+T("textInfo",{n:kmNum(n),m:kmNum(mins)})+'</p>';
+    h+='<div class="lfoot"><button class="btn primary lstart" type="button">'+T(st?"again":"start")+'</button>'+(st?'<span class="note">'+T("best")+' <span class="stars">'+stars(st)+'</span></span>':'')+'</div>';
+    info.innerHTML=h;info.querySelector(".lstart").onclick=function(){open({type:"lesson",i:i})};return}
   if(!les.all){h+='<h4>'+T("newLetters")+'</h4><div class="chips kh">';
     les.keys().slice(0,16).forEach(function(u){var w=where[u];h+='<span class="kc">'+esc(disp(u))+(w&&w.layer===1?'<sup>⇧</sup>':w&&w.layer===2?'<sup>'+(plat==="mac"?"⌥":"AltGr")+'</sup>':'')+'</span>'});h+='</div>'}
   var ex=[];try{ex=lessonItems(i).filter(function(x){return x.length>1&&/^[\u1780-\u17ff]+$/.test(x)}).slice(0,4)}catch(e){}
@@ -521,15 +552,27 @@ function toggleLesson(i,quiet){
   openLesson=openLesson===i&&!quiet?-1:i;
   document.querySelectorAll("#lessonGrid .litem").forEach(function(li){var on=+li.dataset.i===openLesson;
     if(on)fillLesson(li,+li.dataset.i);li.classList.toggle("open",on);li.firstChild.setAttribute("aria-expanded",on)});
+  if(openLesson>=0&&openUnits&&LESSONS[openLesson]&&!openUnits[LESSONS[openLesson].unit]){openUnits[LESSONS[openLesson].unit]=true;var ug=document.querySelector('#lessonGrid .ugroup[data-u="'+LESSONS[openLesson].unit+'"]');if(ug){ug.classList.add("uopen");ug.firstChild.setAttribute("aria-expanded",true)}}
   if(!quiet&&openLesson>=0){var li=document.querySelector('#lessonGrid .litem[data-i="'+openLesson+'"]');
     setTimeout(function(){var r=li.getBoundingClientRect();if(r.bottom>innerHeight-70||r.top<70)li.scrollIntoView({behavior:"smooth",block:"nearest"})},320)}
 }
 function renderMenus(){
   var g=$("lessonGrid"),cur=nextLesson();g.innerHTML="";
-  LESSONS.forEach(function(les,i){g.appendChild(lessonRow(les,i,cur))});
+  var curUnit=LESSONS[Math.max(0,cur)].unit;
+  if(!openUnits)openUnits={};if(openUnits[curUnit]==null&&!openUnits._init){openUnits[curUnit]=true;openUnits._init=1}
+  UNITS.forEach(function(u){
+    var idx=[];LESSONS.forEach(function(l,i){if(l.unit===u.id)idx.push(i)});if(!idx.length)return;
+    var done=idx.filter(function(i){return (+store(skey(i))||0)>=3}).length,k=lang==="km"?0:1;
+    var uh=document.createElement("li");uh.className="ugroup"+(openUnits[u.id]?" uopen":"");uh.dataset.u=u.id;
+    uh.innerHTML='<button class="uhead" type="button" aria-expanded="'+!!openUnits[u.id]+'"><span class="uicon" aria-hidden="true"></span><span class="ut"><b></b><span class="note"></span></span><span class="uring" aria-hidden="true"></span><span class="chev"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></span></button><ol class="llist ulist"></ol>';
+    var hb=uh.firstChild;hb.querySelector(".uicon").textContent=u.icon;hb.querySelector("b").textContent=T("unitWord")+kmNum(u.id)+" · "+u.t[k];
+    hb.querySelector(".note").textContent=kmNum(done)+" / "+kmNum(idx.length)+" ★★★";hb.querySelector(".uring").style.setProperty("--p",(100*done/idx.length)+"%");
+    hb.onclick=function(){openUnits[u.id]=!openUnits[u.id];uh.classList.toggle("uopen",!!openUnits[u.id]);hb.setAttribute("aria-expanded",!!openUnits[u.id])};
+    var ol=uh.lastChild;idx.forEach(function(i){ol.appendChild(lessonRow(LESSONS[i],i,cur))});g.appendChild(uh);
+  });
   toggleLesson(openLesson==null?Math.max(0,cur):openLesson,true);
   var cb=$("contBtn"),fresh=store("nida_"+plat+"_l0")==null;
-  cb.innerHTML="";cb.appendChild(document.createTextNode(cur<0?T("allDone"):fresh?T("startL"):T("cont")+kmNum(cur+1)));
+  cb.innerHTML="";cb.appendChild(document.createTextNode(cur<0?T("allDone"):fresh?T("startL"):LESSONS[cur].tid?T("contT")+LESSONS[cur].t[lang==="km"?0:1]:T("cont")+kmNum(cur+1)));
   cb.onclick=function(){open({type:"lesson",i:cur<0?0:cur})};
   // game cards are built once (their live previews keep running); later calls only refresh the words
   var gg=$("gameGrid");
@@ -615,15 +658,15 @@ function practiceStats(){
   if($("sW"))$("sW").textContent=kmNum(w);if($("sA"))$("sA").textContent=kmNum(a)+"%";return {w:w,a:a};
 }
 function startLesson(i){
-  var les=LESSONS[i];$("runTitle").textContent=T("lessonWord")+kmNum(i+1)+" · "+les.t[lang==="km"?0:1];
-  $("runStats").innerHTML=statBox("sW",T("wpm"),0)+statBox("sA",T("acc"),"100%")+statBox("sB",T("best"),stars(+store("nida_"+plat+"_l"+i)||0));
-  var nk=les.keys().slice(0,14).map(disp).join("  ");$("newKeys").textContent=les.all?"":T("newKeys")+nk;
+  var les=LESSONS[i];$("runTitle").textContent=lessonName(i);
+  $("runStats").innerHTML=statBox("sW",T("wpm"),0)+statBox("sA",T("acc"),"100%")+statBox("sB",T("best"),stars(+store(skey(i))||0));
+  var nk=les.keys().slice(0,14).map(disp).join("  ");$("newKeys").textContent=les.all||les.text?"":T("newKeys")+nk;
   P={items:lessonItems(i),idx:0,typed:"",ok:0,bad:0,t0:0,done:false,words:0};buildTrack();renderTrack();showKeyHint(nextUnit(),$("hintline"));$("nextBtn").hidden=false;
 }
 function finishPractice(){
   P.done=true;A.play(active.type==="lesson"?"done":"over");clearHint();var s=practiceStats();$("hintline").textContent="";
   if(active.type==="lesson"){
-    var st=s.a>=97?3:s.a>=90?2:1,k="nida_"+plat+"_l"+active.i;if(st>(+store(k)||0))store(k,String(st));
+    var st=s.a>=97?3:s.a>=90?2:1,k=skey(active.i);if(st>(+store(k)||0))store(k,String(st));
     $("resultText").innerHTML="";$("resultText").appendChild(document.createTextNode(T("doneL",{w:kmNum(s.w),a:kmNum(s.a)})));var sp=document.createElement("span");sp.className="stars";sp.innerHTML=stars(st);$("resultText").appendChild(sp);
     $("nextBtn").hidden=active.i>=LESSONS.length-1;
   }else{

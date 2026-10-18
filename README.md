@@ -66,6 +66,16 @@ On narrow screens the on-screen keyboard docks to the bottom (respecting the iPh
 
 `docs/index.html` (the home page) teaches the keyboard most Khmer typists already use: the NiDA "Khmer Unicode" layout, with a Windows/Mac switch. It has 10 lessons (home, top and bottom rows; the same rows with Shift; subscripts; digits and punctuation; common words; long words) and three games (Key Hunt, a 60-second Sprint and Word Rain). The on-screen keyboard follows the real Windows or Mac key shapes, with AltGr or ⌥ Option for the third layer.
 
+### Topic lessons (units 2–6)
+After the 10 keyboard lessons (Unit 1), the home page has 39 typing passages in five units:
+- **Daily life:** greetings, family, market, food, weather, time, travel.
+- **School subjects:** Khmer language, maths, the water cycle, plants, history, geography, civics, environment.
+- **Cambodia & the world:** Angkor Wat, Mekong, Tonle Sap, provinces, Khmer New Year, Water Festival, Pchum Ben, wildlife, the solar system, oceans.
+- **Work & professions:** health, agriculture, office, IT, law and administration, tourism, banking, teaching, road safety, construction.
+- **Advice & short stories.**
+
+The passages live in `docs/texts-km.js`. They are **original drafts written for this tutor, not taken from textbooks**, and should be reviewed by a native Khmer speaker for spelling, wording and facts. `node tools/check_texts.js` checks that every passage can be typed on both NiDA maps, is well-formed Khmer, has a sensible length, and is not duplicated. Lessons are grouped into collapsible units with progress rings; stars for text lessons are stored as `nida_<platform>_t<id>`.
+
 - Key maps are in `docs/nida-layouts.js`. Windows comes from XKB `symbols/kh` (the same layout as Windows "Khmer (NIDA)", KBDKNI). Mac comes from the "Khmer Unicode" keylayout in [socheatsok78/khmer-unicode-keyboard-for-macos](https://github.com/socheatsok78/khmer-unicode-keyboard-for-macos).
 - Every letter key is the same in both maps. They differ in 10 rarely used AltGr/Option symbols.
 - Not verified: Windows' plain "Khmer" keyboard (KBDKHMR) and Apple's built-in "Khmer" layout may differ from NiDA. The setup guide on the page says so.
