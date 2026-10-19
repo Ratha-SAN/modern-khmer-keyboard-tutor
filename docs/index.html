@@ -284,6 +284,7 @@ body.playing .hero,body.playing #learn,body.playing #games,body.playing footer{d
 <script src="texts-km.js"></script>
 <script src="arcade.js"></script>
 <script src="visuals.js"></script>
+<script src="auth.js"></script>
 <script>
 (function(){
 "use strict";
@@ -829,6 +830,8 @@ window.addEventListener("scroll",markTabs,{passive:true});
 document.querySelectorAll(".tabs a,.tabbar a").forEach(function(a){a.addEventListener("click",function(){if(active)$("backBtn").click()})});
 var HKB=null;if(window.Vis){HKB=Vis.keyboard($("heroKb"));Vis.miniKeys($("setupKeys"),{AltGr:1,KeyJ:1},{mods:true})}
 setPlatform(plat);applyLang();markTabs();
+// progress pulled from the signed-in account
+window.addEventListener("progresssync",function(){renderMenus()});
 window.__nida={state:function(){return{active:active,P:P,H:H,rain:{score:rain.score,lives:rain.lives,running:rain.running,items:rain.items.map(function(i){return{text:i.text,typed:i.typed,y:i.y}})}}},where:function(){return where},archer:function(){return ARCH&&ARCH.state()},arch:function(){return ARCH}};
 })();
 </script>
