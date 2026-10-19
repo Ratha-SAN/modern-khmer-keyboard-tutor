@@ -340,6 +340,7 @@ html[lang="km"] .steps4 p{line-height:1.7}
 <script src="words.js"></script>
 <script src="arcade.js"></script>
 <script src="visuals.js"></script>
+<script src="auth.js"></script>
 <script>
 (function(){
 "use strict";
@@ -874,6 +875,7 @@ applyLayout(saved&&LAYOUTS[saved]?saved:window.LAYOUT_DEFAULT);
 pickGame(gGame);
 if(location.hash==="#game"||store("mode")==="game")setMode("game");
 setLang(store("lang")||"km");
+window.addEventListener("progresssync",function(){setLang(lang)});
 })();
 </script>
 </body>

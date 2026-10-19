@@ -44,6 +44,16 @@ The tutor has a layout selector and an **Export log (CSV)** button (every keystr
 
 Every push to `main` deploys `docs/` to Firebase Hosting via `.github/workflows/firebase-hosting.yml`. It needs the repository secret `FIREBASE_SERVICE_ACCOUNT` (the JSON key of a Firebase service account); the project ID is read from that key. GitHub Pages keeps serving the same files.
 
+## Accounts (optional sign-in)
+
+`docs/auth.js` adds an account button: Google or email/password sign-in through Firebase Authentication. Signed-in learners' stars and best scores (`nida_*`, `rain_*`, `archer_*`, `best*` keys) are merged with `users/{uid}` in Firestore (the higher score wins) and later saves are written back. Settings stay on the device. Guests are unaffected.
+
+Sign-in works on the Firebase site only: it reads the web-app config from `/__/firebase/init.json`. GitHub Pages and the preview show a link to the main site instead. One-time setup in the Firebase console (project `modernkhmertyping`):
+
+1. Project settings → Your apps: register a **Web app**, if none exists.
+2. Authentication → Sign-in method: enable **Google** and **Email/Password**.
+3. Firestore Database: create a database, then paste `firestore.rules` into Rules and publish. The deploy workflow pushes Hosting only.
+
 ## Installing on Linux (no pair keys only)
 
 `python3 tools/export_xkb.py refined` writes `exports/khmer-cluster-refined.xkb`. It compiles with `xkbcomp`, but I have not tested it on a live desktop. Copy it to `~/.xkb/symbols/khcluster` and load it with `setxkbmap -I ~/.xkb khcluster` on X11 (Wayland setups differ). AltGr = Right Alt. Windows and macOS layouts are not generated. Pair-key layouts need an IME or software keyboard because OS key layouts emit one character per key level.
