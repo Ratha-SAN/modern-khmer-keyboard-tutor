@@ -205,3 +205,14 @@ svg.mk{display:block;width:100%;height:auto}
 .acct-card .note{margin:2px 0 0;word-break:break-all}
 .acct-state{margin:0;font-size:.9rem;color:#1f7a45}.acct-state.offline{color:var(--accent)}.acct-state.syncing{color:var(--muted)}
 .acct-body>.note{margin:0}
+.acct-stats h3{font-size:.85rem;font-weight:600;color:var(--muted);margin:6px 0 8px;text-transform:none}
+.acct-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.acct-tile{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:16px;background:var(--raise);min-width:0}
+.acct-tl{font-size:.78rem;color:var(--muted)}
+.acct-tile b{font-size:1.35rem;font-weight:700;line-height:1.2}
+.acct-sub{font-size:.78rem;color:var(--muted)}
+.acct-bar{display:block;height:5px;border-radius:9px;background:var(--line);margin-top:6px;overflow:hidden}
+.acct-bar i{display:block;height:100%;border-radius:9px;background:#e0a91b}
+.acct-games{list-style:none;margin:0;padding:0;border-radius:16px;background:var(--raise)}
+.acct-games li{display:flex;justify-content:space-between;gap:10px;padding:10px 14px;font-size:.92rem}
+.acct-games li+li{border-top:1px solid var(--line)}
