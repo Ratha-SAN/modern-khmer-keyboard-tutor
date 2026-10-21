@@ -34,21 +34,35 @@ var S={
  errOff:["ការចូលគណនីមិនទាន់បើកនៅឡើយ។","Sign-in isn't switched on yet."],
  errNet:["គ្មានអ៊ីនធឺណិត។ សូមព្យាយាមម្ដងទៀត។","No connection. Please try again."],
  errMany:["ព្យាយាមច្រើនដងពេក។ សូមរង់ចាំបន្តិច។","Too many attempts. Please wait a moment."],
- errOther:["មានបញ្ហា","Something went wrong"]
+ errOther:["មានបញ្ហា","Something went wrong"],
+ progress:["វឌ្ឍនភាព","Progress"],
+ stars:["ផ្កាយ","Stars"],
+ mastered:["មេរៀនបានល្អ ★★★","Lessons at ★★★"],
+ units:["ជំពូកបានបញ្ចប់","Units complete"],
+ speed:["ល្បឿនល្អបំផុត","Best speed"],
+ wpm:["ពាក្យ/នាទី","WPM"],
+ games:["ពិន្ទុល្បែងខ្ពស់បំផុត","Game bests"],
+ hunt:["ស្វែងរកគ្រាប់ចុច","Key Hunt"],
+ archer:["អ្នកបាញ់ព្រួញ","Archer"],
+ rain:["ពាក្យធ្លាក់","Word Rain"],
+ lab:["ប្លង់សាកល្បង","Experimental layout"],
+ none:["មិនទាន់លេង","not played yet"],
+ at:["ម៉ោង","at"]
 };
 function L(){return document.documentElement.lang==="en"?1:0}
 function t(k){return (S[k]||[k,k])[L()]}
 function get(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function put(k,v){try{_set.call(localStorage,k,v)}catch(e){}}
+function kn(n){return L()?String(n):String(n).replace(/[0-9]/g,function(d){return String.fromCharCode(0x17E0+(+d))})}
 function num(v){return parseInt(String(v==null?"":v).replace(/\D.*/,""),10)||0}
 
-var typed="",cfg=null,sdk=null,auth=null,db=null,user=null,ready=null,state="idle",timer=null,dirty={},lastErr="";
+var lastSync=0,typed="",cfg=null,sdk=null,auth=null,db=null,user=null,ready=null,state="idle",timer=null,dirty={},lastErr="";
 var _set=Storage.prototype.setItem;
 
 // watch saves of progress keys so they can be written to the account
 Storage.prototype.setItem=function(k,v){
   _set.call(this,k,v);
-  try{if(this===localStorage&&user&&PROG.test(k)){dirty[k]=String(v);schedule()}}catch(e){}
+  try{if(this===localStorage&&user&&(PROG.test(k)||k==="nidaPlat")){if(PROG.test(k)){dirty[k]=String(v);schedule()}if(dlg&&dlg.open)requestAnimationFrame(render)}}catch(e){}
 };
 
 function local(){
@@ -99,17 +113,18 @@ function pull(){
     });
     if(changed)window.dispatchEvent(new Event("progresssync"));
     return sdk.fs.setDoc(ref(),{p:out,name:user.displayName||"",updated:sdk.fs.serverTimestamp()},{merge:true});
-  }).then(function(){state="synced";render()}).catch(function(){state="offline";render()});
+  }).then(function(){state="synced";lastSync=Date.now();render()}).catch(function(){state="offline";render()});
 }
 function schedule(){clearTimeout(timer);timer=setTimeout(push,2500)}
 function push(){
   if(!user||!Object.keys(dirty).length)return;
   var p=dirty;dirty={};state="syncing";render();
   sdk.fs.setDoc(ref(),{p:p,updated:sdk.fs.serverTimestamp()},{merge:true})
-    .then(function(){state="synced";render()})
+    .then(function(){state="synced";lastSync=Date.now();render()})
     .catch(function(){Object.keys(p).forEach(function(k){if(!(k in dirty))dirty[k]=p[k]});state="offline";render()});
 }
 window.addEventListener("pagehide",push);
+window.addEventListener("progresssync",function(){if(dlg&&dlg.open)render()});
 
 function showErr(e){
   var c=(e&&e.code)||"",k=/invalid-credential|wrong-password|user-not-found|invalid-login/.test(c)?"errCred":/email-already-in-use/.test(c)?"errInUse":/weak-password/.test(c)?"errWeak":/invalid-email|missing-email/.test(c)?"errEmail":/operation-not-allowed|configuration-not-found|unauthorized-domain/.test(c)?"errOff":/network/.test(c)?"errNet":/too-many/.test(c)?"errMany":"";
@@ -117,6 +132,49 @@ function showErr(e){
   lastErr=k?t(k):t("errOther")+(c?" ("+c+")":"");render();
 }
 function busy(fn){return function(){lastErr="";render();start().then(fn).catch(showErr)}}
+
+// ---------- progress stats for the profile ----------
+// index.html exposes the course (window.__nidaCourse); lab.html has only game bests
+function stats(){
+  var c=window.__nidaCourse&&window.__nidaCourse(),o={plat:c?c.plat:"",lessons:0,stars:0,mastered:0,units:0,unitsAll:0,games:[],lab:[]};
+  if(c){
+    var byUnit={};
+    c.lessons.forEach(function(l){var st=Math.min(3,num(get(l.key)));o.lessons++;o.stars+=st;if(st>=3)o.mastered++;
+      var u=byUnit[l.unit]||(byUnit[l.unit]={n:0,done:0});u.n++;if(st>=3)u.done++});
+    Object.keys(byUnit).forEach(function(k){o.unitsAll++;if(byUnit[k].done===byUnit[k].n)o.units++});
+    o.wpm=num(get("nida_"+c.plat+"_g_sprint"));
+    ["hunt","archer","rain"].forEach(function(g){o.games.push([g,num(get("nida_"+c.plat+"_g_"+g))])});
+  }
+  var lr=0,la=0;try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(/^rain_/.test(k))lr=Math.max(lr,num(localStorage.getItem(k)));if(/^archer_/.test(k))la=Math.max(la,num(localStorage.getItem(k)))}}catch(e){}
+  if(la)o.lab.push(["archer",la]);if(lr)o.lab.push(["rain",lr]);
+  return o;
+}
+function tile(label,val,sub,pct){
+  var d=el("div","acct-tile");d.appendChild(el("span","acct-tl",label));d.appendChild(el("b",null,val));
+  if(sub)d.appendChild(el("span","acct-sub",sub));
+  if(pct!=null){var b=el("i","acct-bar"),f=el("i");f.style.width=Math.round(pct*100)+"%";b.appendChild(f);d.appendChild(b)}
+  return d;
+}
+function renderStats(){
+  var o=stats(),box=el("section","acct-stats");
+  var h=el("h3",null,t("progress")+(o.plat?" · "+(o.plat==="mac"?"Mac":"Windows"):""));box.appendChild(h);
+  var g=el("div","acct-grid");
+  if(o.lessons){
+    g.appendChild(tile(t("stars"),"★ "+kn(o.stars),"/ "+kn(o.lessons*3),o.stars/(o.lessons*3)));
+    g.appendChild(tile(t("mastered"),kn(o.mastered),"/ "+kn(o.lessons),o.mastered/o.lessons));
+    g.appendChild(tile(t("units"),kn(o.units),"/ "+kn(o.unitsAll),o.units/o.unitsAll));
+    g.appendChild(tile(t("speed"),o.wpm?kn(o.wpm):"–",o.wpm?t("wpm"):t("none")));
+  }
+  box.appendChild(g);
+  var rows=o.games.concat(o.lab.map(function(x){return[x[0],x[1],1]}));
+  if(rows.length){
+    box.appendChild(el("h3",null,t("games")));
+    var ul=el("ul","acct-games");
+    rows.forEach(function(r){var li=el("li");li.appendChild(el("span",null,t(r[0])+(r[2]?" · "+t("lab"):"")));li.appendChild(el("b",null,r[1]?kn(r[1]):"–"));ul.appendChild(li)});
+    box.appendChild(ul);
+  }
+  return box;
+}
 
 // ---------- UI ----------
 var ICON='<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>';
@@ -158,7 +216,9 @@ function render(){
     card.appendChild(el("span","acct-ini big",(nm.trim().charAt(0).toUpperCase()||"✓")));
     var who=el("div");who.appendChild(el("b",null,user.displayName||user.email));if(user.displayName&&user.email)who.appendChild(el("div","note",user.email));
     card.appendChild(who);body.appendChild(card);
-    body.appendChild(el("p","acct-state "+state,state==="syncing"?t("syncing"):state==="offline"?t("offline"):t("synced")));
+    var tm=lastSync?" · "+kn(new Date(lastSync).toLocaleTimeString(L()?"en-GB":"km-KH",{hour:"2-digit",minute:"2-digit",hour12:false})):"";
+    body.appendChild(el("p","acct-state "+state,state==="syncing"?t("syncing"):state==="offline"?t("offline"):t("synced")+tm));
+    body.appendChild(renderStats());
     var so=el("button","btn acct-wide",t("signOut"));so.type="button";
     so.onclick=function(){push();sdk.auth.signOut(auth)};body.appendChild(so);
     body.appendChild(el("p","note",t("privacy")));

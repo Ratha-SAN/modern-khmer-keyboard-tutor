@@ -829,6 +829,8 @@ window.addEventListener("scroll",markTabs,{passive:true});
 // the section tabs also leave a lesson or game
 document.querySelectorAll(".tabs a,.tabbar a").forEach(function(a){a.addEventListener("click",function(){if(active)$("backBtn").click()})});
 var HKB=null;if(window.Vis){HKB=Vis.keyboard($("heroKb"));Vis.miniKeys($("setupKeys"),{AltGr:1,KeyJ:1},{mods:true})}
+// course outline for the account profile stats (auth.js)
+window.__nidaCourse=function(){return{plat:plat,lessons:LESSONS.map(function(l,i){return{key:skey(i),unit:l.unit||1}})}};
 setPlatform(plat);applyLang();markTabs();
 // progress pulled from the signed-in account
 window.addEventListener("progresssync",function(){renderMenus()});
