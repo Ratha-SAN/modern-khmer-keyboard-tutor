@@ -46,7 +46,7 @@ Every push to `main` deploys `docs/` to Firebase Hosting via `.github/workflows/
 
 ## Accounts (optional sign-in)
 
-`docs/auth.js` adds an account button: Google or email/password sign-in through Firebase Authentication. Signed-in learners' stars and best scores (`nida_*`, `rain_*`, `archer_*`, `best*` keys) are merged with `users/{uid}` in Firestore (the higher score wins) and later saves are written back. Settings stay on the device. Guests are unaffected.
+`docs/auth.js` adds an account button: Google or email/password sign-in through Firebase Authentication. Signed-in learners' stars and best scores (`nida_*`, `rain_*`, `archer_*`, `best*` keys) are merged with `users/{uid}` in Firestore (the higher score wins) and later saves are written back. Settings stay on the device. Guests are unaffected. The profile also graphs typing speed per session from `nida_hist` (the last 120 finished lessons and Sprints, recorded from this release on; merged across devices as a union) and stars per unit.
 
 Sign-in works on the Firebase site only: it reads the web-app config from `/__/firebase/init.json`. GitHub Pages and the preview show a link to the main site instead. One-time setup in the Firebase console (project `modernkhmertyping`):
 

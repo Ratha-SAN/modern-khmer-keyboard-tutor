@@ -664,8 +664,15 @@ function startLesson(i){
   var nk=les.keys().slice(0,14).map(disp).join("  ");$("newKeys").textContent=les.all||les.text?"":T("newKeys")+nk;
   P={items:lessonItems(i),idx:0,typed:"",ok:0,bad:0,t0:0,done:false,words:0};buildTrack();renderTrack();showKeyHint(nextUnit(),$("hintline"));$("nextBtn").hidden=false;
 }
+// practice history for the profile speed graph (last 120 sessions)
+function logSession(s,kind){
+  var h;try{h=JSON.parse(store("nida_hist")||"[]")}catch(e){h=[]}
+  if(!Array.isArray(h))h=[];
+  h.push({t:Date.now(),w:s.w,a:s.a,p:plat,k:kind});store("nida_hist",JSON.stringify(h.slice(-120)));
+}
 function finishPractice(){
   P.done=true;A.play(active.type==="lesson"?"done":"over");clearHint();var s=practiceStats();$("hintline").textContent="";
+  logSession(s,active.type==="lesson"?"l":"s");
   if(active.type==="lesson"){
     var st=s.a>=97?3:s.a>=90?2:1,k=skey(active.i);if(st>(+store(k)||0))store(k,String(st));
     $("resultText").innerHTML="";$("resultText").appendChild(document.createTextNode(T("doneL",{w:kmNum(s.w),a:kmNum(s.a)})));var sp=document.createElement("span");sp.className="stars";sp.innerHTML=stars(st);$("resultText").appendChild(sp);
@@ -830,7 +837,7 @@ window.addEventListener("scroll",markTabs,{passive:true});
 document.querySelectorAll(".tabs a,.tabbar a").forEach(function(a){a.addEventListener("click",function(){if(active)$("backBtn").click()})});
 var HKB=null;if(window.Vis){HKB=Vis.keyboard($("heroKb"));Vis.miniKeys($("setupKeys"),{AltGr:1,KeyJ:1},{mods:true})}
 // course outline for the account profile stats (auth.js)
-window.__nidaCourse=function(){return{plat:plat,lessons:LESSONS.map(function(l,i){return{key:skey(i),unit:l.unit||1}})}};
+window.__nidaCourse=function(){return{plat:plat,lessons:LESSONS.map(function(l,i){return{key:skey(i),unit:l.unit||1}}),units:UNITS.map(function(u){return{id:u.id,icon:u.icon,t:u.t}})}};
 setPlatform(plat);applyLang();markTabs();
 // progress pulled from the signed-in account
 window.addEventListener("progresssync",function(){renderMenus()});
