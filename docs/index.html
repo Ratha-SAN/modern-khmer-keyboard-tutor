@@ -304,7 +304,7 @@ var TX={
  heroSub:["ក្ដារចុចស្តង់ដារ NiDA សម្រាប់ Windows និង Mac","The standard NiDA keyboard, for Windows and Mac"],
  setupLink:["ដំឡើងក្ដារចុចលើកុំព្យូទ័រ","Set up the keyboard on your computer"],
  footLab:["ប្លង់សាកល្បង →","Experimental layout →"],
- cont:["បន្ត · មេរៀនទី ","Continue · Lesson "],contT:["បន្ត · ","Continue · "],unitWord:["ផ្នែកទី ","Unit "],preview:["អត្ថបទ","Text"],textInfo:["{n} ពាក្យ · ប្រហែល {m} នាទី","{n} words · about {m} min"],newLetters:["អក្សរថ្មី","New letters"],sample:["ឧទាហរណ៍","Examples"],startL:["ចាប់ផ្ដើមរៀន","Start learning"],allDone:["ហាត់ម្ដងទៀត","Practise again"],
+ cont:["បន្ត · មេរៀនទី ","Continue · Lesson "],contT:["បន្ត · ","Continue · "],unitWord:["ផ្នែកទី ","Unit "],preview:["អត្ថបទ","Text"],textInfo:["{n} តួអក្សរ · ប្រហែល {m} នាទី","{n} letters · about {m} min"],newLetters:["អក្សរថ្មី","New letters"],sample:["ឧទាហរណ៍","Examples"],startL:["ចាប់ផ្ដើមរៀន","Start learning"],allDone:["ហាត់ម្ដងទៀត","Practise again"],
  heroLede:["មេរៀនតាមលំដាប់ពីជួរគោល ដល់ជើងអក្សរ និងល្បែងសម្រាប់ហាត់ ដោយប្រើប្លង់ Khmer Unicode (NiDA) របស់ Windows និង Mac។ ជ្រើសកុំព្យូទ័ររបស់អ្នក រួចចាប់ផ្ដើម។","Step-by-step lessons from the home row to subscript consonants, plus practice games, on the Khmer Unicode (NiDA) layout for Windows and Mac. Pick your computer and start."],
  noteWin:["Windows៖ ក្ដារចុច «Khmer (NIDA)»។ អក្សរបន្ថែមប្រើគ្រាប់ចុច AltGr (Alt ខាងស្ដាំ)។","Windows: the “Khmer (NIDA)” keyboard. Extra characters use AltGr (right Alt)."],
  noteMac:["Mac៖ ក្ដារចុច «Khmer Unicode» (NiDA)។ អក្សរបន្ថែមប្រើគ្រាប់ចុច ⌥ Option។","Mac: the “Khmer Unicode” (NiDA) keyboard. Extra characters use ⌥ Option."],
@@ -536,7 +536,7 @@ function fillLesson(li,i){ // the details are built when a row first opens
   var h="";
   if(les.text){
     if(window.Vis){var used={};les.text.replace(/ /g,"").split("").forEach(function(c){if(where[c])used[where[c].code]=where[c].layer?2:1});Vis.miniKeys(li.querySelector(".mkwrap"),used,{mods:true})}
-    var first=les.text.split("។")[0]+"។",n=les.text.split(" ").length,mins=Math.max(1,Math.round(les.text.replace(/ /g,"").length/5/12));
+    var first=les.text.split("។")[0]+"។",n=les.text.replace(/ /g,"").length,mins=Math.max(1,Math.round(n/5/20));
     h+='<h4>'+T("preview")+'</h4><p class="lpreview kh">'+esc(first)+'</p><p class="ldesc">'+T("textInfo",{n:kmNum(n),m:kmNum(mins)})+'</p>';
     h+='<div class="lfoot"><button class="btn primary lstart" type="button">'+T(st?"again":"start")+'</button>'+(st?'<span class="note">'+T("best")+' <span class="stars">'+stars(st)+'</span></span>':'')+'</div>';
     info.innerHTML=h;info.querySelector(".lstart").onclick=function(){open({type:"lesson",i:i})};return}
@@ -633,10 +633,18 @@ $("muteSlot").appendChild(A.sfxButton());
 // practice engine shared by lessons and the sprint
 var P={items:[],idx:0,typed:"",ok:0,bad:0,t0:0,done:false,words:0};
 function buildTrack(){var t=$("target");t.innerHTML="";P.items.forEach(function(w){var s=document.createElement("span");s.className="w";s.appendChild(document.createTextNode(w));s.appendChild(document.createElement("i"));t.appendChild(s)})}
+// where to anchor the strip: the chunk start, shifted once the typing point passes ~45% of the
+// strip width, so long phrases scroll while short ones stay put
+function caretX(c){
+  var tx=c.firstChild,x=c.offsetLeft;if(!tx||!P.typed||c!==$("target").children[P.idx])return x;
+  try{var r=document.createRange(),n=Math.min(P.typed.length,tx.length);r.setStart(tx,0);r.setEnd(tx,n);
+    var into=r.getBoundingClientRect().right-c.getBoundingClientRect().left;
+    return x+Math.max(0,into-$("target").parentNode.clientWidth*.45)}catch(e){return x}
+}
 function renderTrack(){
   var t=$("target"),ws=t.children;
   for(var i=0;i<ws.length;i++){ws[i].className="w"+(i<P.idx?" done":i===P.idx?" cur":"");if(i===P.idx)ws[i].style.setProperty("--p",(100*P.typed.length/P.items[i].length)+"%")}
-  var c=ws[Math.min(P.idx,ws.length-1)];if(c)t.style.transform="translateX("+Math.round(t.parentNode.clientWidth*.3-c.offsetLeft)+"px)";
+  var c=ws[Math.min(P.idx,ws.length-1)];if(c)t.style.transform="translateX("+Math.round(t.parentNode.clientWidth*.3-caretX(c))+"px)";
   $("echo").textContent=P.typed;$("bar").style.width=(100*P.idx/P.items.length)+"%";
 }
 function nextUnit(){
