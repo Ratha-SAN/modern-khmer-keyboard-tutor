@@ -341,6 +341,11 @@ let saveT;const save=()=>{S.sv=Date.now();clearTimeout(saveT);saveT=setTimeout((
 let cloudSave=()=>{},haptic=()=>{};
 let D=null; /* the typing lesson in progress, if any */
 const doc=()=>S.docs.find(d=>d.id===S.cur)||S.docs[0];
+/* every start opens on a blank page; earlier pages stay in the Pages list. Not saved until something is typed,
+   so an untouched blank page never outranks a newer copy in Telegram's cloud. */
+function freshPage(){const c=doc();if(c&&c.text){const n={id:uid(),text:'',t:Date.now()};S.docs.push(n);S.cur=n.id}
+  S.docs=S.docs.filter(d=>d.text||d.id===S.cur)}
+freshPage();
 const INKS={black:'#26211d',blue:'#1f3a6e',red:'#8e2420',green:'#23523a',sepia:'#5a3d22'};
 const PAPERS={ivory:['#77736c','#f4eedd','#d8d2c3'],grey:['#6c6d70','#e7e7e3','#c9c9c6'],kraft:['#7a6a52','#eedbb6','#cfbb96']};
 const KHF='"Noto Serif Khmer Local","Khmer MN","Khmer Sangam MN","Leelawadee UI","Khmer UI","Khmer OS"';
@@ -993,6 +998,7 @@ function tgBoot(){
       if((j.sv||0)<=(S.sv||0)){if((S.sv||0)>(j.sv||0))cloudSave();return}
       if((S.sv||0)!==bootSv){cloudSave();return} /* typed here meanwhile: this device wins */
       S=Object.assign(defaults(),j);
+      freshPage();
       try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}
       applyLook();applyOsk();renderTools();buildKb();
       ta.value=doc().text;ta.setSelectionRange(ta.value.length,ta.value.length);lastN=count();autoShift();layout();
