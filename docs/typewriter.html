@@ -285,7 +285,8 @@ let S=defaults();
 try{const j=JSON.parse(localStorage.getItem(LS));if(j&&Array.isArray(j.docs)&&j.docs.length){if(j.faceV!==3){j.face='type';j.faceV=3}S=Object.assign(S,j)}}catch(e){}
 const LIGHTS={spot:'Spotlight',flash:'Flashlight',beam:'Projector beam',candle:'Candle',room:'Room light',off:'Lights off'};
 if(!LIGHTS[S.light])S.light=S.lamp===false?'room':'spot';
-let saveT;const save=()=>{clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}},300)};
+let saveT;const save=()=>{S.sv=Date.now();clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}cloudSave()},300)};
+let cloudSave=()=>{},haptic=()=>{};
 const doc=()=>S.docs.find(d=>d.id===S.cur)||S.docs[0];
 const INKS={black:'#26211d',blue:'#1f3a6e',red:'#8e2420',green:'#23523a',sepia:'#5a3d22'};
 const PAPERS={ivory:['#77736c','#f4eedd','#d8d2c3'],grey:['#6c6d70','#e7e7e3','#c9c9c6'],kraft:['#7a6a52','#eedbb6','#cfbb96']};
@@ -437,7 +438,7 @@ function press(b){
 }
 kb.addEventListener('pointerdown',e=>{
   const s=e.target.closest('.sg');if(s){e.preventDefault();if(s.dataset.w)pick(s.dataset.w);focusTa();return}
-  const b=e.target.closest('.k');if(!b)return;e.preventDefault();b.classList.add('down');press(b);focusTa();
+  const b=e.target.closest('.k');if(!b)return;e.preventDefault();b.classList.add('down');press(b);haptic(b.classList.contains('space')||b.dataset.k==='enter'?'medium':'light');focusTa();
 });
 kb.addEventListener('mousedown',e=>e.preventDefault());
 const release=()=>{clearTimeout(rep);kb.querySelectorAll('.k.down').forEach(k=>k.classList.remove('down'))};
@@ -650,6 +651,65 @@ fit();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(layout);
 /* fetch the Khmer faces up front so the first Khmer letter never waits on a download */
 if(document.fonts&&document.fonts.load)['"Kantumruy Pro"','Battambang','"Noto Serif Khmer"','"Noto Sans Khmer"'].forEach(f=>{try{document.fonts.load('18px '+f,'កខ្ញុំ').then(layout,()=>{})}catch(e){}});
 if(!coarse)focusTa();
+
+/* ---------- Telegram Mini App ----------
+   Telegram opens the page with #tgWebAppData=… in the URL. Only then is Telegram's script loaded:
+   it matches the header to the room, adds key haptics and a Back button for the sheets,
+   and keeps the pages in Telegram's CloudStorage so they follow the account to every device. */
+function tgBoot(){
+  const tg=window.Telegram&&window.Telegram.WebApp;if(!tg||!tg.initData)return;
+  const at=v=>tg.isVersionAtLeast&&tg.isVersionAtLeast(v);
+  document.documentElement.classList.add('tg');
+  tg.ready();tg.expand();
+  try{if(at('6.1')){tg.setHeaderColor('#0b0a09');tg.setBackgroundColor('#0b0a09')}if(at('7.10'))tg.setBottomBarColor('#0b0a09');
+    if(at('7.7'))tg.disableVerticalSwipes()}catch(e){}
+  tg.onEvent('viewportChanged',fit);
+  if(at('6.1'))haptic=s=>{try{tg.HapticFeedback.impactOccurred(s)}catch(e){}};
+  /* Back button closes whichever sheet is open */
+  if(at('6.1')){
+    const sync=()=>{(!pages.hidden||!panel.hidden)?tg.BackButton.show():tg.BackButton.hide()};
+    tg.BackButton.onClick(()=>{if(!panel.hidden)closePanel();else if(!pages.hidden){pages.hidden=true;focusTa()}sync()});
+    new MutationObserver(sync).observe(pages,{attributes:true,attributeFilter:['hidden']});
+    new MutationObserver(sync).observe(panel,{attributes:true,attributeFilter:['hidden']});
+  }
+  /* CloudStorage: values hold up to 4096 characters, so the state is split into chunks under a
+     generation prefix ("a" or "b"); the head key is written last, so a half-finished save is never read */
+  if(!at('6.9')||!tg.CloudStorage)return;
+  const CS=tg.CloudStorage,N=4000;
+  let gen='a',busy=false,again=false;
+  const write=()=>{
+    if(busy){again=true;return}busy=true;again=false;
+    const s=JSON.stringify(S),g=gen==='a'?'b':'a',parts=[];for(let i=0;i<s.length;i+=N)parts.push(s.slice(i,i+N));
+    let left=parts.length,failed=false;
+    const done=()=>{busy=false;if(again)write()};
+    parts.forEach((p,i)=>CS.setItem('lp'+g+i,p,err=>{if(err)failed=true;if(--left)return;
+      if(failed){done();return}
+      CS.setItem('lphead',g+':'+parts.length,err2=>{if(!err2){const old=gen;gen=g;
+        CS.getKeys((e3,keys)=>{if(!e3&&keys){const stale=keys.filter(k=>k.startsWith('lp'+old)||(k.startsWith('lp'+g)&&+k.slice(3)>=parts.length));if(stale.length)CS.removeItems(stale)}})}
+        done()})}));
+  };
+  let cloudT;cloudSave=()=>{clearTimeout(cloudT);cloudT=setTimeout(write,1500)};
+  const bootSv=S.sv||0;
+  CS.getItem('lphead',(err,head)=>{
+    if(err||!head){cloudSave();return}
+    const [g,n]=head.split(':');gen=g;const keys=[];for(let i=0;i<+n;i++)keys.push('lp'+g+i);
+    CS.getItems(keys,(e2,vals)=>{
+      if(e2||!vals)return;
+      let j;try{j=JSON.parse(keys.map(k=>vals[k]||'').join(''))}catch(e){return}
+      if(!j||!Array.isArray(j.docs)||!j.docs.length)return;
+      if((j.sv||0)<=(S.sv||0)){if((S.sv||0)>(j.sv||0))cloudSave();return}
+      if((S.sv||0)!==bootSv){cloudSave();return} /* typed here meanwhile: this device wins */
+      S=Object.assign(defaults(),j);
+      try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}
+      applyLook();applyOsk();renderTools();buildKb();
+      ta.value=doc().text;ta.setSelectionRange(ta.value.length,ta.value.length);lastN=count();autoShift();layout();
+      toast('Pages synced from Telegram');
+    });
+  });
+}
+if(/tgWebApp/.test(location.hash+location.search)){
+  const sc=document.createElement('script');sc.src='https://telegram.org/js/telegram-web-app.js';sc.onload=tgBoot;document.head.appendChild(sc);
+}
 })();
 </script>
 </body>
