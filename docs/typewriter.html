@@ -112,12 +112,18 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 .rail{position:relative;height:16px;flex:none;z-index:2}
 .rail::before{content:"";position:absolute;left:-4px;right:-4px;top:4px;height:7px;border-radius:4px;background:linear-gradient(#3b3936,var(--rail))}
 .rail::after{content:"";position:absolute;right:6px;top:1px;width:12px;height:13px;border-radius:3px;background:var(--rail)}
-.head{position:absolute;top:-3px;left:var(--hx);width:96px;height:22px;margin-left:-30px;border-radius:12px;background:var(--head);
-  box-shadow:0 2px 5px rgba(0,0,0,.45),inset 0 -2px 0 rgba(0,0,0,.12);transition:left .09s ease-out}
+.head{position:absolute;top:-3px;left:var(--hx);width:96px;height:22px;margin-left:-30px;border-radius:12px;
+  background:linear-gradient(#f4eedd,var(--head) 45%,#cfc7b2);
+  box-shadow:0 2px 5px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.7),inset 0 -2px 0 rgba(0,0,0,.16);transition:left .09s ease-out}
+.head::after{content:"";position:absolute;right:9px;top:8px;width:6px;height:6px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff,#a9a294 60%,#6f6a5f);box-shadow:inset 0 0 0 .5px rgba(0,0,0,.35)}
+/* the printing point: a ribbon held between two guide posts, and a steel typebar that swings up to strike */
+.head svg{position:absolute;display:block;overflow:visible;pointer-events:none}
+.head .guide{left:12px;bottom:calc(100% - 5px);width:36px;height:22px;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.45))}
+.head .bar{left:21px;bottom:calc(100% - 7px);width:18px;height:44px;transform-origin:50% 100%;
+  transform:perspective(70px) rotateX(62deg);filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
 .head i{position:absolute;top:8px;width:6px;height:6px;border-radius:50%;background:var(--accent)}
 .head i:nth-child(1){left:10px}.head i:nth-child(2){left:19px;opacity:.75}
-.head b{position:absolute;left:28px;bottom:calc(100% - 4px);width:4px;height:13px;border-radius:2px 2px 0 0;background:linear-gradient(90deg,#4a4642,#211f1d)}
-.head b::before{content:"";position:absolute;left:-6px;top:-3px;width:16px;height:6px;border-radius:2px;background:#8e2420;box-shadow:0 1px 2px rgba(0,0,0,.5)}
 [data-light=room] .head i,[data-light=off] .head i{background:#8a8477}
 
 /* tool strip */
@@ -200,6 +206,11 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 /* ---------- typing lessons ---------- */
 .device.drill textarea.txt{caret-color:transparent}
+/* a lesson is typed on the same line as free writing; the lines still to come stay below the edge of the paper */
+.drill .scroll{-webkit-mask-image:linear-gradient(to bottom,#000 calc(var(--anchor) + 4px),transparent calc(var(--anchor) + 5px));
+  mask-image:linear-gradient(to bottom,#000 calc(var(--anchor) + 4px),transparent calc(var(--anchor) + 5px))}
+.drill.focus .scroll{-webkit-mask-image:linear-gradient(to bottom,transparent 0,rgba(0,0,0,.14) 60px,rgba(0,0,0,.14) calc(var(--anchor) - 5.2em),#000 calc(var(--anchor) - 2.4em),#000 calc(var(--anchor) + 4px),transparent calc(var(--anchor) + 5px));
+  mask-image:linear-gradient(to bottom,transparent 0,rgba(0,0,0,.14) 60px,rgba(0,0,0,.14) calc(var(--anchor) - 5.2em),#000 calc(var(--anchor) - 2.4em),#000 calc(var(--anchor) + 4px),transparent calc(var(--anchor) + 5px))}
 .gh{color:color-mix(in srgb,var(--ink) 34%,transparent)}
 .cu{color:color-mix(in srgb,var(--ink) var(--c,34%),transparent);box-shadow:0 2px 0 #8e2420}
 .cu.err{color:#c0281e;box-shadow:0 2px 0 #c0281e}
@@ -279,7 +290,23 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
     <div class="toast" id="toast" role="status"></div>
   </div>
 
-  <div class="rail"><div class="head"><i></i><i></i><b></b></div></div>
+  <div class="rail"><div class="head"><i></i><i></i>
+    <svg class="guide" viewBox="0 0 36 22" aria-hidden="true">
+      <defs><linearGradient id="stl" x1="0" x2="1"><stop offset="0" stop-color="#6d6a66"/><stop offset=".35" stop-color="#e9e6e0"/><stop offset=".6" stop-color="#a5a19b"/><stop offset="1" stop-color="#4b4845"/></linearGradient></defs>
+      <path d="M8 22 13 15h10l5 7" fill="none" stroke="url(#stl)" stroke-width="1.6" stroke-linejoin="round"/>
+      <rect x="4.5" y="5" width="27" height="4.2" fill="#8e2420"/><rect x="4.5" y="9.2" width="27" height="4.2" fill="#1b1917"/>
+      <rect x="4.5" y="5" width="27" height="1" fill="rgba(255,255,255,.18)"/>
+      <rect x="2" y="3" width="3" height="19" rx="1" fill="url(#stl)"/><rect x="31" y="3" width="3" height="19" rx="1" fill="url(#stl)"/>
+      <circle cx="3.5" cy="3" r="2.1" fill="url(#stl)"/><circle cx="32.5" cy="3" r="2.1" fill="url(#stl)"/>
+    </svg>
+    <svg class="bar" viewBox="0 0 18 44" aria-hidden="true">
+      <path d="M7.4 44 8 14h2l.6 30z" fill="url(#stl)"/>
+      <rect x="2.5" y="1" width="13" height="14" rx="1.6" fill="url(#stl)"/>
+      <rect x="4.6" y="3" width="8.8" height="10" rx=".8" fill="#2a2826"/>
+      <path d="M6.6 11 9 4.6 11.4 11M7.5 9h3" fill="none" stroke="#8d8983" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="2.5" y="1" width="13" height="1.2" rx=".6" fill="rgba(255,255,255,.55)"/>
+    </svg>
+  </div></div>
 
   <div class="chassis">
     <div class="panel" id="panel" hidden></div>
@@ -392,8 +419,9 @@ let anchor=300,bellArmed=true,lh=28,caretX=0,pointing=false;
 const still=matchMedia('(prefers-reduced-motion:reduce)').matches;
 function stamp(kind){
   if(still)return;
-  const slug=device.querySelector('.head b');
-  slug.animate([{transform:'translateY(0)'},{transform:'translateY(-11px)',offset:.35},{transform:'translateY(0)'}],{duration:120,easing:'ease-out'});
+  const R='perspective(70px) rotateX(62deg)',U='perspective(70px) rotateX(0deg)';
+  device.querySelector('.head .bar').animate([{transform:R},{transform:U,offset:.38},{transform:U,offset:.5},{transform:R}],{duration:150,easing:'ease-out'});
+  device.querySelector('.head .guide').animate([{transform:'translateY(0)'},{transform:'translateY(-5px)',offset:.38},{transform:'translateY(0)'}],{duration:150,easing:'ease-out'});
   if(kind!=='key')return;
   const s=$('strike'),cw=S.size*.62;
   s.style.left=Math.max(0,caretX-cw)+'px';s.style.top=(anchor+3-lh*.9)+'px';
@@ -405,7 +433,7 @@ paper.addEventListener('pointermove',e=>{
 });
 function layout(){
   const h=scroll.clientHeight;if(!h)return;
-  anchor=D?Math.round(h*.44):h-22;
+  anchor=h-22;
   lh=parseFloat(getComputedStyle(ta).lineHeight)||28;
   sheet.style.paddingTop=Math.max(70,anchor-lh)+'px';
   sheet.style.paddingBottom=(h-anchor+2)+'px';
