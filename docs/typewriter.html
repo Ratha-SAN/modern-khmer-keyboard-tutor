@@ -168,7 +168,16 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 .k.down,.k:active{background:var(--key-down);color:#1d1b19;transform:translateY(1px);box-shadow:none}
 .k.lit{background:var(--head);color:#1d1b19}
 .kb.shift .k.l{text-transform:uppercase}
-.kb.km .k:not(.fn){font-family:"Noto Sans Khmer","Khmer Sangam MN","Khmer OS",var(--ui);font-size:clamp(16px,2.3vh,20px)}
+.kb.km .k,.kb.km .sg,.kpop.km{font-family:"Noto Serif Khmer","Noto Serif Khmer Local","Khmer MN","Khmer OS",var(--ui)}
+.kb.km .k:not(.fn){font-size:clamp(16px,2.3vh,20px)}
+/* the pressed key rises in a bubble above the finger, as on a phone keyboard */
+.kpop{position:absolute;z-index:8;pointer-events:none;color:#1d1b19;font:400 30px var(--ui);filter:drop-shadow(0 5px 9px rgba(0,0,0,.5));
+  opacity:0;transform:translateY(8px) scale(.86);transform-origin:50% 100%;transition:opacity .07s,transform .07s}
+.kpop.on{opacity:1;transform:none}
+.kpop b{display:grid;place-items:center;height:var(--h);border-radius:11px 11px 0 0;background:var(--key-down);font-weight:400;line-height:1}
+.kpop i{display:block;height:10px;background:var(--key-down);clip-path:polygon(0 0,100% 0,calc(100% - var(--r)) 100%,var(--l) 100%)}
+.kpop.km{font-size:28px}
+@media (prefers-reduced-motion:reduce){.kpop{transition:none}}
 .kb.km .krow{gap:clamp(3px,.8vw,6px)}
 .k.space{font-size:14px;color:rgba(255,255,255,.85)}
 .kb.caps .k[data-k=shift]{background:var(--head);color:#1d1b19}
@@ -278,6 +287,7 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
   </div>
 
   <div class="kb" id="kb"></div>
+  <div class="kpop" id="kpop" aria-hidden="true"><b></b><i></i></div>
 
   <div class="pages" id="pages" hidden>
     <header>
@@ -505,10 +515,23 @@ function press(b){
 }
 kb.addEventListener('pointerdown',e=>{
   const s=e.target.closest('.sg');if(s){e.preventDefault();if(s.dataset.w)pick(s.dataset.w);focusTa();return}
-  const b=e.target.closest('.k');if(!b)return;e.preventDefault();b.classList.add('down');press(b);haptic(b.classList.contains('space')||b.dataset.k==='enter'?'medium':'light');focusTa();
+  const b=e.target.closest('.k');if(!b)return;e.preventDefault();b.classList.add('down');showPop(b);press(b);haptic(b.classList.contains('space')||b.dataset.k==='enter'?'medium':'light');focusTa();
 });
 kb.addEventListener('mousedown',e=>e.preventDefault());
-const release=()=>{clearTimeout(rep);kb.querySelectorAll('.k.down').forEach(k=>k.classList.remove('down'))};
+const kpop=$('kpop');let popT=0,popH;
+function showPop(b){
+  if(b.classList.contains('fn')||b.classList.contains('space'))return;
+  const r=b.getBoundingClientRect(),d=device.getBoundingClientRect(),ox=d.left+device.clientLeft,oy=d.top+device.clientTop;
+  const w=Math.max(r.width+20,48),hh=Math.round(r.height*1.12);
+  const left=Math.max(3,Math.min(r.left-ox-(w-r.width)/2,device.clientWidth-w-3));
+  kpop.style.cssText='left:'+left+'px;top:'+(r.top-oy-hh-9)+'px;width:'+w+'px;--h:'+hh+'px;--l:'+(r.left-ox-left)+'px;--r:'+(left+w-(r.right-ox))+'px';
+  const up=kb.classList.contains('shift')&&b.classList.contains('l');
+  kpop.firstChild.innerHTML=up?b.textContent.toUpperCase():b.innerHTML;
+  kpop.classList.toggle('km',kb.classList.contains('km'));
+  clearTimeout(popH);kpop.classList.add('on');popT=Date.now();
+}
+const hidePop=()=>{clearTimeout(popH);popH=setTimeout(()=>kpop.classList.remove('on'),Math.max(0,120-(Date.now()-popT)))};
+const release=()=>{hidePop();clearTimeout(rep);kb.querySelectorAll('.k.down').forEach(k=>k.classList.remove('down'))};
 addEventListener('pointerup',release);addEventListener('pointercancel',release);
 
 function setOsk(on){S.osk=on;save();applyOsk();const had=document.activeElement===ta;if(had){ta.blur()}setTimeout(()=>{focusTa();layout()},60);renderTools()}
