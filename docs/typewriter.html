@@ -412,14 +412,29 @@ function play(kind){
 /* ---------- paper follow ---------- */
 let anchor=300,bellArmed=true,lh=28,caretX=0,pointing=false;
 const still=matchMedia('(prefers-reduced-motion:reduce)').matches;
+/* a typebar strike: the bar whips up, gaining speed, hits the paper and flattens a touch, bounces off,
+   drops back under its own weight and settles with one small rebound. Ink, paper and carriage react at the hit. */
+let barAnim,HIT=52;
 function stamp(kind){
   if(still)return;
-  const R='translateY(1.25em)',U='translateY(0)';
-  device.querySelector('.head .bar').animate([{transform:R},{transform:U,offset:.38},{transform:U,offset:.5},{transform:R}],{duration:150,easing:'ease-out'});
-  if(kind!=='key')return;
+  const head=device.querySelector('.head');
+  if(kind!=='key'){ /* space and delete move the carriage but strike nothing */
+    head.animate([{transform:'translateY(0)'},{transform:'translateY(1.5px)',offset:.4},{transform:'translateY(0)'}],{duration:110,easing:'ease-out'});return}
+  const bar=head.querySelector('.bar'),R='translateY(1.25em) scale(1,1)';
+  if(barAnim)barAnim.cancel();
+  barAnim=bar.animate([
+    {transform:R,easing:'cubic-bezier(.55,0,1,.55)'},
+    {transform:'translateY(-.05em) scale(1.07,.93)',offset:.27,easing:'cubic-bezier(0,0,.3,1)'},
+    {transform:'translateY(.16em) scale(1,1)',offset:.4,easing:'cubic-bezier(.5,0,1,.8)'},
+    {transform:'translateY(1.36em) scale(1,1)',offset:.74,easing:'ease-out'},
+    {transform:'translateY(1.19em) scale(1,1)',offset:.88,easing:'ease-in-out'},
+    {transform:R}],{duration:195});
+  /* at the moment of impact */
   const s=$('strike'),cw=S.size*.62;
   s.style.left=Math.max(0,caretX-cw)+'px';s.style.top=(anchor+3-lh*.9)+'px';
-  s.animate([{opacity:.55,transform:'scale(1.35)'},{opacity:.25,transform:'scale(1)',offset:.4},{opacity:0,transform:'scale(1)'}],{duration:190,easing:'ease-out'});
+  s.animate([{opacity:.7,transform:'scale(1.25)'},{opacity:.3,transform:'scale(1)',offset:.35},{opacity:0,transform:'scale(1)'}],{duration:170,delay:HIT,easing:'ease-out'});
+  $('show').animate([{transform:'translateY(0)'},{transform:'translateY(-1.2px)',offset:.3},{transform:'translateY(.4px)',offset:.65},{transform:'translateY(0)'}],{duration:120,delay:HIT,easing:'ease-out'});
+  head.animate([{transform:'translateY(0)'},{transform:'translateY(1.6px)',offset:.3},{transform:'translateY(0)'}],{duration:120,delay:HIT,easing:'ease-out'});
 }
 paper.addEventListener('pointermove',e=>{
   if(S.light!=='flash')return;const r=paper.getBoundingClientRect();pointing=true;
