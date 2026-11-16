@@ -58,14 +58,14 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
   var(--paper-lit) 0%,var(--paper-lit) 26%,color-mix(in srgb,var(--paper-lit) 62%,transparent) 52%,color-mix(in srgb,var(--paper-lit) 18%,transparent) 78%,transparent 100%)}
 [data-light=beam] .paper{background:color-mix(in srgb,var(--paper-dim) 70%,#000)}
 /* the beam rises from the type head and leans toward the middle of the page (--tilt), with soft edges */
-[data-light=beam] .light{background:conic-gradient(from calc(-40deg + var(--tilt,0deg)) at var(--hx) calc(var(--anchor,80%) + 34px),
-  transparent 0deg,color-mix(in srgb,var(--paper-lit) 55%,transparent) 14deg,var(--paper-lit) 28deg,var(--paper-lit) 52deg,color-mix(in srgb,var(--paper-lit) 55%,transparent) 66deg,transparent 80deg,transparent 360deg);
+[data-light=beam] .light{background:conic-gradient(from calc(-62deg + var(--tilt,0deg)) at var(--hx) calc(var(--anchor,80%) + 40px),
+  transparent 0deg,color-mix(in srgb,var(--paper-lit) 50%,transparent) 16deg,var(--paper-lit) 34deg,var(--paper-lit) 90deg,color-mix(in srgb,var(--paper-lit) 50%,transparent) 108deg,transparent 124deg,transparent 360deg);
   -webkit-mask-image:radial-gradient(circle at var(--hx) var(--anchor,80%),#000 0,#000 24%,rgba(0,0,0,.55) 56%,transparent 96%);
   mask-image:radial-gradient(circle at var(--hx) var(--anchor,80%),#000 0,#000 24%,rgba(0,0,0,.55) 56%,transparent 96%)}
 [data-light=candle] .paper{background:color-mix(in srgb,var(--paper-dim) 62%,#1a0d00)}
-/* the candle stands at the right edge of the desk, level with the lines just written */
-[data-light=candle] .light{background:radial-gradient(ellipse 128% 84% at 96% calc(var(--anchor,80%) - 5.5em),
-  color-mix(in srgb,var(--paper-lit) 78%,var(--candle)) 0%,color-mix(in srgb,var(--paper-lit) 52%,var(--candle)) 24%,color-mix(in srgb,var(--candle) 22%,transparent) 58%,transparent 88%);
+/* the candle stands behind the page, up and to the right; its glow reaches down to the line being typed */
+[data-light=candle] .light{background:radial-gradient(ellipse 120% 78% at 76% calc(var(--anchor,80%) * .46),
+  color-mix(in srgb,var(--paper-lit) 82%,var(--candle)) 0%,color-mix(in srgb,var(--paper-lit) 58%,var(--candle)) 22%,color-mix(in srgb,var(--paper-lit) 28%,var(--candle)) 48%,color-mix(in srgb,var(--candle) 20%,transparent) 72%,transparent 96%);
   animation:flicker 2.6s infinite}
 @keyframes flicker{0%,100%{opacity:.95}18%{opacity:.82}31%{opacity:1}47%{opacity:.86}60%{opacity:.97}74%{opacity:.8}88%{opacity:.93}}
 [data-light=room] .paper{background:var(--paper-flat)}
