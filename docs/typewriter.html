@@ -48,21 +48,24 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 
 /* paper */
 .paper{position:relative;flex:1;min-height:0;background:var(--paper-dim);overflow:hidden;transition:background .4s}
-.light{position:absolute;inset:0;pointer-events:none;transition:opacity .4s;
-  background:radial-gradient(ellipse 64% 60% at var(--hx) calc(var(--anchor,80%) + 10px),
-    var(--paper-lit) 0%,color-mix(in srgb,var(--paper-lit) 55%,var(--paper-dim)) 36%,var(--paper-dim) 78%)}
+.light{position:absolute;inset:0;pointer-events:none;transition:opacity .4s;font-size:var(--size,18px);
+  /* the pool of light sits just above the line being typed and drifts only part of the way with the carriage (--sx) */
+  background:radial-gradient(ellipse 82% 58% at var(--sx,50%) calc(var(--anchor,80%) - 2.6em),
+    var(--paper-lit) 0%,color-mix(in srgb,var(--paper-lit) 68%,var(--paper-dim)) 30%,color-mix(in srgb,var(--paper-lit) 26%,var(--paper-dim)) 58%,var(--paper-dim) 88%)}
 /* light modes */
-[data-light=flash] .paper{background:color-mix(in srgb,var(--paper-dim) 55%,#000)}
-[data-light=flash] .light{background:radial-gradient(circle clamp(90px,24vmin,170px) at var(--lx,50%) var(--ly,70%),
-  var(--paper-lit) 0%,var(--paper-lit) 42%,color-mix(in srgb,var(--paper-lit) 60%,var(--paper-dim)) 62%,transparent 100%)}
+[data-light=flash] .paper{background:color-mix(in srgb,var(--paper-dim) 64%,#000)}
+[data-light=flash] .light{background:radial-gradient(circle clamp(120px,34vmin,220px) at var(--lx,50%) var(--ly,70%),
+  var(--paper-lit) 0%,var(--paper-lit) 26%,color-mix(in srgb,var(--paper-lit) 62%,transparent) 52%,color-mix(in srgb,var(--paper-lit) 18%,transparent) 78%,transparent 100%)}
 [data-light=beam] .paper{background:color-mix(in srgb,var(--paper-dim) 70%,#000)}
-[data-light=beam] .light{background:conic-gradient(from -42deg at var(--hx) calc(var(--anchor,80%) + 30px),
-  transparent 0deg,var(--paper-lit) 16deg,var(--paper-lit) 68deg,transparent 84deg,transparent 360deg);
-  -webkit-mask-image:radial-gradient(circle at var(--hx) var(--anchor,80%),#000 0,#000 30%,transparent 92%);
-  mask-image:radial-gradient(circle at var(--hx) var(--anchor,80%),#000 0,#000 30%,transparent 92%)}
+/* the beam rises from the type head and leans toward the middle of the page (--tilt), with soft edges */
+[data-light=beam] .light{background:conic-gradient(from calc(-40deg + var(--tilt,0deg)) at var(--hx) calc(var(--anchor,80%) + 34px),
+  transparent 0deg,color-mix(in srgb,var(--paper-lit) 55%,transparent) 14deg,var(--paper-lit) 28deg,var(--paper-lit) 52deg,color-mix(in srgb,var(--paper-lit) 55%,transparent) 66deg,transparent 80deg,transparent 360deg);
+  -webkit-mask-image:radial-gradient(circle at var(--hx) var(--anchor,80%),#000 0,#000 24%,rgba(0,0,0,.55) 56%,transparent 96%);
+  mask-image:radial-gradient(circle at var(--hx) var(--anchor,80%),#000 0,#000 24%,rgba(0,0,0,.55) 56%,transparent 96%)}
 [data-light=candle] .paper{background:color-mix(in srgb,var(--paper-dim) 62%,#1a0d00)}
-[data-light=candle] .light{background:radial-gradient(ellipse 120% 105% at 100% 0%,
-  color-mix(in srgb,var(--paper-lit) 72%,var(--candle)) 0%,color-mix(in srgb,var(--paper-lit) 45%,var(--candle)) 30%,transparent 82%);
+/* the candle stands at the right edge of the desk, level with the lines just written */
+[data-light=candle] .light{background:radial-gradient(ellipse 128% 84% at 96% calc(var(--anchor,80%) - 5.5em),
+  color-mix(in srgb,var(--paper-lit) 78%,var(--candle)) 0%,color-mix(in srgb,var(--paper-lit) 52%,var(--candle)) 24%,color-mix(in srgb,var(--candle) 22%,transparent) 58%,transparent 88%);
   animation:flicker 2.6s infinite}
 @keyframes flicker{0%,100%{opacity:.95}18%{opacity:.82}31%{opacity:1}47%{opacity:.86}60%{opacity:.97}74%{opacity:.8}88%{opacity:.93}}
 [data-light=room] .paper{background:var(--paper-flat)}
@@ -408,7 +411,9 @@ function follow(smooth=true){
   if(Math.abs(top-scroll.scrollTop)>1)scroll.scrollTo({top,behavior:smooth?'smooth':'auto'});
   const x=Math.min(Math.max(m.left-r.left,12),r.width-12);
   device.style.setProperty('--hx',x+'px');caretX=x;
-  if(!pointing){device.style.setProperty('--lx',x+'px');device.style.setProperty('--ly',(anchor-lh*.5)+'px')}
+  const mid=r.width/2,off=(x-mid)/Math.max(1,mid);
+  device.style.setProperty('--sx',(mid+(x-mid)*.4)+'px');device.style.setProperty('--tilt',(-off*16).toFixed(1)+'deg');
+  if(!pointing){device.style.setProperty('--lx',(mid+(x-mid)*.8)+'px');device.style.setProperty('--ly',(anchor-lh*1.4)+'px')}
   const frac=(m.left-r.left)/Math.max(1,r.width);
   if(frac<.5)bellArmed=true;
   return frac;
