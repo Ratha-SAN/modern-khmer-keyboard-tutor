@@ -248,6 +248,32 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 .result .st{display:block;font-size:26px;padding:8px 0 2px}
 .result .nb{color:var(--accent);font-size:13px;min-height:18px;margin-bottom:8px}
 .result .rowset{justify-content:center;margin-top:14px}
+/* ---------- computer: a typewriter on a desk ----------
+   With a mouse and a real keyboard the page is laid out like the machine itself: a sheet of paper standing in
+   the lamplight, the carriage and tool strip beneath it, dark desk on either side. The phone keys stay hidden
+   (they can still be shown from the tool strip), and sheets and panels open as cards instead of full screens. */
+@media (min-width:900px) and (hover:hover) and (pointer:fine){
+  body{display:flex;justify-content:center;align-items:stretch}
+  .device{width:min(900px,calc(100vw - 96px));height:100%;border:0;border-radius:0;background:transparent;
+    box-shadow:none;padding-top:28px}
+  .paper{flex:1;width:min(100%,780px);margin-inline:auto;border-radius:3px 3px 0 0;box-shadow:0 -1px 0 rgba(255,255,255,.08),0 24px 80px rgba(0,0,0,.65),0 0 0 1px rgba(0,0,0,.45)}
+  .sheet{padding-inline:clamp(56px,11%,110px)}
+  .rail::before{left:-36px;right:-36px;height:8px}
+  .chassis{border-radius:0 0 22px 22px;padding:8px 18px 14px;margin-bottom:22px;box-shadow:0 18px 40px rgba(0,0,0,.55)}
+  .kb{max-width:760px;width:100%;margin:-12px auto 22px;border-radius:0 0 18px 18px;--kh:40px;padding-top:4px}
+  .kb .k{font-size:17px}
+  .panel{left:18px;right:auto;width:min(460px,calc(100% - 36px))}
+  .hb:hover,.tb:hover{background:rgba(0,0,0,.18)}
+  .k:hover:not(.down){filter:brightness(1.08)}
+  .pages{inset:28px 40px 22px;border-radius:18px;border:1px solid var(--panel-line);box-shadow:0 30px 80px rgba(0,0,0,.7)}
+  .pages .list{padding:12px 22px 26px}
+  .pg:hover{border-color:#5a5550}
+  .result .card{max-width:400px}
+  .toast{top:64px}
+}
+@media (min-width:900px) and (hover:hover) and (pointer:fine) and (max-height:700px){
+  .device{padding-top:12px}.chassis{margin-bottom:10px}.pages{inset:12px 32px 10px}
+}
 </style>
 </head>
 <body>
@@ -367,7 +393,7 @@ const IC={
 const LS='lamplight.v1';
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 function defaults(){const id=uid();return{docs:[{id,text:'',t:Date.now()}],cur:id,goal:3000,unit:'chars',sound:true,bell:true,lamp:true,focus:false,
-  noErase:false,autoCap:true,osk:true,size:18,lang:'km',face:'type',faceV:3,ink:'black',paper:'ivory',collapsed:false}}
+  noErase:false,autoCap:true,osk:coarse,size:coarse?18:20,lang:'km',face:'type',faceV:3,ink:'black',paper:'ivory',collapsed:false}}
 let S=defaults();
 try{const j=JSON.parse(localStorage.getItem(LS));if(j&&Array.isArray(j.docs)&&j.docs.length){if(j.faceV!==3){j.face='type';j.faceV=3}S=Object.assign(S,j)}}catch(e){}
 const LIGHTS={spot:'Spotlight',flash:'Flashlight',beam:'Projector beam',candle:'Candle',room:'Room light',off:'Lights off'};
@@ -376,6 +402,8 @@ let saveT;const save=()=>{S.sv=Date.now();clearTimeout(saveT);saveT=setTimeout((
 let cloudSave=()=>{},haptic=()=>{};
 let D=null; /* the typing lesson in progress, if any */
 const doc=()=>S.docs.find(d=>d.id===S.cur)||S.docs[0];
+/* a computer with a real keyboard starts without the phone keys, until someone turns them on themselves */
+if(!coarse&&!S.oskChosen)S.osk=false;
 /* every start opens on a blank page; earlier pages stay in the Pages list. Not saved until something is typed,
    so an untouched blank page never outranks a newer copy in Telegram's cloud. */
 function freshPage(){const c=doc();if(c&&c.text){const n={id:uid(),text:'',t:Date.now()};S.docs.push(n);S.cur=n.id}
@@ -571,7 +599,7 @@ const hidePop=()=>{clearTimeout(popH);popH=setTimeout(()=>kpop.classList.remove(
 const release=()=>{hidePop();clearTimeout(rep);kb.querySelectorAll('.k.down').forEach(k=>k.classList.remove('down'))};
 addEventListener('pointerup',release);addEventListener('pointercancel',release);
 
-function setOsk(on){S.osk=on;save();applyOsk();const had=document.activeElement===ta;if(had){ta.blur()}setTimeout(()=>{focusTa();layout()},60);renderTools()}
+function setOsk(on){S.osk=on;S.oskChosen=true;save();applyOsk();const had=document.activeElement===ta;if(had){ta.blur()}setTimeout(()=>{focusTa();layout()},60);renderTools()}
 function applyOsk(){kb.hidden=!S.osk;ta.inputMode=(S.osk&&coarse)?'none':'text'}
 
 /* dictation (works where the browser allows the microphone) */
@@ -697,7 +725,7 @@ function showPanel(id){
     <div class="field"><label for="sSize">Type size</label><input type="range" id="sSize" min="14" max="28" step="1" value="${S.size}"></div>
     <div class="field"><label for="sFace">Typeface</label><select id="sFace"><option value="type">Typewriter</option><option value="type2">Typewriter, heavy ribbon</option><option value="serif">Serif</option><option value="sans">Sans serif</option></select></div>
     <div class="field"><label for="sGoal">Goal</label><input type="number" id="sGoal" min="1" step="50" value="${S.goal}"><select id="sUnit" aria-label="Goal unit"><option value="chars">characters</option><option value="words">words</option></select></div>
-    <div class="field"><label for="sOsk">On-screen keys<small>Turn off to use your device keyboard</small></label><input type="checkbox" id="sOsk"${S.osk?' checked':''}></div>
+    <div class="field"><label for="sOsk">On-screen keys<small>${coarse?'Turn off to use your device keyboard':'A phone-style keyboard under the page'}</small></label><input type="checkbox" id="sOsk"${S.osk?' checked':''}></div>
     <div class="field"><label for="sErase">No erasing<small>Like real paper: delete is disabled</small></label><input type="checkbox" id="sErase"${S.noErase?' checked':''}></div>
     <div class="field"><label for="sCap">Capitalize new sentences<small>On-screen keys only</small></label><input type="checkbox" id="sCap"${S.autoCap?' checked':''}></div>
     <div class="field"><label for="sPlat">Computer keyboard<small>Khmer key map for a physical keyboard, shared with the tutor</small></label><select id="sPlat"><option value="windows">Windows NiDA</option><option value="mac">Mac NiDA</option></select></div>`;
@@ -720,7 +748,7 @@ panel.addEventListener('input',e=>{
   else if(t.id==='sFace'){S.face=t.value;applyLook();layout()}
   else if(t.id==='sGoal'){const g=Math.floor(+t.value);if(g>0){S.goal=g;lastN=count()}}
   else if(t.id==='sUnit'){S.unit=t.value;lastN=count()}
-  else if(t.id==='sOsk'){S.osk=t.checked;applyOsk();renderTools();openPanel='set';layout()}
+  else if(t.id==='sOsk'){S.osk=t.checked;S.oskChosen=true;applyOsk();renderTools();openPanel='set';layout()}
   else if(t.id==='sErase'){S.noErase=t.checked}
   else if(t.id==='sPlat'){plat=t.value;try{localStorage.setItem('nidaPlat',plat)}catch(e){}
     const m=window.NIDA&&window.NIDA[plat];if(m){for(const k in KMP)delete KMP[k];Object.assign(KMP,m)}}
