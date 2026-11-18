@@ -116,12 +116,13 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 .head::after{content:"";position:absolute;right:9px;top:8px;width:6px;height:6px;border-radius:50%;
   background:radial-gradient(circle at 35% 30%,#fff,#a9a294 60%,#6f6a5f);box-shadow:inset 0 0 0 .5px rgba(0,0,0,.35)}
 /* the type head: one steel bar with a letter head, which swings up to strike */
-/* the bar pivots at its foot, deep in the basket under the carriage. At rest the letter head sits just below
-   the line being typed, leaning a little; on a key it sweeps up through an arc onto the line */
-.head .slot{position:absolute;left:30px;bottom:9px;width:1.8em;height:96px;margin-left:-.9em;clip-path:inset(-300px -300px 0 -300px);pointer-events:none;font-size:var(--size,18px)}
+/* the bar pivots at its foot, in the basket in front of the paper. At rest it lies tipped back towards the typist,
+   so the letter head sits just below the line and a little closer; on a key it swings straight up onto the line */
+.head .slot{position:absolute;left:30px;bottom:9px;width:1.8em;height:96px;margin-left:-.9em;clip-path:inset(-300px -300px 0 -300px);pointer-events:none;font-size:var(--size,18px);
+  perspective:340px;perspective-origin:50% -40px}
 .head .slot::after{content:"";position:absolute;left:50%;bottom:0;width:10px;height:3px;margin-left:-5px;border-radius:2px;background:#2b2825}
 .head .bar{position:absolute;left:50%;bottom:calc(29px + .2em);width:.82em;height:1.25em;margin-left:-.41em;
-  transform-origin:50% calc(100% + 70px);transform:var(--rest,translateY(1.25em) rotate(-8deg));filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
+  transform-origin:50% calc(100% + 70px);transform:rotateX(-38deg);filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
 .head .bar svg{display:block;width:100%;height:100%}
 .head .bar::after{content:"";position:absolute;left:50%;top:calc(100% - 1px);width:3px;height:70px;margin-left:-1.5px;
   background:linear-gradient(90deg,#5f5c58,#eeebe5 35%,#aba7a1 60%,#474441)}
@@ -440,37 +441,24 @@ function play(kind){
 /* ---------- paper follow ---------- */
 let anchor=300,bellArmed=true,lh=28,caretX=0,pointing=false;
 const still=matchMedia('(prefers-reduced-motion:reduce)').matches;
-/* a typebar strike: every key has its own bar in a fan-shaped basket below the carriage, pivoting at its foot.
-   The bar for the key swings up through an arc, gaining speed, meets the paper upright at the print point,
-   flattens a touch, bounces off and falls back along the same arc into its slot. Keys on the left of the
-   keyboard sweep in from the left, keys on the right from the right. Ink, paper and carriage react at the hit. */
-let barAnim,HIT=70,restA=-8;
-function fanAngle(){
-  const ch=ta.value[ta.selectionStart-1]||'';
-  const k=ch&&kb.querySelector(`.k[data-k="${CSS.escape(ch)}"]`);
-  let f;
-  if(k&&k.offsetWidth){const r=k.getBoundingClientRect(),q=kb.getBoundingClientRect();f=((r.left+r.width/2)-q.left)/q.width*2-1}
-  else{const c=ch.codePointAt(0)||0;f=((c*37)%200)/100-1}
-  f=Math.max(-1,Math.min(1,f));
-  return (f<0?-1:1)*(16+Math.abs(f)*38); /* 16° near the middle of the fan, 54° at the ends */
-}
+/* a typebar strike, as the typist sees it: the bar swings on its pivot straight up and away, out of the basket
+   and onto the paper at the print point. It gains speed as it rises, presses into the paper, bounces off, falls
+   back past its rest under its own weight and settles with one small rebound. Ink, paper and carriage react at the hit. */
+let barAnim,HIT=60;
 function stamp(kind){
   if(still)return;
   const head=device.querySelector('.head');
   if(kind!=='key'){ /* space and delete move the carriage but strike nothing */
     head.animate([{transform:'translateY(0)'},{transform:'translateY(1.5px)',offset:.4},{transform:'translateY(0)'}],{duration:110,easing:'ease-out'});return}
-  const bar=head.querySelector('.bar'),a=fanAngle(),T=(y,r,sx=1,sy=1)=>`translateY(${y}em) rotate(${r}deg) scale(${sx},${sy})`;
-  const from=T(1.25,restA),rest=T(1.25,a*.3);
+  const bar=head.querySelector('.bar'),X=d=>`rotateX(${d}deg)`;
   if(barAnim)barAnim.cancel();
   barAnim=bar.animate([
-    {transform:from,easing:'ease-in'},
-    {transform:T(.55,a),offset:.07,easing:'cubic-bezier(.6,0,1,.7)'},     /* down in the basket, on its own side */
-    {transform:T(-.05,0,1.07,.93),offset:.28,easing:'cubic-bezier(0,0,.3,1)'}, /* the sweep ends upright on the paper */
-    {transform:T(.12,a*.16),offset:.38,easing:'cubic-bezier(.5,0,1,.8)'},    /* bounces off */
-    {transform:T(.6,a*1.06),offset:.7,easing:'ease-out'},                    /* falls back along the arc */
-    {transform:T(.5,a*.94),offset:.8,easing:'ease-in-out'},                  /* one small rebound */
-    {transform:rest,easing:'ease-in-out'}],{duration:250,fill:'forwards'});
-  restA=a*.3;bar.style.setProperty('--rest',rest);
+    {transform:X(-38),easing:'cubic-bezier(.55,0,1,.6)'},
+    {transform:X(3),offset:.27,easing:'cubic-bezier(0,0,.3,1)'},    /* hits and presses into the paper */
+    {transform:X(-9),offset:.38,easing:'cubic-bezier(.5,0,1,.8)'},  /* bounces off */
+    {transform:X(-44),offset:.72,easing:'ease-out'},                /* falls back a little past its rest */
+    {transform:X(-34),offset:.86,easing:'ease-in-out'},             /* one small rebound */
+    {transform:X(-38)}],{duration:220});
   /* at the moment of impact */
   const s=$('strike'),cw=S.size*.62;
   s.style.left=Math.max(0,caretX-cw)+'px';s.style.top=(anchor+3-lh*.9)+'px';
