@@ -150,14 +150,15 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 .fan svg{position:absolute;overflow:visible}
 .tbar{position:absolute;left:0;top:0;width:0;height:0}
 .arm{position:absolute;top:0;transform-style:preserve-3d;transform-origin:50% var(--pv)}
-.arm::before{content:"";position:absolute;left:50%;top:var(--pv);bottom:calc(var(--sh) - 2px);width:2px;margin-left:-1px;
+.arm::before{content:"";position:absolute;left:50%;top:var(--pv);bottom:calc(var(--sh) - 2px);width:1.5px;margin-left:-.75px;
   background:linear-gradient(90deg,#55524e,#e9e5dd 45%,#7d7973)}
-.slug{position:absolute;left:0;right:0;bottom:0;height:var(--sh);border-radius:3px;display:grid;place-items:center;transform:rotate(var(--up));
-  background:linear-gradient(#f3efe6,#cfc9bd);box-shadow:inset 0 0 0 1px #6f6a62,0 1px 2px rgba(0,0,0,.55)}
-.slug b{font:600 var(--lf)/1 "Noto Sans Khmer","Noto Sans",var(--ui);color:#24201c;
+.slug{position:absolute;left:0;right:0;bottom:0;height:var(--sh);border-radius:2px;display:grid;place-items:center;transform:rotateX(0deg) rotate(var(--up));
+  /* polished chrome: bright and dark bands across the face, a fine dark edge and a lit top lip */
+  background:linear-gradient(160deg,#fdfdfd 0%,#c4c8cd 28%,#f6f7f8 46%,#9a9fa5 68%,#dfe2e6 86%,#b3b8be 100%);
+  box-shadow:inset 0 0 0 1px #50555b,inset 0 1px 0 rgba(255,255,255,.95),0 1px 2px rgba(0,0,0,.6)}
+.slug b{font:700 var(--lf)/1 "Noto Sans Khmer","Noto Sans",var(--ui);color:#1c1f23;text-shadow:0 1px 0 rgba(255,255,255,.55);
   backface-visibility:hidden;-webkit-backface-visibility:hidden;white-space:nowrap}
 .tbar.hot{z-index:5}
-.tbar.hot .slug{background:linear-gradient(#fff6dc,#e7cf8f)}
 
 
 /* tool strip */
@@ -511,17 +512,22 @@ function buildBars(){
   const fan=$('fan'),rail=fan&&fan.parentElement;if(!rail)return;
   const W=rail.clientWidth;if(!W||Math.abs(W-fanW)<2&&fan.childElementCount)return;fanW=W;
   const big=W>=700,a=Math.min(W/2-16,big?330:300),b=Math.round(Math.max(104,Math.min(a*.62,190))),
-    sw=Math.round(Math.max(13,Math.min(a*.072,22))),sh=sw+2,lf=Math.round(sw*.72),py=-40,T=63*Math.PI/180,n=BARS.length;
+    py=-40,T=63*Math.PI/180,n=BARS.length;
+  /* place the heads at equal steps along the curve, so every gap is the same */
+  const smp=[],N=600;let len=0;for(let k=0;k<=N;k++){const t=-T+2*T*k/N,q=[a*Math.sin(t),b*Math.cos(t)];if(k)len+=Math.hypot(q[0]-smp[k-1][0],q[1]-smp[k-1][1]);q.push(len);smp.push(q)}
+  const at=[];for(let i=0,k=0;i<n;i++){const want=len*i/(n-1);while(k<N&&smp[k+1][2]<want)k++;at.push(smp[k])}
+  const pt=i=>at[i],gap=2*len/(n-1);
+  const sw=Math.max(8,Math.min(20,Math.floor(gap-.5))),sh=Math.round(Math.max(14,sw*1.4)),lf=Math.round(Math.min(sw*.86,sh*.66));
   fanB=b;fanSh=sh;
   let h='';const segs=[],rests=[];
   BARS.forEach((c,i)=>{
-    const t=-T+2*T*i/(n-1),x=a*Math.sin(t),y=b*Math.cos(t),L0=Math.hypot(x,y),L=L0+(i%2?sh*.95:0),ph=Math.atan2(x,y);
-    segs.push([x*.5,y*.5]);rests.push([x*(L0+sh*1.5)/L0,y*(L0+sh*1.5)/L0]);
+    const [x,y]=pt(i),L0=Math.hypot(x,y),L=L0+(i%2?sh+1:0),ph=Math.atan2(x,y);
+    segs.push([x*.5,y*.5]);rests.push([x*(L0+sh*1.05)/L0,y*(L0+sh*1.05)/L0]);
     h+=`<div class="tbar" data-c="${c}" style="transform:rotate(${(-ph).toFixed(4)}rad);perspective:${Math.round(L*1.6)}px;perspective-origin:0 ${(L/2).toFixed(1)}px">`+
-      `<div class="arm" style="left:${-sw/2}px;width:${sw}px;height:${L.toFixed(1)}px;--pv:${(L/2).toFixed(1)}px;--sh:${sh}px;--lf:${lf}px;--up:${ph.toFixed(4)}rad"><span class="slug"><b></b></span></div></div>`;
+      `<div class="arm" data-up="${ph.toFixed(4)}" style="left:${-sw/2}px;width:${sw}px;height:${L.toFixed(1)}px;--pv:${(L/2).toFixed(1)}px;--sh:${sh}px;--lf:${lf}px;--up:${ph.toFixed(4)}rad"><span class="slug"><b></b></span></div></div>`;
   });
   const path=pts=>'M'+pts.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join('L');
-  const sv=`<svg width="1" height="1"><path d="${path(rests)}" fill="none" stroke="#0b0a09" stroke-width="${sh*1.2}" stroke-linecap="round" stroke-linejoin="round" opacity=".85"/>`+
+  const sv=`<svg width="1" height="1"><path d="${path(rests)}" fill="none" stroke="#0b0a09" stroke-width="${sh*1.15}" stroke-linecap="round" stroke-linejoin="round" opacity=".85"/>`+
     `<path d="${path(segs)}" fill="none" stroke="var(--brass)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`+
     `<path d="${path(segs)}" fill="none" stroke="#3b2c12" stroke-width="1" stroke-dasharray="1 ${(2*a*T/n/2).toFixed(1)}"/></svg>`;
   fan.innerHTML=sv+h;
@@ -545,6 +551,12 @@ function whip(ch){
   if(arm._a)arm._a.cancel();e.classList.add('hot');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('hot'),210);
   /* a whip: a tiny cock back onto the rest, then faster and faster up over the segment until the paper stops it
      dead; it bounces off and the spring flings it back down onto the rest, where it settles */
+  const K=[[0,0,'ease-out'],[-6,.06,'cubic-bezier(.75,0,1,.8)'],[178,.3,'linear'],[182,.33,'cubic-bezier(.2,.7,.4,1)'],
+    [160,.42,'cubic-bezier(.4,0,.9,.6)'],[-7,.72,'cubic-bezier(.2,.6,.4,1)'],[3,.86,'ease-in-out'],[0,1]],up=arm.dataset.up+'rad',slug=arm.firstElementChild;
+  /* the arm swings over; its head turns the other way as it goes, like a parallel linkage, so it stays upright
+     and square to the paper the whole time, including at the hit */
+  if(slug._a)slug._a.cancel();
+  slug._a=slug.animate(K.map(([d,o,ea])=>({transform:`rotateX(${-d}deg) rotate(${up})`,offset:o,...(ea?{easing:ea}:{})})),{duration:210});
   arm._a=arm.animate([
     {transform:X(0),easing:'ease-out'},
     {transform:X(-6),offset:.06,easing:'cubic-bezier(.75,0,1,.8)'},
