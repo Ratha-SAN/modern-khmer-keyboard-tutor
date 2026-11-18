@@ -152,9 +152,9 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 .arm{position:absolute;top:0;transform-style:preserve-3d;transform-origin:50% var(--pv)}
 .arm::before{content:"";position:absolute;left:50%;top:var(--pv);bottom:calc(var(--sh) - 2px);width:2px;margin-left:-1px;
   background:linear-gradient(90deg,#55524e,#e9e5dd 45%,#7d7973)}
-.slug{position:absolute;left:0;right:0;bottom:0;height:var(--sh);border-radius:3px;display:grid;place-items:center;
+.slug{position:absolute;left:0;right:0;bottom:0;height:var(--sh);border-radius:3px;display:grid;place-items:center;transform:rotate(var(--up));
   background:linear-gradient(#f3efe6,#cfc9bd);box-shadow:inset 0 0 0 1px #6f6a62,0 1px 2px rgba(0,0,0,.55)}
-.slug b{font:600 var(--lf)/1 "Noto Sans Khmer","Noto Sans",var(--ui);color:#24201c;transform:rotate(var(--up));
+.slug b{font:600 var(--lf)/1 "Noto Sans Khmer","Noto Sans",var(--ui);color:#24201c;
   backface-visibility:hidden;-webkit-backface-visibility:hidden;white-space:nowrap}
 .tbar.hot{z-index:5}
 .tbar.hot .slug{background:linear-gradient(#fff6dc,#e7cf8f)}
@@ -473,7 +473,7 @@ let anchor=300,bellArmed=true,lh=28,caretX=0,pointing=false;
 const still=matchMedia('(prefers-reduced-motion:reduce)').matches;
 /* a typebar strike, as the typist sees it from above: the struck key's own bar whips up over the segment, out of
    its place in the fan, and lands face first on the print point. Ink, paper and carriage react at the hit. */
-let HIT=96,spin=0,lastIn='';
+let HIT=63,spin=0,lastIn='';
 function stamp(kind){
   if(still)return;
   const head=device.querySelector('.head');
@@ -504,7 +504,7 @@ const KROWS=[['Backquote','Digit1','Digit2','Digit3','Digit4','Digit5','Digit6',
   ['KeyA','KeyS','KeyD','KeyF','KeyG','KeyH','KeyJ','KeyK','KeyL','Semicolon','Quote'],
   ['KeyZ','KeyX','KeyC','KeyV','KeyB','KeyN','KeyM','Comma','Period','Slash']];
 const BARS=KROWS.flatMap((r,ri)=>r.map((c,i)=>({c,x:i+[0,1.5,1.8,2.3][ri]+ri*.01}))).sort((p,q)=>p.x-q.x).map(o=>o.c);
-const barEl={},mods={shift:false,alt:false};let fanW=0;
+const barEl={},mods={shift:false,alt:false};let fanW=0,fanB=0,fanSh=0;
 function barMap(){return S.lang==='km'?KMP:EN}
 function barLayer(){return mods.alt?2:(mods.shift||shift)?1:0}
 function buildBars(){
@@ -512,7 +512,7 @@ function buildBars(){
   const W=rail.clientWidth;if(!W||Math.abs(W-fanW)<2&&fan.childElementCount)return;fanW=W;
   const big=W>=700,a=Math.min(W/2-16,big?330:300),b=Math.round(Math.max(104,Math.min(a*.62,190))),
     sw=Math.round(Math.max(13,Math.min(a*.072,22))),sh=sw+2,lf=Math.round(sw*.72),py=-40,T=63*Math.PI/180,n=BARS.length;
-  rail.style.height=(b+py+sh+18)+'px';
+  fanB=b;fanSh=sh;
   let h='';const segs=[],rests=[];
   BARS.forEach((c,i)=>{
     const t=-T+2*T*i/(n-1),x=a*Math.sin(t),y=b*Math.cos(t),L0=Math.hypot(x,y),L=L0+(i%2?sh*.95:0),ph=Math.atan2(x,y);
@@ -542,7 +542,7 @@ function whip(ch){
   if(!c&&S.lang==='km')c=BARS.find(k=>EN[k].includes(ch));
   const e=c&&barEl[c];if(!e)return;
   const arm=e.firstElementChild,X=d=>`rotateX(${d}deg)`;
-  if(arm._a)arm._a.cancel();e.classList.add('hot');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('hot'),300);
+  if(arm._a)arm._a.cancel();e.classList.add('hot');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('hot'),210);
   /* a whip: a tiny cock back onto the rest, then faster and faster up over the segment until the paper stops it
      dead; it bounces off and the spring flings it back down onto the rest, where it settles */
   arm._a=arm.animate([
@@ -553,7 +553,7 @@ function whip(ch){
     {transform:X(160),offset:.42,easing:'cubic-bezier(.4,0,.9,.6)'},
     {transform:X(-7),offset:.72,easing:'cubic-bezier(.2,.6,.4,1)'},
     {transform:X(3),offset:.86,easing:'ease-in-out'},
-    {transform:X(0)}],{duration:320});
+    {transform:X(0)}],{duration:210});
 }
 addEventListener('keydown',e=>{const sh=e.shiftKey,al=e.altKey||(e.getModifierState&&e.getModifierState('AltGraph'));if(sh!==mods.shift||al!==mods.alt){mods.shift=sh;mods.alt=al;paintBars()}},true);
 addEventListener('keyup',e=>{const sh=e.shiftKey,al=e.altKey||(e.getModifierState&&e.getModifierState('AltGraph'));if(sh!==mods.shift||al!==mods.alt){mods.shift=sh;mods.alt=al;paintBars()}},true);
@@ -589,7 +589,8 @@ function follow(smooth=true){
     for(const el of [pageEl,headEl.offsetParent])if(el){el.classList.remove('step','ret');if(cls)el.classList.add(cls)}
     device.style.setProperty('--tx',tx+'px');lastTx=tx}
   const rail=headEl.offsetParent,fr=paper.getBoundingClientRect();
-  if(rail)device.style.setProperty('--py',Math.round((m.top+m.bottom)/2-rail.getBoundingClientRect().top)+'px');
+  if(rail){const py=Math.round((m.top+m.bottom)/2-rail.getBoundingClientRect().top);device.style.setProperty('--py',py+'px');
+    if(fanB){const want=Math.max(40,Math.ceil(py+fanB+fanSh*2.3+10));if(Math.abs(rail.offsetHeight-want)>1)rail.style.height=want+'px'}}
   device.style.setProperty('--rx',(rail?fr.left+fr.width/2-rail.getBoundingClientRect().left:mid)+'px');
   /* lights live on the page, so they are placed where the print point falls on it */
   device.style.setProperty('--hx',x+'px');caretX=x;
