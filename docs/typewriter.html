@@ -47,29 +47,36 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 }
 
 /* paper */
-.paper{position:relative;flex:1;min-height:0;background:var(--paper-dim);overflow:hidden;transition:background .4s}
+.paper{position:relative;flex:1;min-height:0;overflow:hidden;
+  background:radial-gradient(ellipse 70% 60% at 50% 100%,color-mix(in srgb,var(--chassis) 70%,#000),color-mix(in srgb,var(--chassis) 35%,#000) 70%)}
+/* like a real machine, the print point stays still in the middle and the page rides the carriage past it:
+   one step left for each letter, and a long slide back on a new line (--tx is set by follow) */
+.page{position:absolute;top:0;bottom:0;left:0;right:0;margin-inline:auto;background:var(--paper-dim);transition:background .4s;
+  transform:translateX(var(--tx,0px));box-shadow:0 0 0 1px rgba(0,0,0,.35),0 0 40px rgba(0,0,0,.55)}
+.page.step{transition:background .4s,transform .07s cubic-bezier(.3,.7,.4,1) .05s}
+.page.ret{transition:background .4s,transform .42s cubic-bezier(.55,0,.25,1)}
 .light{position:absolute;inset:0;pointer-events:none;transition:opacity .4s;font-size:var(--size,18px);
   /* the pool of light sits just above the line being typed and drifts only part of the way with the carriage (--sx) */
   background:radial-gradient(ellipse 82% 58% at var(--sx,50%) calc(var(--anchor,80%) - 2.6em),
     var(--paper-lit) 0%,color-mix(in srgb,var(--paper-lit) 68%,var(--paper-dim)) 30%,color-mix(in srgb,var(--paper-lit) 26%,var(--paper-dim)) 58%,var(--paper-dim) 88%)}
 /* light modes */
-[data-light=flash] .paper{background:color-mix(in srgb,var(--paper-dim) 64%,#000)}
+[data-light=flash] .page{background:color-mix(in srgb,var(--paper-dim) 64%,#000)}
 [data-light=flash] .light{background:radial-gradient(circle clamp(120px,34vmin,220px) at var(--lx,50%) var(--ly,70%),
   var(--paper-lit) 0%,var(--paper-lit) 26%,color-mix(in srgb,var(--paper-lit) 62%,transparent) 52%,color-mix(in srgb,var(--paper-lit) 18%,transparent) 78%,transparent 100%)}
-[data-light=beam] .paper{background:color-mix(in srgb,var(--paper-dim) 70%,#000)}
+[data-light=beam] .page{background:color-mix(in srgb,var(--paper-dim) 70%,#000)}
 /* the beam rises from the type head and leans toward the middle of the page (--tilt), with soft edges */
 [data-light=beam] .light{background:conic-gradient(from calc(-62deg + var(--tilt,0deg)) at var(--hx) calc(var(--anchor,80%) + 40px),
   transparent 0deg,color-mix(in srgb,var(--paper-lit) 50%,transparent) 16deg,var(--paper-lit) 34deg,var(--paper-lit) 90deg,color-mix(in srgb,var(--paper-lit) 50%,transparent) 108deg,transparent 124deg,transparent 360deg);
   -webkit-mask-image:radial-gradient(circle at var(--hx) var(--anchor,80%),#000 0,#000 24%,rgba(0,0,0,.55) 56%,transparent 96%);
   mask-image:radial-gradient(circle at var(--hx) var(--anchor,80%),#000 0,#000 24%,rgba(0,0,0,.55) 56%,transparent 96%)}
 /* candle: a steady flame, about 1900 K. Paper nearest the flame is a pale amber, deepening to orange-brown, with warm dark beyond */
-[data-light=candle] .paper{background:color-mix(in srgb,var(--paper-dim) 46%,#170a02)}
+[data-light=candle] .page{background:color-mix(in srgb,var(--paper-dim) 46%,#170a02)}
 [data-light=candle] .light{background:radial-gradient(ellipse 135% 96% at 76% calc(var(--anchor,80%) * .5),
   color-mix(in srgb,var(--paper-lit) 70%,#ffc27a) 0%,color-mix(in srgb,var(--paper-lit) 52%,#ffa64d) 20%,color-mix(in srgb,var(--paper-lit) 30%,#e8852b) 44%,color-mix(in srgb,#b85f1c 34%,transparent) 70%,transparent 96%)}
-[data-light=room] .paper{background:var(--paper-flat)}
+[data-light=room] .page{background:var(--paper-flat)}
 [data-light=room] .light,[data-light=off] .light{opacity:0}
 [data-light=room]{--hud:var(--hud-flat)}
-[data-light=off] .paper{background:color-mix(in srgb,var(--paper-dim) 80%,#000)}
+[data-light=off] .page{background:color-mix(in srgb,var(--paper-dim) 80%,#000)}
 /* type slug stamping the page */
 .strike{position:absolute;z-index:1;width:.62em;height:1.25em;border-radius:2px;background:var(--ink);opacity:0;pointer-events:none;font-size:var(--size)}
 .scroll{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;overscroll-behavior:contain;cursor:text;
@@ -108,11 +115,13 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 
 /* carriage rail */
 .rail{position:relative;height:16px;flex:none;z-index:2}
-.rail::before{content:"";position:absolute;left:-4px;right:-4px;top:4px;height:7px;border-radius:4px;background:linear-gradient(#3b3936,var(--rail))}
-.rail::after{content:"";position:absolute;right:6px;top:1px;width:12px;height:13px;border-radius:3px;background:var(--rail)}
+.rail::before{content:"";position:absolute;left:-22px;right:-22px;top:3px;height:9px;border-radius:5px;transform:translateX(var(--tx,0px));
+  background:linear-gradient(90deg,#1d1c1a 0 14px,transparent 14px calc(100% - 14px),#1d1c1a calc(100% - 14px)),linear-gradient(#3b3936,var(--rail))}
+.rail.step::before{transition:transform .07s cubic-bezier(.3,.7,.4,1) .05s}
+.rail.ret::before{transition:transform .42s cubic-bezier(.55,0,.25,1)}
 .head{position:absolute;top:-3px;left:var(--rx,var(--hx));width:96px;height:22px;margin-left:-30px;border-radius:12px;
   background:linear-gradient(#f4eedd,var(--head) 45%,#cfc7b2);
-  box-shadow:0 2px 5px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.7),inset 0 -2px 0 rgba(0,0,0,.16);transition:left .09s ease-out}
+  box-shadow:0 2px 5px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.7),inset 0 -2px 0 rgba(0,0,0,.16);}
 .head::after{content:"";position:absolute;right:9px;top:8px;width:6px;height:6px;border-radius:50%;
   background:radial-gradient(circle at 35% 30%,#fff,#a9a294 60%,#6f6a5f);box-shadow:inset 0 0 0 .5px rgba(0,0,0,.35)}
 /* the type head: one steel bar with a letter head, which swings up to strike */
@@ -257,9 +266,10 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
   body{display:flex;justify-content:center;align-items:stretch}
   .device{width:min(900px,calc(100vw - 96px));height:100%;border:0;border-radius:0;background:transparent;
     box-shadow:none;padding-top:28px}
-  .paper{flex:1;width:min(100%,780px);margin-inline:auto;border-radius:3px 3px 0 0;box-shadow:0 -1px 0 rgba(255,255,255,.08),0 24px 80px rgba(0,0,0,.65),0 0 0 1px rgba(0,0,0,.45)}
+  .paper{flex:1;background:transparent}
+  .page{width:min(100%,780px);border-radius:3px 3px 0 0;box-shadow:0 -1px 0 rgba(255,255,255,.08),0 24px 80px rgba(0,0,0,.65),0 0 0 1px rgba(0,0,0,.45)}
   .sheet{padding-inline:clamp(56px,11%,110px)}
-  .rail::before{left:-36px;right:-36px;height:8px}
+  .rail::before{left:calc((100% - min(100%,780px))/2 - 30px);right:calc((100% - min(100%,780px))/2 - 30px)}
   .chassis{border-radius:0 0 22px 22px;padding:8px 18px 14px;margin-bottom:22px;box-shadow:0 18px 40px rgba(0,0,0,.55)}
   .kb{max-width:760px;width:100%;margin:-12px auto 22px;border-radius:0 0 18px 18px;--kh:40px;padding-top:4px}
   .kb .k{font-size:17px}
@@ -297,6 +307,7 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 </svg>
 <div class="device" id="device">
   <div class="paper" id="paper">
+    <div class="page" id="page">
     <div class="light"></div>
     <div class="strike" id="strike"></div>
     <div class="prog" id="prog" hidden></div>
@@ -308,6 +319,7 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
           <textarea lang="km" class="txt" id="ta" rows="1" spellcheck="false" autocomplete="off" autocapitalize="sentences" placeholder="Once upon a time…" aria-label="Your page"></textarea>
         </div>
       </div>
+    </div>
     </div>
     <div class="hud">
       <button class="hb" id="backBtn" aria-label="All pages"><svg class="i" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>
@@ -475,7 +487,7 @@ function stamp(kind){
   head.animate([{transform:'translateY(0)'},{transform:'translateY(1.6px)',offset:.3},{transform:'translateY(0)'}],{duration:120,delay:HIT,easing:'ease-out'});
 }
 paper.addEventListener('pointermove',e=>{
-  if(S.light!=='flash')return;const r=paper.getBoundingClientRect();pointing=true;
+  if(S.light!=='flash')return;const r=$('page').getBoundingClientRect();pointing=true;
   device.style.setProperty('--lx',(e.clientX-r.left)+'px');device.style.setProperty('--ly',(e.clientY-r.top)+'px');
 });
 function layout(){
@@ -487,9 +499,9 @@ function layout(){
   device.style.setProperty('--anchor',anchor+'px');
   follow(false);
 }
-let headEl=null;
+let headEl=null,pageEl=null,lastTx=0;
 function follow(smooth=true){
-  headEl=headEl||device.querySelector('.head');
+  headEl=headEl||device.querySelector('.head');pageEl=pageEl||$('page');
   const v=D?D.target:ta.value,p=D?D.st[D.ci]||0:ta.selectionEnd;
   before.textContent=v.slice(0,p);after.textContent=v.slice(p)+' ';
   const sh=$('show');if(D)drillPaint(sh);else if(sh.textContent!==v)sh.textContent=v;
@@ -497,12 +509,18 @@ function follow(smooth=true){
   const top=Math.max(0,Math.round(m.bottom-r.top+scroll.scrollTop-anchor+3));
   if(Math.abs(top-scroll.scrollTop)>1)scroll.scrollTo({top,behavior:smooth?'smooth':'auto'});
   const x=Math.min(Math.max(m.left-r.left,12),r.width-12);
-  /* the head rides the carriage rail, which can be wider than the paper (computer layout), so measure from the rail */
-  const rail=headEl.offsetParent,dx=rail?r.left-rail.getBoundingClientRect().left:0;
-  device.style.setProperty('--hx',x+'px');device.style.setProperty('--rx',(x+dx)+'px');caretX=x;
-  const mid=r.width/2,off=(x-mid)/Math.max(1,mid);
-  device.style.setProperty('--sx',(mid+(x-mid)*.4)+'px');device.style.setProperty('--tilt',(-off*16).toFixed(1)+'deg');
-  if(!pointing){device.style.setProperty('--lx',(mid+(x-mid)*.8)+'px');device.style.setProperty('--ly',(anchor-lh*1.4)+'px')}
+  /* the head stays at the print point, the middle of the frame; the page slides so the caret sits under it.
+     Small moves step like the escapement, a long one back is the carriage return */
+  const mid=r.width/2,off=(x-mid)/Math.max(1,mid),tx=Math.round(mid-x);
+  if(tx!==lastTx){const big=Math.abs(tx-lastTx)>r.width*.25,cls=smooth?(big?'ret':'step'):'';
+    for(const el of [pageEl,headEl.offsetParent])if(el){el.classList.remove('step','ret');if(cls)el.classList.add(cls)}
+    device.style.setProperty('--tx',tx+'px');lastTx=tx}
+  const rail=headEl.offsetParent,fr=paper.getBoundingClientRect();
+  device.style.setProperty('--rx',(rail?fr.left+fr.width/2-rail.getBoundingClientRect().left:mid)+'px');
+  /* lights live on the page, so they are placed where the print point falls on it */
+  device.style.setProperty('--hx',x+'px');caretX=x;
+  device.style.setProperty('--sx',x+'px');device.style.setProperty('--tilt',(-off*16).toFixed(1)+'deg');
+  if(!pointing){device.style.setProperty('--lx',x+'px');device.style.setProperty('--ly',(anchor-lh*1.4)+'px')}
   const frac=(m.left-r.left)/Math.max(1,r.width);
   if(frac<.5)bellArmed=true;
   return frac;
