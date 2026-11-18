@@ -393,7 +393,7 @@ const IC={
 const LS='lamplight.v1';
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 function defaults(){const id=uid();return{docs:[{id,text:'',t:Date.now()}],cur:id,goal:3000,unit:'chars',sound:true,bell:true,lamp:true,focus:false,
-  noErase:false,autoCap:true,osk:coarse,size:coarse?18:20,lang:'km',face:'type',faceV:3,ink:'black',paper:'ivory',collapsed:false}}
+  noErase:false,autoCap:true,osk:true,size:coarse?18:20,lang:'km',face:'type',faceV:3,ink:'black',paper:'ivory',collapsed:false}}
 let S=defaults();
 try{const j=JSON.parse(localStorage.getItem(LS));if(j&&Array.isArray(j.docs)&&j.docs.length){if(j.faceV!==3){j.face='type';j.faceV=3}S=Object.assign(S,j)}}catch(e){}
 const LIGHTS={spot:'Spotlight',flash:'Flashlight',beam:'Projector beam',candle:'Candle',room:'Room light',off:'Lights off'};
@@ -403,7 +403,7 @@ let cloudSave=()=>{},haptic=()=>{};
 let D=null; /* the typing lesson in progress, if any */
 const doc=()=>S.docs.find(d=>d.id===S.cur)||S.docs[0];
 /* a computer with a real keyboard starts without the phone keys, until someone turns them on themselves */
-if(!coarse&&!S.oskChosen)S.osk=false;
+if(!coarse&&!S.oskChosen)S.osk=true;
 /* every start opens on a blank page; earlier pages stay in the Pages list. Not saved until something is typed,
    so an untouched blank page never outranks a newer copy in Telegram's cloud. */
 function freshPage(){const c=doc();if(c&&c.text){const n={id:uid(),text:'',t:Date.now()};S.docs.push(n);S.cur=n.id}
@@ -725,7 +725,7 @@ function showPanel(id){
     <div class="field"><label for="sSize">Type size</label><input type="range" id="sSize" min="14" max="28" step="1" value="${S.size}"></div>
     <div class="field"><label for="sFace">Typeface</label><select id="sFace"><option value="type">Typewriter</option><option value="type2">Typewriter, heavy ribbon</option><option value="serif">Serif</option><option value="sans">Sans serif</option></select></div>
     <div class="field"><label for="sGoal">Goal</label><input type="number" id="sGoal" min="1" step="50" value="${S.goal}"><select id="sUnit" aria-label="Goal unit"><option value="chars">characters</option><option value="words">words</option></select></div>
-    <div class="field"><label for="sOsk">On-screen keys<small>${coarse?'Turn off to use your device keyboard':'A phone-style keyboard under the page'}</small></label><input type="checkbox" id="sOsk"${S.osk?' checked':''}></div>
+    <div class="field"><label for="sOsk">On-screen keys<small>${coarse?'Turn off to use your device keyboard':'Shows each key as you type; turn off for more page'}</small></label><input type="checkbox" id="sOsk"${S.osk?' checked':''}></div>
     <div class="field"><label for="sErase">No erasing<small>Like real paper: delete is disabled</small></label><input type="checkbox" id="sErase"${S.noErase?' checked':''}></div>
     <div class="field"><label for="sCap">Capitalize new sentences<small>On-screen keys only</small></label><input type="checkbox" id="sCap"${S.autoCap?' checked':''}></div>
     <div class="field"><label for="sPlat">Computer keyboard<small>Khmer key map for a physical keyboard, shared with the tutor</small></label><select id="sPlat"><option value="windows">Windows NiDA</option><option value="mac">Mac NiDA</option></select></div>`;
