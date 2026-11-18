@@ -114,30 +114,49 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 
 /* carriage rail */
-.rail{position:relative;height:16px;flex:none;z-index:2}
-.rail::before{content:"";position:absolute;left:-22px;right:-22px;top:3px;height:9px;border-radius:5px;transform:translateX(var(--tx,0px));
-  background:linear-gradient(90deg,#1d1c1a 0 14px,transparent 14px calc(100% - 14px),#1d1c1a calc(100% - 14px)),linear-gradient(#3b3936,var(--rail))}
-.rail.step::before{transition:transform .07s cubic-bezier(.3,.7,.4,1) .05s}
-.rail.ret::before{transition:transform .42s cubic-bezier(.55,0,.25,1)}
-.head{position:absolute;top:-3px;left:var(--rx,var(--hx));width:96px;height:22px;margin-left:-30px;border-radius:12px;
-  background:linear-gradient(#f4eedd,var(--head) 45%,#cfc7b2);
-  box-shadow:0 2px 5px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.7),inset 0 -2px 0 rgba(0,0,0,.16);}
-.head::after{content:"";position:absolute;right:9px;top:8px;width:6px;height:6px;border-radius:50%;
-  background:radial-gradient(circle at 35% 30%,#fff,#a9a294 60%,#6f6a5f);box-shadow:inset 0 0 0 .5px rgba(0,0,0,.35)}
+/* the machine under the paper, drawn from above as the typist sees it. The carriage (platen roller, paper bail,
+   knobs and return lever) rides with the page; the typebar basket, type guide and ribbon spools stay put */
+.rail{position:relative;height:50px;flex:none;z-index:2;--brass:#c39a45;
+  background:linear-gradient(#0e0d0c,#1d1b19 30%,#141311 85%,color-mix(in srgb,var(--chassis) 40%,#000))}
+.carriage{position:absolute;left:-30px;right:-30px;top:0;height:18px;z-index:2;pointer-events:none;transform:translateX(var(--tx,0px))}
+.rail.step .carriage{transition:transform .07s cubic-bezier(.3,.7,.4,1) .05s}
+.rail.ret .carriage{transition:transform .42s cubic-bezier(.55,0,.25,1)}
+.platen{position:absolute;left:18px;right:18px;top:2px;height:14px;border-radius:4px;
+  background:linear-gradient(90deg,var(--brass) 0 7px,transparent 7px calc(100% - 7px),var(--brass) calc(100% - 7px)),
+    linear-gradient(#5d5954,#1b1a19 38%,#0a0a09 72%,#3a3733);box-shadow:0 3px 5px rgba(0,0,0,.6)}
+.knob{position:absolute;top:-1px;width:20px;height:20px;border-radius:50%;
+  background:radial-gradient(circle at 38% 32%,#77716a,#232120 55%,#0b0b0a);box-shadow:0 2px 4px rgba(0,0,0,.6),inset 0 0 0 1.5px #3c3935}
+.knob.l{left:0}.knob.r{right:0}
+.bail{position:absolute;left:34px;right:34px;top:-8px;height:3px;border-radius:2px;
+  background:linear-gradient(#f3dc9c,var(--brass) 55%,#6e5424);box-shadow:0 1px 2px rgba(0,0,0,.45)}
+.bail b{position:absolute;top:-2px;width:16px;height:7px;border-radius:3px;background:linear-gradient(#3a3734,#0d0d0c)}
+.bail b:first-child{left:20%}.bail b:last-child{right:20%}
+.lever{position:absolute;left:6px;top:-2px;width:34px;height:4px;border-radius:2px;transform-origin:100% 50%;transform:translateX(-30px) rotate(28deg);
+  background:linear-gradient(#f4f1ea,#9a958c 60%,#5d5953);box-shadow:0 1px 2px rgba(0,0,0,.5)}
+.lever::before{content:"";position:absolute;left:-6px;top:-3px;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff,#a19c93 60%,#55514c)}
+/* fixed parts, centred on the print point */
+.basket{position:absolute;left:var(--rx,50%);top:0;width:104px;height:50px;margin-left:-52px;z-index:1;pointer-events:none}
+.spool{position:absolute;top:19px;width:28px;height:28px;margin-left:-14px;border-radius:50%;z-index:3;pointer-events:none;
+  left:calc(var(--rx,50%) + var(--sp));transform:rotate(var(--spin,0deg));transition:transform .12s ease-out;
+  background:radial-gradient(circle,#d7d1c6 0 2.5px,#26231f 3px 5px,transparent 5.5px),repeating-conic-gradient(#191715 0 10deg,#2a2724 10deg 20deg);
+  box-shadow:0 0 0 2px #3b3834,0 2px 5px rgba(0,0,0,.6)}
+.spool.l{--sp:-82px}.spool.r{--sp:82px}
+.head{position:absolute;top:0;left:var(--rx,50%);width:0;height:0;z-index:3}
+/* the type guide, a small brass fork at the print point */
+.head::before{content:"";position:absolute;left:-7px;top:-5px;width:10px;height:9px;border:2px solid var(--brass);border-top:0;border-radius:0 0 5px 5px;
+  box-shadow:0 2px 2px rgba(0,0,0,.4)}
 /* the type head: one steel bar with a letter head, which swings up to strike */
 /* the bar pivots at its foot, in the basket in front of the paper. At rest it lies tipped back towards the typist,
-   the letter head just below the line; on a key it whips straight up onto it */
-.head .slot{position:absolute;left:30px;bottom:9px;width:1.8em;height:96px;margin-left:-.9em;clip-path:inset(-300px -300px 0 -300px);pointer-events:none;font-size:var(--size,18px);
+   the letter head down in the basket out of sight; on a key it whips straight up out of the fan onto the line */
+.head .slot{position:absolute;left:0;top:-86px;width:1.8em;height:101px;margin-left:-.9em;clip-path:inset(-300px -300px 0 -300px);pointer-events:none;font-size:var(--size,18px);
   perspective:340px;perspective-origin:50% -40px}
 .head .slot::after{content:"";position:absolute;left:50%;bottom:0;width:10px;height:3px;margin-left:-5px;border-radius:2px;background:#2b2825}
-.head .bar{position:absolute;left:50%;bottom:calc(29px + .2em);width:.82em;height:1.25em;margin-left:-.41em;
-  transform-origin:50% calc(100% + 70px);transform:rotateX(-40deg);filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
+.head .bar{position:absolute;left:50%;bottom:calc(34px + .2em);width:.82em;height:1.25em;margin-left:-.41em;
+  transform-origin:50% calc(100% + 70px);transform:rotateX(-58deg);filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
 .head .bar svg{display:block;width:100%;height:100%;transform-origin:50% 100%}
 .head .bar::after{content:"";position:absolute;left:50%;top:calc(100% - 1px);width:3px;height:70px;margin-left:-1.5px;
   background:linear-gradient(90deg,#5f5c58,#eeebe5 35%,#aba7a1 60%,#474441)}
-.head i{position:absolute;top:8px;width:6px;height:6px;border-radius:50%;background:var(--accent)}
-.head i:nth-child(1){left:10px}.head i:nth-child(2){left:19px;opacity:.75}
-[data-light=room] .head i,[data-light=off] .head i{background:#8a8477}
+
 
 /* tool strip */
 .chassis{position:relative;flex:none;padding:6px 12px 10px;background:var(--chassis)}
@@ -269,7 +288,8 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
   .paper{flex:1;background:transparent}
   .page{width:min(100%,780px);border-radius:3px 3px 0 0;box-shadow:0 -1px 0 rgba(255,255,255,.08),0 24px 80px rgba(0,0,0,.65),0 0 0 1px rgba(0,0,0,.45)}
   .sheet{padding-inline:clamp(56px,11%,110px)}
-  .rail::before{left:calc((100% - min(100%,780px))/2 - 30px);right:calc((100% - min(100%,780px))/2 - 30px)}
+  .carriage{left:calc((100% - min(100%,780px))/2 - 30px);right:calc((100% - min(100%,780px))/2 - 30px)}
+  .rail{border-radius:0 0 6px 6px}
   .chassis{border-radius:0 0 22px 22px;padding:8px 18px 14px;margin-bottom:22px;box-shadow:0 18px 40px rgba(0,0,0,.55)}
   .kb{max-width:760px;width:100%;margin:-12px auto 22px;border-radius:0 0 18px 18px;--kh:40px;padding-top:4px}
   .kb .k{font-size:17px}
@@ -332,7 +352,15 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
     <div class="toast" id="toast" role="status"></div>
   </div>
 
-  <div class="rail"><div class="head"><i></i><i></i>
+  <div class="rail"><svg class="basket" viewBox="0 0 104 50" aria-hidden="true">
+    <path d="M6 0A46 46 0 0 0 98 0" fill="none" stroke="#0a0908" stroke-width="7"/>
+    <path d="M66.9 2.1L97.6 6.4M66.6 3.3L96.9 10.0M66.3 4.4L96.0 13.5M65.9 5.5L94.7 17.0M65.5 6.6L93.3 20.3M64.9 7.7L91.5 23.5M64.2 8.7L89.5 26.6M63.5 9.6L87.3 29.5M62.7 10.5L84.8 32.2M61.8 11.3L82.2 34.7M60.9 12.1L79.3 37.0M59.9 12.7L76.3 39.1M58.9 13.3L73.1 40.9M57.8 13.8L69.8 42.4M56.7 14.2L66.4 43.7M55.5 14.6L62.9 44.7M54.4 14.8L59.3 45.4M53.2 15.0L55.7 45.9M52.0 15.0L52.0 46.0M50.8 15.0L48.3 45.9M49.6 14.8L44.7 45.4M48.5 14.6L41.1 44.7M47.3 14.2L37.6 43.7M46.2 13.8L34.2 42.4M45.1 13.3L30.9 40.9M44.1 12.7L27.7 39.1M43.1 12.1L24.7 37.0M42.2 11.3L21.8 34.7M41.3 10.5L19.2 32.2M40.5 9.6L16.7 29.5M39.8 8.7L14.5 26.6M39.1 7.7L12.5 23.5M38.5 6.6L10.7 20.3M38.1 5.5L9.3 17.0M37.7 4.4L8.0 13.5M37.4 3.3L7.1 10.0M37.1 2.1L6.4 6.4" stroke="var(--brass)" stroke-width="1.3" stroke-linecap="round" opacity=".9"/>
+    <path d="M4 0A48 48 0 0 0 100 0" fill="none" stroke="#2d2a27" stroke-width="2.5"/>
+    <path d="M37 0A15 15 0 0 0 67 0" fill="#141311" stroke="var(--brass)" stroke-width="2"/>
+  </svg>
+  <span class="spool l" aria-hidden="true"></span><span class="spool r" aria-hidden="true"></span>
+  <div class="carriage" aria-hidden="true"><span class="platen"></span><span class="bail"><b></b><b></b></span><span class="knob l"></span><span class="knob r"></span><span class="lever"></span></div>
+  <div class="head">
     <span class="slot" aria-hidden="true"><span class="bar"><svg viewBox="0 0 13 19" preserveAspectRatio="none">
       <defs><linearGradient id="stl" x1="0" x2="1"><stop offset="0" stop-color="#5f5c58"/><stop offset=".3" stop-color="#eeebe5"/><stop offset=".55" stop-color="#aba7a1"/><stop offset="1" stop-color="#474441"/></linearGradient></defs>
       <rect x=".4" y=".4" width="12.2" height="18.2" rx="1.8" fill="url(#stl)" stroke="#2f2d2b" stroke-width=".5"/>
@@ -455,25 +483,26 @@ let anchor=300,bellArmed=true,lh=28,caretX=0,pointing=false;
 const still=matchMedia('(prefers-reduced-motion:reduce)').matches;
 /* a typebar strike, as the typist sees it: the bar swings on its pivot straight up and away, out of the basket
    and onto the paper at the print point. Ink, paper and carriage react at the hit. */
-let barAnim,HIT=60;
+let barAnim,HIT=60,spin=0;
 function stamp(kind){
   if(still)return;
   const head=device.querySelector('.head');
   if(kind!=='key'){ /* space and delete move the carriage but strike nothing */
     head.animate([{transform:'translateY(0)'},{transform:'translateY(1.5px)',offset:.4},{transform:'translateY(0)'}],{duration:110,easing:'ease-out'});return}
   const bar=head.querySelector('.bar'),X=d=>`rotateX(${d}deg)`;
+  spin+=9;device.style.setProperty('--spin',spin+'deg');
   if(barAnim)barAnim.cancel();
   /* a whip, not a push: it cocks back into the basket, then gets faster all the way up and is stopped dead by the
      paper, the head snapping over a touch further; the spring flings it straight back down past rest and it settles */
   barAnim=bar.animate([
-    {transform:X(-40),easing:'ease-out'},
-    {transform:X(-52),offset:.08,easing:'cubic-bezier(.8,0,1,.75)'}, /* cocks back */
+    {transform:X(-58),easing:'ease-out'},
+    {transform:X(-64),offset:.08,easing:'cubic-bezier(.8,0,1,.75)'}, /* cocks back */
     {transform:X(1),offset:.24,easing:'linear'},                      /* hits the paper at full speed */
     {transform:X(4),offset:.27,easing:'cubic-bezier(.2,.7,.4,1)'},    /* the head whips over a touch more */
     {transform:X(-12),offset:.32,easing:'cubic-bezier(.5,0,.9,.7)'},  /* kicks off the paper */
-    {transform:X(-50),offset:.54,easing:'cubic-bezier(.2,.6,.4,1)'},   /* flung back past rest */
-    {transform:X(-37),offset:.76,easing:'ease-in-out'},
-    {transform:X(-40)}],{duration:250});
+    {transform:X(-66),offset:.54,easing:'cubic-bezier(.2,.6,.4,1)'},   /* flung back past rest */
+    {transform:X(-55),offset:.76,easing:'ease-in-out'},
+    {transform:X(-58)}],{duration:250});
   /* the letter head smears long while it flies and squashes on the paper */
   bar.firstElementChild.animate([
     {transform:'scaleY(1)'},{transform:'scaleY(1)',offset:.08},{transform:'scaleY(1.4)',offset:.21},{transform:'scaleY(.8)',offset:.26},
