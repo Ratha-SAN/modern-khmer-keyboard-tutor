@@ -110,18 +110,18 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 .rail{position:relative;height:16px;flex:none;z-index:2}
 .rail::before{content:"";position:absolute;left:-4px;right:-4px;top:4px;height:7px;border-radius:4px;background:linear-gradient(#3b3936,var(--rail))}
 .rail::after{content:"";position:absolute;right:6px;top:1px;width:12px;height:13px;border-radius:3px;background:var(--rail)}
-.head{position:absolute;top:-3px;left:var(--hx);width:96px;height:22px;margin-left:-30px;border-radius:12px;
+.head{position:absolute;top:-3px;left:var(--rx,var(--hx));width:96px;height:22px;margin-left:-30px;border-radius:12px;
   background:linear-gradient(#f4eedd,var(--head) 45%,#cfc7b2);
   box-shadow:0 2px 5px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.7),inset 0 -2px 0 rgba(0,0,0,.16);transition:left .09s ease-out}
 .head::after{content:"";position:absolute;right:9px;top:8px;width:6px;height:6px;border-radius:50%;
   background:radial-gradient(circle at 35% 30%,#fff,#a9a294 60%,#6f6a5f);box-shadow:inset 0 0 0 .5px rgba(0,0,0,.35)}
 /* the type head: one steel bar with a letter head, which swings up to strike */
-/* the bar rises out of a slot in the carriage. At rest the letter head sits just below the line being typed;
-   on a key it jumps up onto the line */
-.head .slot{position:absolute;left:30px;bottom:9px;width:1.8em;height:96px;margin-left:-.9em;overflow:hidden;pointer-events:none;font-size:var(--size,18px)}
+/* the bar pivots at its foot, deep in the basket under the carriage. At rest the letter head sits just below
+   the line being typed, leaning a little; on a key it sweeps up through an arc onto the line */
+.head .slot{position:absolute;left:30px;bottom:9px;width:1.8em;height:96px;margin-left:-.9em;clip-path:inset(-300px -300px 0 -300px);pointer-events:none;font-size:var(--size,18px)}
 .head .slot::after{content:"";position:absolute;left:50%;bottom:0;width:10px;height:3px;margin-left:-5px;border-radius:2px;background:#2b2825}
 .head .bar{position:absolute;left:50%;bottom:calc(29px + .2em);width:.82em;height:1.25em;margin-left:-.41em;
-  transform:translateY(1.25em);filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
+  transform-origin:50% calc(100% + 70px);transform:var(--rest,translateY(1.25em) rotate(-8deg));filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
 .head .bar svg{display:block;width:100%;height:100%}
 .head .bar::after{content:"";position:absolute;left:50%;top:calc(100% - 1px);width:3px;height:70px;margin-left:-1.5px;
   background:linear-gradient(90deg,#5f5c58,#eeebe5 35%,#aba7a1 60%,#474441)}
@@ -440,23 +440,37 @@ function play(kind){
 /* ---------- paper follow ---------- */
 let anchor=300,bellArmed=true,lh=28,caretX=0,pointing=false;
 const still=matchMedia('(prefers-reduced-motion:reduce)').matches;
-/* a typebar strike: the bar whips up, gaining speed, hits the paper and flattens a touch, bounces off,
-   drops back under its own weight and settles with one small rebound. Ink, paper and carriage react at the hit. */
-let barAnim,HIT=52;
+/* a typebar strike: every key has its own bar in a fan-shaped basket below the carriage, pivoting at its foot.
+   The bar for the key swings up through an arc, gaining speed, meets the paper upright at the print point,
+   flattens a touch, bounces off and falls back along the same arc into its slot. Keys on the left of the
+   keyboard sweep in from the left, keys on the right from the right. Ink, paper and carriage react at the hit. */
+let barAnim,HIT=70,restA=-8;
+function fanAngle(){
+  const ch=ta.value[ta.selectionStart-1]||'';
+  const k=ch&&kb.querySelector(`.k[data-k="${CSS.escape(ch)}"]`);
+  let f;
+  if(k&&k.offsetWidth){const r=k.getBoundingClientRect(),q=kb.getBoundingClientRect();f=((r.left+r.width/2)-q.left)/q.width*2-1}
+  else{const c=ch.codePointAt(0)||0;f=((c*37)%200)/100-1}
+  f=Math.max(-1,Math.min(1,f));
+  return (f<0?-1:1)*(16+Math.abs(f)*38); /* 16° near the middle of the fan, 54° at the ends */
+}
 function stamp(kind){
   if(still)return;
   const head=device.querySelector('.head');
   if(kind!=='key'){ /* space and delete move the carriage but strike nothing */
     head.animate([{transform:'translateY(0)'},{transform:'translateY(1.5px)',offset:.4},{transform:'translateY(0)'}],{duration:110,easing:'ease-out'});return}
-  const bar=head.querySelector('.bar'),R='translateY(1.25em) scale(1,1)';
+  const bar=head.querySelector('.bar'),a=fanAngle(),T=(y,r,sx=1,sy=1)=>`translateY(${y}em) rotate(${r}deg) scale(${sx},${sy})`;
+  const from=T(1.25,restA),rest=T(1.25,a*.3);
   if(barAnim)barAnim.cancel();
   barAnim=bar.animate([
-    {transform:R,easing:'cubic-bezier(.55,0,1,.55)'},
-    {transform:'translateY(-.05em) scale(1.07,.93)',offset:.27,easing:'cubic-bezier(0,0,.3,1)'},
-    {transform:'translateY(.16em) scale(1,1)',offset:.4,easing:'cubic-bezier(.5,0,1,.8)'},
-    {transform:'translateY(1.36em) scale(1,1)',offset:.74,easing:'ease-out'},
-    {transform:'translateY(1.19em) scale(1,1)',offset:.88,easing:'ease-in-out'},
-    {transform:R}],{duration:195});
+    {transform:from,easing:'ease-in'},
+    {transform:T(.55,a),offset:.07,easing:'cubic-bezier(.6,0,1,.7)'},     /* down in the basket, on its own side */
+    {transform:T(-.05,0,1.07,.93),offset:.28,easing:'cubic-bezier(0,0,.3,1)'}, /* the sweep ends upright on the paper */
+    {transform:T(.12,a*.16),offset:.38,easing:'cubic-bezier(.5,0,1,.8)'},    /* bounces off */
+    {transform:T(.6,a*1.06),offset:.7,easing:'ease-out'},                    /* falls back along the arc */
+    {transform:T(.5,a*.94),offset:.8,easing:'ease-in-out'},                  /* one small rebound */
+    {transform:rest,easing:'ease-in-out'}],{duration:250,fill:'forwards'});
+  restA=a*.3;bar.style.setProperty('--rest',rest);
   /* at the moment of impact */
   const s=$('strike'),cw=S.size*.62;
   s.style.left=Math.max(0,caretX-cw)+'px';s.style.top=(anchor+3-lh*.9)+'px';
@@ -477,7 +491,9 @@ function layout(){
   device.style.setProperty('--anchor',anchor+'px');
   follow(false);
 }
+let headEl=null;
 function follow(smooth=true){
+  headEl=headEl||device.querySelector('.head');
   const v=D?D.target:ta.value,p=D?D.st[D.ci]||0:ta.selectionEnd;
   before.textContent=v.slice(0,p);after.textContent=v.slice(p)+' ';
   const sh=$('show');if(D)drillPaint(sh);else if(sh.textContent!==v)sh.textContent=v;
@@ -485,7 +501,9 @@ function follow(smooth=true){
   const top=Math.max(0,Math.round(m.bottom-r.top+scroll.scrollTop-anchor+3));
   if(Math.abs(top-scroll.scrollTop)>1)scroll.scrollTo({top,behavior:smooth?'smooth':'auto'});
   const x=Math.min(Math.max(m.left-r.left,12),r.width-12);
-  device.style.setProperty('--hx',x+'px');caretX=x;
+  /* the head rides the carriage rail, which can be wider than the paper (computer layout), so measure from the rail */
+  const rail=headEl.offsetParent,dx=rail?r.left-rail.getBoundingClientRect().left:0;
+  device.style.setProperty('--hx',x+'px');device.style.setProperty('--rx',(x+dx)+'px');caretX=x;
   const mid=r.width/2,off=(x-mid)/Math.max(1,mid);
   device.style.setProperty('--sx',(mid+(x-mid)*.4)+'px');device.style.setProperty('--tilt',(-off*16).toFixed(1)+'deg');
   if(!pointing){device.style.setProperty('--lx',(mid+(x-mid)*.8)+'px');device.style.setProperty('--ly',(anchor-lh*1.4)+'px')}
