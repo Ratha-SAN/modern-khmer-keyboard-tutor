@@ -117,13 +117,13 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
   background:radial-gradient(circle at 35% 30%,#fff,#a9a294 60%,#6f6a5f);box-shadow:inset 0 0 0 .5px rgba(0,0,0,.35)}
 /* the type head: one steel bar with a letter head, which swings up to strike */
 /* the bar pivots at its foot, in the basket in front of the paper. At rest it lies tipped back towards the typist,
-   so the letter head sits just below the line and a little closer; on a key it swings straight up onto the line */
+   the letter head just below the line; on a key it whips straight up onto it */
 .head .slot{position:absolute;left:30px;bottom:9px;width:1.8em;height:96px;margin-left:-.9em;clip-path:inset(-300px -300px 0 -300px);pointer-events:none;font-size:var(--size,18px);
   perspective:340px;perspective-origin:50% -40px}
 .head .slot::after{content:"";position:absolute;left:50%;bottom:0;width:10px;height:3px;margin-left:-5px;border-radius:2px;background:#2b2825}
 .head .bar{position:absolute;left:50%;bottom:calc(29px + .2em);width:.82em;height:1.25em;margin-left:-.41em;
-  transform-origin:50% calc(100% + 70px);transform:rotateX(-38deg);filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
-.head .bar svg{display:block;width:100%;height:100%}
+  transform-origin:50% calc(100% + 70px);transform:rotateX(-40deg);filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
+.head .bar svg{display:block;width:100%;height:100%;transform-origin:50% 100%}
 .head .bar::after{content:"";position:absolute;left:50%;top:calc(100% - 1px);width:3px;height:70px;margin-left:-1.5px;
   background:linear-gradient(90deg,#5f5c58,#eeebe5 35%,#aba7a1 60%,#474441)}
 .head i{position:absolute;top:8px;width:6px;height:6px;border-radius:50%;background:var(--accent)}
@@ -442,8 +442,7 @@ function play(kind){
 let anchor=300,bellArmed=true,lh=28,caretX=0,pointing=false;
 const still=matchMedia('(prefers-reduced-motion:reduce)').matches;
 /* a typebar strike, as the typist sees it: the bar swings on its pivot straight up and away, out of the basket
-   and onto the paper at the print point. It gains speed as it rises, presses into the paper, bounces off, falls
-   back past its rest under its own weight and settles with one small rebound. Ink, paper and carriage react at the hit. */
+   and onto the paper at the print point. Ink, paper and carriage react at the hit. */
 let barAnim,HIT=60;
 function stamp(kind){
   if(still)return;
@@ -452,13 +451,22 @@ function stamp(kind){
     head.animate([{transform:'translateY(0)'},{transform:'translateY(1.5px)',offset:.4},{transform:'translateY(0)'}],{duration:110,easing:'ease-out'});return}
   const bar=head.querySelector('.bar'),X=d=>`rotateX(${d}deg)`;
   if(barAnim)barAnim.cancel();
+  /* a whip, not a push: it cocks back into the basket, then gets faster all the way up and is stopped dead by the
+     paper, the head snapping over a touch further; the spring flings it straight back down past rest and it settles */
   barAnim=bar.animate([
-    {transform:X(-38),easing:'cubic-bezier(.55,0,1,.6)'},
-    {transform:X(3),offset:.27,easing:'cubic-bezier(0,0,.3,1)'},    /* hits and presses into the paper */
-    {transform:X(-9),offset:.38,easing:'cubic-bezier(.5,0,1,.8)'},  /* bounces off */
-    {transform:X(-44),offset:.72,easing:'ease-out'},                /* falls back a little past its rest */
-    {transform:X(-34),offset:.86,easing:'ease-in-out'},             /* one small rebound */
-    {transform:X(-38)}],{duration:220});
+    {transform:X(-40),easing:'ease-out'},
+    {transform:X(-52),offset:.08,easing:'cubic-bezier(.8,0,1,.75)'}, /* cocks back */
+    {transform:X(1),offset:.24,easing:'linear'},                      /* hits the paper at full speed */
+    {transform:X(4),offset:.27,easing:'cubic-bezier(.2,.7,.4,1)'},    /* the head whips over a touch more */
+    {transform:X(-12),offset:.32,easing:'cubic-bezier(.5,0,.9,.7)'},  /* kicks off the paper */
+    {transform:X(-50),offset:.54,easing:'cubic-bezier(.2,.6,.4,1)'},   /* flung back past rest */
+    {transform:X(-37),offset:.76,easing:'ease-in-out'},
+    {transform:X(-40)}],{duration:250});
+  /* the letter head smears long while it flies and squashes on the paper */
+  bar.firstElementChild.animate([
+    {transform:'scaleY(1)'},{transform:'scaleY(1)',offset:.08},{transform:'scaleY(1.4)',offset:.21},{transform:'scaleY(.8)',offset:.26},
+    {transform:'scaleY(1.06)',offset:.34},{transform:'scaleY(1.2)',offset:.46},{transform:'scaleY(1)',offset:.64},{transform:'scaleY(1)'}],
+    {duration:250,easing:'ease-out'});
   /* at the moment of impact */
   const s=$('strike'),cw=S.size*.62;
   s.style.left=Math.max(0,caretX-cw)+'px';s.style.top=(anchor+3-lh*.9)+'px';
