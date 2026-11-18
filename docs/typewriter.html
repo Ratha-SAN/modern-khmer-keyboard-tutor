@@ -153,10 +153,12 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 .arm::before{content:"";position:absolute;left:50%;top:var(--pv);bottom:calc(var(--sh) - 2px);width:1.5px;margin-left:-.75px;
   background:linear-gradient(90deg,#55524e,#e9e5dd 45%,#7d7973)}
 .slug{position:absolute;left:0;right:0;bottom:0;height:var(--sh);border-radius:2px;display:grid;place-items:center;transform:rotateX(0deg) rotate(var(--up));
-  /* polished chrome: bright and dark bands across the face, a fine dark edge and a lit top lip */
-  background:linear-gradient(160deg,#fdfdfd 0%,#c4c8cd 28%,#f6f7f8 46%,#9a9fa5 68%,#dfe2e6 86%,#b3b8be 100%);
-  box-shadow:inset 0 0 0 1px #50555b,inset 0 1px 0 rgba(255,255,255,.95),0 1px 2px rgba(0,0,0,.6)}
-.slug b{font:700 var(--lf)/1 "Noto Sans Khmer","Noto Sans",var(--ui);color:#1c1f23;text-shadow:0 1px 0 rgba(255,255,255,.55);
+  /* worn nickel-chrome: a soft sheen rather than mirror bands, a little shading toward the lower edge, and a
+     shadow cast down onto the rest pad below it */
+  background:linear-gradient(170deg,#e4e5e6 0%,#d2d4d6 38%,#c3c6c9 62%,#aeb2b6 100%);
+  box-shadow:inset 0 0 0 1px rgba(52,56,60,.85),inset 0 1px 0 rgba(255,255,255,.55),inset 0 -2px 3px rgba(0,0,0,.18),
+    0 2px 3px rgba(0,0,0,.55),0 4px 7px rgba(0,0,0,.3)}
+.slug b{font:700 var(--lf)/1 "Noto Sans Khmer","Noto Sans",var(--ui);color:#24272b;text-shadow:0 1px 0 rgba(255,255,255,.35);
   backface-visibility:hidden;-webkit-backface-visibility:hidden;white-space:nowrap}
 .tbar.hot{z-index:5}
 
@@ -521,10 +523,10 @@ function buildBars(){
   fanB=b;fanSh=sh;
   let h='';const segs=[],rests=[];
   BARS.forEach((c,i)=>{
-    const [x,y]=pt(i),L0=Math.hypot(x,y),L=L0+(i%2?sh+1:0),ph=Math.atan2(x,y);
-    segs.push([x*.5,y*.5]);rests.push([x*(L0+sh*1.05)/L0,y*(L0+sh*1.05)/L0]);
-    h+=`<div class="tbar" data-c="${c}" style="transform:rotate(${(-ph).toFixed(4)}rad);perspective:${Math.round(L*1.6)}px;perspective-origin:0 ${(L/2).toFixed(1)}px">`+
-      `<div class="arm" data-up="${ph.toFixed(4)}" style="left:${-sw/2}px;width:${sw}px;height:${L.toFixed(1)}px;--pv:${(L/2).toFixed(1)}px;--sh:${sh}px;--lf:${lf}px;--up:${ph.toFixed(4)}rad"><span class="slug"><b></b></span></div></div>`;
+    const [x,y]=pt(i),L0=Math.hypot(x,y),L=L0+(i%2?sh+1:0),ph=Math.atan2(x,y),pv=(L-sh/2)/2; /* pivot halfway to the head's centre, so the head lands centred on the print point */
+    const sg=(L0-sh/2)/2/L0;segs.push([x*sg,y*sg]);rests.push([x*(L0+sh*1.05)/L0,y*(L0+sh*1.05)/L0]);
+    h+=`<div class="tbar" data-c="${c}" style="transform:rotate(${(-ph).toFixed(4)}rad);perspective:${Math.round(L*1.6)}px;perspective-origin:0 ${pv.toFixed(1)}px">`+
+      `<div class="arm" data-up="${ph.toFixed(4)}" style="left:${-sw/2}px;width:${sw}px;height:${L.toFixed(1)}px;--pv:${pv.toFixed(1)}px;--sh:${sh}px;--lf:${lf}px;--up:${ph.toFixed(4)}rad"><span class="slug"><b></b></span></div></div>`;
   });
   const path=pts=>'M'+pts.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join('L');
   const sv=`<svg width="1" height="1"><path d="${path(rests)}" fill="none" stroke="#0b0a09" stroke-width="${sh*1.15}" stroke-linecap="round" stroke-linejoin="round" opacity=".85"/>`+
@@ -584,7 +586,9 @@ function layout(){
   device.style.setProperty('--anchor',anchor+'px');
   follow(false);
 }
-let headEl=null,pageEl=null,lastTx=0;
+let headEl=null,pageEl=null,lastTx=0,lwKey='',lwVal=10;
+function letterW(){const f=getComputedStyle(ta).font,k=f+S.lang;if(k!==lwKey){lwKey=k;const c=document.createElement('canvas').getContext('2d');c.font=f;
+  lwVal=c.measureText(S.lang==='km'?'កខគងចឆជញដតនបពមយរលសហអ':'abcdefghijklmnopqrstuvwxyz').width/(S.lang==='km'?22:26)}return lwVal}
 function follow(smooth=true){
   headEl=headEl||device.querySelector('.head');pageEl=pageEl||$('page');
   const v=D?D.target:ta.value,p=D?D.st[D.ci]||0:ta.selectionEnd;
@@ -596,7 +600,9 @@ function follow(smooth=true){
   const x=Math.min(Math.max(m.left-r.left,12),r.width-12);
   /* the head stays at the print point, the middle of the frame; the page slides so the caret sits under it.
      Small moves step like the escapement, a long one back is the carriage return */
-  const mid=r.width/2,off=(x-mid)/Math.max(1,mid),tx=Math.round(mid-x);
+  /* the next letter is printed to the right of the caret, so the page waits with the caret half a letter left of
+     the print point: the letter's middle is then right under the meeting point of the bars when it is struck */
+  const mid=r.width/2,off=(x-mid)/Math.max(1,mid),tx=Math.round(mid-x-letterW()/2);
   if(tx!==lastTx){const big=Math.abs(tx-lastTx)>r.width*.25,cls=smooth?(big?'ret':'step'):'';
     for(const el of [pageEl,headEl.offsetParent])if(el){el.classList.remove('step','ret');if(cls)el.classList.add(cls)}
     device.style.setProperty('--tx',tx+'px');lastTx=tx}
