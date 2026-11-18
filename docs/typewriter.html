@@ -53,7 +53,7 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
    one step left for each letter, and a long slide back on a new line (--tx is set by follow) */
 .page{position:absolute;top:0;bottom:0;left:0;right:0;margin-inline:auto;background:var(--paper-dim);transition:background .4s;
   transform:translateX(var(--tx,0px));box-shadow:0 0 0 1px rgba(0,0,0,.35),0 0 40px rgba(0,0,0,.55)}
-.page.step{transition:background .4s,transform .07s cubic-bezier(.3,.7,.4,1) .05s}
+.page.step{transition:background .4s,transform .07s cubic-bezier(.3,.7,.4,1) .1s}
 .page.ret{transition:background .4s,transform .42s cubic-bezier(.55,0,.25,1)}
 .light{position:absolute;inset:0;pointer-events:none;transition:opacity .4s;font-size:var(--size,18px);
   /* the pool of light sits just above the line being typed and drifts only part of the way with the carriage (--sx) */
@@ -119,7 +119,7 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 .rail{position:relative;height:50px;flex:none;z-index:2;--brass:#c39a45;
   background:linear-gradient(#0e0d0c,#1d1b19 30%,#141311 85%,color-mix(in srgb,var(--chassis) 40%,#000))}
 .carriage{position:absolute;left:-30px;right:-30px;top:0;height:18px;z-index:2;pointer-events:none;transform:translateX(var(--tx,0px))}
-.rail.step .carriage{transition:transform .07s cubic-bezier(.3,.7,.4,1) .05s}
+.rail.step .carriage{transition:transform .07s cubic-bezier(.3,.7,.4,1) .1s}
 .rail.ret .carriage{transition:transform .42s cubic-bezier(.55,0,.25,1)}
 .platen{position:absolute;left:18px;right:18px;top:2px;height:14px;border-radius:4px;
   background:linear-gradient(90deg,var(--brass) 0 7px,transparent 7px calc(100% - 7px),var(--brass) calc(100% - 7px)),
@@ -135,27 +135,29 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
   background:linear-gradient(#f4f1ea,#9a958c 60%,#5d5953);box-shadow:0 1px 2px rgba(0,0,0,.5)}
 .lever::before{content:"";position:absolute;left:-6px;top:-3px;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff,#a19c93 60%,#55514c)}
 /* fixed parts, centred on the print point */
-.basket{position:absolute;left:var(--rx,50%);top:0;width:104px;height:50px;margin-left:-52px;z-index:1;pointer-events:none}
-.spool{position:absolute;top:19px;width:28px;height:28px;margin-left:-14px;border-radius:50%;z-index:3;pointer-events:none;
+.spool{position:absolute;top:var(--spt,19px);width:24px;height:24px;margin-left:-12px;border-radius:50%;z-index:3;pointer-events:none;
   left:calc(var(--rx,50%) + var(--sp));transform:rotate(var(--spin,0deg));transition:transform .12s ease-out;
   background:radial-gradient(circle,#d7d1c6 0 2.5px,#26231f 3px 5px,transparent 5.5px),repeating-conic-gradient(#191715 0 10deg,#2a2724 10deg 20deg);
   box-shadow:0 0 0 2px #3b3834,0 2px 5px rgba(0,0,0,.6)}
-.spool.l{--sp:-82px}.spool.r{--sp:82px}
-.head{position:absolute;top:0;left:var(--rx,50%);width:0;height:0;z-index:3}
+.head{position:absolute;top:calc(var(--py,-40px) + 18px);left:var(--rx,50%);width:0;height:0;z-index:4}
 /* the type guide, a small brass fork at the print point */
 .head::before{content:"";position:absolute;left:-7px;top:-5px;width:10px;height:9px;border:2px solid var(--brass);border-top:0;border-radius:0 0 5px 5px;
   box-shadow:0 2px 2px rgba(0,0,0,.4)}
-/* the type head: one steel bar with a letter head, which swings up to strike */
-/* the bar pivots at its foot, in the basket in front of the paper. At rest it lies tipped back towards the typist,
-   the letter head down in the basket out of sight; on a key it whips straight up out of the fan onto the line */
-.head .slot{position:absolute;left:0;top:-86px;width:1.8em;height:101px;margin-left:-.9em;clip-path:inset(-300px -300px 0 -300px);pointer-events:none;font-size:var(--size,18px);
-  perspective:340px;perspective-origin:50% -40px}
-.head .slot::after{content:"";position:absolute;left:50%;bottom:0;width:10px;height:3px;margin-left:-5px;border-radius:2px;background:#2b2825}
-.head .bar{position:absolute;left:50%;bottom:calc(34px + .2em);width:.82em;height:1.25em;margin-left:-.41em;
-  transform-origin:50% calc(100% + 70px);transform:rotateX(-58deg);filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
-.head .bar svg{display:block;width:100%;height:100%;transform-origin:50% 100%}
-.head .bar::after{content:"";position:absolute;left:50%;top:calc(100% - 1px);width:3px;height:70px;margin-left:-1.5px;
-  background:linear-gradient(90deg,#5f5c58,#eeebe5 35%,#aba7a1 60%,#474441)}
+/* the typebar basket: one bar for every key, fanned out in a half ring in front of the platen. Each bar pivots
+   on the brass segment halfway along, so when its key is struck it whips up over the segment and lands, face
+   first, on the print point where all the bars meet. Built by buildBars() */
+.fan{position:absolute;left:var(--rx,50%);top:var(--py,-14px);width:0;height:0;z-index:3;pointer-events:none}
+.fan svg{position:absolute;overflow:visible}
+.tbar{position:absolute;left:0;top:0;width:0;height:0}
+.arm{position:absolute;top:0;transform-style:preserve-3d;transform-origin:50% var(--pv)}
+.arm::before{content:"";position:absolute;left:50%;top:var(--pv);bottom:calc(var(--sh) - 2px);width:2px;margin-left:-1px;
+  background:linear-gradient(90deg,#55524e,#e9e5dd 45%,#7d7973)}
+.slug{position:absolute;left:0;right:0;bottom:0;height:var(--sh);border-radius:3px;display:grid;place-items:center;
+  background:linear-gradient(#f3efe6,#cfc9bd);box-shadow:inset 0 0 0 1px #6f6a62,0 1px 2px rgba(0,0,0,.55)}
+.slug b{font:600 var(--lf)/1 "Noto Sans Khmer","Noto Sans",var(--ui);color:#24201c;transform:rotate(var(--up));
+  backface-visibility:hidden;-webkit-backface-visibility:hidden;white-space:nowrap}
+.tbar.hot{z-index:5}
+.tbar.hot .slug{background:linear-gradient(#fff6dc,#e7cf8f)}
 
 
 /* tool strip */
@@ -352,22 +354,10 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
     <div class="toast" id="toast" role="status"></div>
   </div>
 
-  <div class="rail"><svg class="basket" viewBox="0 0 104 50" aria-hidden="true">
-    <path d="M6 0A46 46 0 0 0 98 0" fill="none" stroke="#0a0908" stroke-width="7"/>
-    <path d="M66.9 2.1L97.6 6.4M66.6 3.3L96.9 10.0M66.3 4.4L96.0 13.5M65.9 5.5L94.7 17.0M65.5 6.6L93.3 20.3M64.9 7.7L91.5 23.5M64.2 8.7L89.5 26.6M63.5 9.6L87.3 29.5M62.7 10.5L84.8 32.2M61.8 11.3L82.2 34.7M60.9 12.1L79.3 37.0M59.9 12.7L76.3 39.1M58.9 13.3L73.1 40.9M57.8 13.8L69.8 42.4M56.7 14.2L66.4 43.7M55.5 14.6L62.9 44.7M54.4 14.8L59.3 45.4M53.2 15.0L55.7 45.9M52.0 15.0L52.0 46.0M50.8 15.0L48.3 45.9M49.6 14.8L44.7 45.4M48.5 14.6L41.1 44.7M47.3 14.2L37.6 43.7M46.2 13.8L34.2 42.4M45.1 13.3L30.9 40.9M44.1 12.7L27.7 39.1M43.1 12.1L24.7 37.0M42.2 11.3L21.8 34.7M41.3 10.5L19.2 32.2M40.5 9.6L16.7 29.5M39.8 8.7L14.5 26.6M39.1 7.7L12.5 23.5M38.5 6.6L10.7 20.3M38.1 5.5L9.3 17.0M37.7 4.4L8.0 13.5M37.4 3.3L7.1 10.0M37.1 2.1L6.4 6.4" stroke="var(--brass)" stroke-width="1.3" stroke-linecap="round" opacity=".9"/>
-    <path d="M4 0A48 48 0 0 0 100 0" fill="none" stroke="#2d2a27" stroke-width="2.5"/>
-    <path d="M37 0A15 15 0 0 0 67 0" fill="#141311" stroke="var(--brass)" stroke-width="2"/>
-  </svg>
+  <div class="rail"><div class="fan" id="fan" aria-hidden="true"></div>
   <span class="spool l" aria-hidden="true"></span><span class="spool r" aria-hidden="true"></span>
   <div class="carriage" aria-hidden="true"><span class="platen"></span><span class="bail"><b></b><b></b></span><span class="knob l"></span><span class="knob r"></span><span class="lever"></span></div>
   <div class="head">
-    <span class="slot" aria-hidden="true"><span class="bar"><svg viewBox="0 0 13 19" preserveAspectRatio="none">
-      <defs><linearGradient id="stl" x1="0" x2="1"><stop offset="0" stop-color="#5f5c58"/><stop offset=".3" stop-color="#eeebe5"/><stop offset=".55" stop-color="#aba7a1"/><stop offset="1" stop-color="#474441"/></linearGradient></defs>
-      <rect x=".4" y=".4" width="12.2" height="18.2" rx="1.8" fill="url(#stl)" stroke="#2f2d2b" stroke-width=".5"/>
-      <rect x="1.8" y="1.9" width="9.4" height="15.2" rx="1" fill="#dcd8d1"/>
-      <path d="M3.4 14 6.5 5 9.6 14M4.6 11h3.8" fill="none" stroke="#2f2d2b" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-      <rect x=".4" y=".4" width="12.2" height="1.2" rx=".6" fill="rgba(255,255,255,.6)"/>
-    </svg></span></span>
   </div></div>
 
   <div class="chassis">
@@ -481,33 +471,16 @@ function play(kind){
 /* ---------- paper follow ---------- */
 let anchor=300,bellArmed=true,lh=28,caretX=0,pointing=false;
 const still=matchMedia('(prefers-reduced-motion:reduce)').matches;
-/* a typebar strike, as the typist sees it: the bar swings on its pivot straight up and away, out of the basket
-   and onto the paper at the print point. Ink, paper and carriage react at the hit. */
-let barAnim,HIT=60,spin=0;
+/* a typebar strike, as the typist sees it from above: the struck key's own bar whips up over the segment, out of
+   its place in the fan, and lands face first on the print point. Ink, paper and carriage react at the hit. */
+let HIT=96,spin=0,lastIn='';
 function stamp(kind){
   if(still)return;
   const head=device.querySelector('.head');
   if(kind!=='key'){ /* space and delete move the carriage but strike nothing */
     head.animate([{transform:'translateY(0)'},{transform:'translateY(1.5px)',offset:.4},{transform:'translateY(0)'}],{duration:110,easing:'ease-out'});return}
-  const bar=head.querySelector('.bar'),X=d=>`rotateX(${d}deg)`;
   spin+=9;device.style.setProperty('--spin',spin+'deg');
-  if(barAnim)barAnim.cancel();
-  /* a whip, not a push: it cocks back into the basket, then gets faster all the way up and is stopped dead by the
-     paper, the head snapping over a touch further; the spring flings it straight back down past rest and it settles */
-  barAnim=bar.animate([
-    {transform:X(-58),easing:'ease-out'},
-    {transform:X(-64),offset:.08,easing:'cubic-bezier(.8,0,1,.75)'}, /* cocks back */
-    {transform:X(1),offset:.24,easing:'linear'},                      /* hits the paper at full speed */
-    {transform:X(4),offset:.27,easing:'cubic-bezier(.2,.7,.4,1)'},    /* the head whips over a touch more */
-    {transform:X(-12),offset:.32,easing:'cubic-bezier(.5,0,.9,.7)'},  /* kicks off the paper */
-    {transform:X(-66),offset:.54,easing:'cubic-bezier(.2,.6,.4,1)'},   /* flung back past rest */
-    {transform:X(-55),offset:.76,easing:'ease-in-out'},
-    {transform:X(-58)}],{duration:250});
-  /* the letter head smears long while it flies and squashes on the paper */
-  bar.firstElementChild.animate([
-    {transform:'scaleY(1)'},{transform:'scaleY(1)',offset:.08},{transform:'scaleY(1.4)',offset:.21},{transform:'scaleY(.8)',offset:.26},
-    {transform:'scaleY(1.06)',offset:.34},{transform:'scaleY(1.2)',offset:.46},{transform:'scaleY(1)',offset:.64},{transform:'scaleY(1)'}],
-    {duration:250,easing:'ease-out'});
+  whip(lastIn||ta.value.slice(Math.max(0,ta.selectionStart-1),ta.selectionStart));lastIn='';
   /* at the moment of impact */
   const s=$('strike'),cw=S.size*.62;
   s.style.left=Math.max(0,caretX-cw)+'px';s.style.top=(anchor+3-lh*.9)+'px';
@@ -515,6 +488,77 @@ function stamp(kind){
   $('show').animate([{transform:'translateY(0)'},{transform:'translateY(-1.2px)',offset:.3},{transform:'translateY(.4px)',offset:.65},{transform:'translateY(0)'}],{duration:120,delay:HIT,easing:'ease-out'});
   head.animate([{transform:'translateY(0)'},{transform:'translateY(1.6px)',offset:.3},{transform:'translateY(0)'}],{duration:120,delay:HIT,easing:'ease-out'});
 }
+/* ---------- the typebar fan ---------- */
+/* bars run in key order from left to right, as the key levers do; the labels show the letters the keys type now,
+   so they change with the language, Shift and Alt / Option */
+const EN={Backquote:['`','~','`'],Digit1:['1','!','¡'],Digit2:['2','@','™'],Digit3:['3','#','£'],Digit4:['4','$','¢'],Digit5:['5','%','∞'],
+  Digit6:['6','^','§'],Digit7:['7','&','¶'],Digit8:['8','*','•'],Digit9:['9','(','ª'],Digit0:['0',')','º'],Minus:['-','_','–'],Equal:['=','+','≠'],
+  KeyQ:['q','Q','œ'],KeyW:['w','W','∑'],KeyE:['e','E','´'],KeyR:['r','R','®'],KeyT:['t','T','†'],KeyY:['y','Y','¥'],KeyU:['u','U','¨'],
+  KeyI:['i','I','ˆ'],KeyO:['o','O','ø'],KeyP:['p','P','π'],BracketLeft:['[','{','“'],BracketRight:[']','}','‘'],Backslash:['\\','|','«'],
+  KeyA:['a','A','å'],KeyS:['s','S','ß'],KeyD:['d','D','∂'],KeyF:['f','F','ƒ'],KeyG:['g','G','©'],KeyH:['h','H','˙'],KeyJ:['j','J','∆'],
+  KeyK:['k','K','˚'],KeyL:['l','L','¬'],Semicolon:[';',':','…'],Quote:["'",'"','æ'],
+  KeyZ:['z','Z','Ω'],KeyX:['x','X','≈'],KeyC:['c','C','ç'],KeyV:['v','V','√'],KeyB:['b','B','∫'],KeyN:['n','N','˜'],KeyM:['m','M','µ'],
+  Comma:[',','<','≤'],Period:['.','>','≥'],Slash:['/','?','÷']};
+const KROWS=[['Backquote','Digit1','Digit2','Digit3','Digit4','Digit5','Digit6','Digit7','Digit8','Digit9','Digit0','Minus','Equal'],
+  ['KeyQ','KeyW','KeyE','KeyR','KeyT','KeyY','KeyU','KeyI','KeyO','KeyP','BracketLeft','BracketRight','Backslash'],
+  ['KeyA','KeyS','KeyD','KeyF','KeyG','KeyH','KeyJ','KeyK','KeyL','Semicolon','Quote'],
+  ['KeyZ','KeyX','KeyC','KeyV','KeyB','KeyN','KeyM','Comma','Period','Slash']];
+const BARS=KROWS.flatMap((r,ri)=>r.map((c,i)=>({c,x:i+[0,1.5,1.8,2.3][ri]+ri*.01}))).sort((p,q)=>p.x-q.x).map(o=>o.c);
+const barEl={},mods={shift:false,alt:false};let fanW=0;
+function barMap(){return S.lang==='km'?KMP:EN}
+function barLayer(){return mods.alt?2:(mods.shift||shift)?1:0}
+function buildBars(){
+  const fan=$('fan'),rail=fan&&fan.parentElement;if(!rail)return;
+  const W=rail.clientWidth;if(!W||Math.abs(W-fanW)<2&&fan.childElementCount)return;fanW=W;
+  const big=W>=700,a=Math.min(W/2-16,big?330:300),b=Math.round(Math.max(104,Math.min(a*.62,190))),
+    sw=Math.round(Math.max(13,Math.min(a*.072,22))),sh=sw+2,lf=Math.round(sw*.72),py=-40,T=63*Math.PI/180,n=BARS.length;
+  rail.style.height=(b+py+sh+18)+'px';
+  let h='';const segs=[],rests=[];
+  BARS.forEach((c,i)=>{
+    const t=-T+2*T*i/(n-1),x=a*Math.sin(t),y=b*Math.cos(t),L0=Math.hypot(x,y),L=L0+(i%2?sh*.95:0),ph=Math.atan2(x,y);
+    segs.push([x*.5,y*.5]);rests.push([x*(L0+sh*1.5)/L0,y*(L0+sh*1.5)/L0]);
+    h+=`<div class="tbar" data-c="${c}" style="transform:rotate(${(-ph).toFixed(4)}rad);perspective:${Math.round(L*1.6)}px;perspective-origin:0 ${(L/2).toFixed(1)}px">`+
+      `<div class="arm" style="left:${-sw/2}px;width:${sw}px;height:${L.toFixed(1)}px;--pv:${(L/2).toFixed(1)}px;--sh:${sh}px;--lf:${lf}px;--up:${ph.toFixed(4)}rad"><span class="slug"><b></b></span></div></div>`;
+  });
+  const path=pts=>'M'+pts.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join('L');
+  const sv=`<svg width="1" height="1"><path d="${path(rests)}" fill="none" stroke="#0b0a09" stroke-width="${sh*1.2}" stroke-linecap="round" stroke-linejoin="round" opacity=".85"/>`+
+    `<path d="${path(segs)}" fill="none" stroke="var(--brass)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`+
+    `<path d="${path(segs)}" fill="none" stroke="#3b2c12" stroke-width="1" stroke-dasharray="1 ${(2*a*T/n/2).toFixed(1)}"/></svg>`;
+  fan.innerHTML=sv+h;
+  fan.querySelectorAll('.tbar').forEach(e=>barEl[e.dataset.c]=e);
+  const sl=rail.querySelector('.spool.l'),sr=rail.querySelector('.spool.r');
+  [[sl,-1],[sr,1]].forEach(([e,d])=>{if(e){e.style.setProperty('--sp',(d*a*.97)+'px');e.style.setProperty('--spt',(py+24)+'px')}});
+  paintBars();
+}
+function paintBars(){
+  if(!fanW)return;const M=barMap(),l=barLayer();
+  for(const c of BARS){const e=barEl[c];if(!e)continue;const u=(M[c]&&M[c][l])||'';
+    e.querySelector('b').textContent=/^\p{M}/u.test(u)?'◌'+u:u}
+}
+function whip(ch){
+  if(!ch||!fanW)return;const M=barMap(),l=barLayer();
+  let c=BARS.find(k=>M[k]&&M[k][l]===ch)||BARS.find(k=>M[k]&&M[k].includes(ch));
+  if(!c){const f=[...ch][0];c=BARS.find(k=>M[k]&&M[k][l]===f)||BARS.find(k=>M[k]&&M[k].includes(f))}
+  if(!c&&S.lang==='km')c=BARS.find(k=>EN[k].includes(ch));
+  const e=c&&barEl[c];if(!e)return;
+  const arm=e.firstElementChild,X=d=>`rotateX(${d}deg)`;
+  if(arm._a)arm._a.cancel();e.classList.add('hot');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('hot'),300);
+  /* a whip: a tiny cock back onto the rest, then faster and faster up over the segment until the paper stops it
+     dead; it bounces off and the spring flings it back down onto the rest, where it settles */
+  arm._a=arm.animate([
+    {transform:X(0),easing:'ease-out'},
+    {transform:X(-6),offset:.06,easing:'cubic-bezier(.75,0,1,.8)'},
+    {transform:X(178),offset:.3,easing:'linear'},
+    {transform:X(182),offset:.33,easing:'cubic-bezier(.2,.7,.4,1)'},
+    {transform:X(160),offset:.42,easing:'cubic-bezier(.4,0,.9,.6)'},
+    {transform:X(-7),offset:.72,easing:'cubic-bezier(.2,.6,.4,1)'},
+    {transform:X(3),offset:.86,easing:'ease-in-out'},
+    {transform:X(0)}],{duration:320});
+}
+addEventListener('keydown',e=>{const sh=e.shiftKey,al=e.altKey||(e.getModifierState&&e.getModifierState('AltGraph'));if(sh!==mods.shift||al!==mods.alt){mods.shift=sh;mods.alt=al;paintBars()}},true);
+addEventListener('keyup',e=>{const sh=e.shiftKey,al=e.altKey||(e.getModifierState&&e.getModifierState('AltGraph'));if(sh!==mods.shift||al!==mods.alt){mods.shift=sh;mods.alt=al;paintBars()}},true);
+addEventListener('blur',()=>{if(mods.shift||mods.alt){mods.shift=mods.alt=false;paintBars()}});
+addEventListener('resize',()=>buildBars());
 paper.addEventListener('pointermove',e=>{
   if(S.light!=='flash')return;const r=$('page').getBoundingClientRect();pointing=true;
   device.style.setProperty('--lx',(e.clientX-r.left)+'px');device.style.setProperty('--ly',(e.clientY-r.top)+'px');
@@ -545,6 +589,7 @@ function follow(smooth=true){
     for(const el of [pageEl,headEl.offsetParent])if(el){el.classList.remove('step','ret');if(cls)el.classList.add(cls)}
     device.style.setProperty('--tx',tx+'px');lastTx=tx}
   const rail=headEl.offsetParent,fr=paper.getBoundingClientRect();
+  if(rail)device.style.setProperty('--py',Math.round((m.top+m.bottom)/2-rail.getBoundingClientRect().top)+'px');
   device.style.setProperty('--rx',(rail?fr.left+fr.width/2-rail.getBoundingClientRect().left:mid)+'px');
   /* lights live on the page, so they are placed where the print point falls on it */
   device.style.setProperty('--hx',x+'px');caretX=x;
@@ -573,7 +618,7 @@ function onChange(kind){
   play(kind);autoShift();suggest();
 }
 ta.addEventListener('beforeinput',e=>{if(D){if(/^(delete|history)/.test(e.inputType||''))e.preventDefault();return}if(S.noErase&&/^(delete|history)/.test(e.inputType||'')){e.preventDefault();toast('No erasing is on. Keep going.')}});
-ta.addEventListener('input',e=>{const t=e.inputType||'';
+ta.addEventListener('input',e=>{const t=e.inputType||'';if(e.data)lastIn=e.data;
   onChange(/insertLineBreak|insertParagraph/.test(t)?'return':/^delete/.test(t)?'back':e.data===' '?'space':'key')});
 document.addEventListener('selectionchange',()=>{if(document.activeElement===ta){follow(true);suggest()}});
 scroll.addEventListener('click',e=>{if(e.target!==ta)focusTa()});
@@ -609,12 +654,12 @@ function buildKb(){
   kb.innerHTML=`<div class="sg-row" id="sgRow"></div>
     <div class="krow">${rows[0]}</div><div class="krow${mode==='abc'&&!km?' in':''}">${rows[1]}</div><div class="krow">${rows[2]}</div>
     <div class="krow">${key(mode==='abc'?'123':'abc',mode==='abc'?(km?'១២៣':'123'):(km?'កខគ':'ABC'),'fn')}${key('globe',{html:svg(IC.globe),aria:'Switch between English and Khmer'},'fn')}${key(mode==='emoji'?'abc2':'emoji',{html:svg(IC.emoji),aria:'Emoji'},'fn')}${key('space',{html:km?'ខ្មែរ':'English',aria:'Space'},'space')}${km?key(shift?'៕':'។'):''}${key('mic',{html:svg(IC.mic),aria:'Dictate'},'fn')}${key('enter',{html:svg(IC.enter),aria:'Return'},'fn')}</div>`;
-  kb.classList.toggle('shift',shift>0);kb.classList.toggle('caps',shift===2);suggest();
+  kb.classList.toggle('shift',shift>0);kb.classList.toggle('caps',shift===2);suggest();paintBars();
 }
-function paintShift(){if(S.lang==='km'&&mode==='abc'){buildKb();return}kb.classList.toggle('shift',shift>0);kb.classList.toggle('caps',shift===2)}
+function paintShift(){if(S.lang==='km'&&mode==='abc'){buildKb();return}kb.classList.toggle('shift',shift>0);kb.classList.toggle('caps',shift===2);paintBars()}
 function autoShift(){if(D||shift===2||!S.autoCap||S.lang==='km')return;const pre=ta.value.slice(Math.max(0,ta.selectionStart-4),ta.selectionStart);
   shift=(ta.selectionStart===0||/(^|[.!?]\s+|\n)$/.test(pre))?1:0;paintShift()}
-function insert(str,kind){ta.setRangeText(str,ta.selectionStart,ta.selectionEnd,'end');onChange(kind||(str==='\n'?'return':str===' '?'space':'key'))}
+function insert(str,kind){lastIn=str;ta.setRangeText(str,ta.selectionStart,ta.selectionEnd,'end');onChange(kind||(str==='\n'?'return':str===' '?'space':'key'))}
 function backspace(){
   if(D)return;
   if(S.noErase){toast('No erasing is on. Keep going.');return}
@@ -860,7 +905,7 @@ $('backBtn').addEventListener('click',()=>D?exitDrill(true):showPages());
 $('pagesClose').addEventListener('click',()=>{pages.hidden=true;focusTa()});
 
 /* ---------- boot ---------- */
-function fit(){if(window.visualViewport){document.documentElement.style.setProperty('--app-h',visualViewport.height+'px');scrollTo(0,0)}layout()}
+function fit(){if(window.visualViewport){document.documentElement.style.setProperty('--app-h',visualViewport.height+'px');scrollTo(0,0)}buildBars();layout()}
 if(window.visualViewport)visualViewport.addEventListener('resize',fit);
 new ResizeObserver(()=>layout()).observe(scroll);
 applyLook();applyOsk();renderTools();buildKb();
