@@ -241,11 +241,12 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 /* BlackBerry-style word prediction: the likeliest next words float over the key of their next letter. Tap a word, or
    flick up from its key, to type it */
 #preds{z-index:7}
-.pred{position:absolute;transform:translate(-50%,-100%);padding:4px 9px 5px;border:0;border-radius:10px;pointer-events:auto;cursor:pointer;touch-action:none;
-  background:rgba(14,13,12,.95);color:#f4efe5;font:600 14px/1.1 var(--ui),"Noto Sans Khmer";white-space:nowrap;
-  box-shadow:0 0 0 1px rgba(255,255,255,.18),0 4px 10px rgba(0,0,0,.6)}
-.pred::after{content:"";position:absolute;left:50%;bottom:-4px;width:8px;height:8px;margin-left:-4px;background:rgba(14,13,12,.95);transform:rotate(45deg);
+.pred{position:absolute;transform:translate(-50%,-100%);padding:6px 13px 7px;border:0;border-radius:12px;pointer-events:auto;cursor:pointer;touch-action:none;
+  background:rgba(14,13,12,.96);color:#f4efe5;font:600 18px/1.15 var(--ui),"Noto Sans Khmer";white-space:nowrap;
+  box-shadow:0 0 0 1px rgba(240,213,138,.45),0 5px 12px rgba(0,0,0,.65)}
+.pred::after{content:"";position:absolute;left:calc(50% + var(--tx,0px));bottom:-5px;width:9px;height:9px;margin-left:-4px;background:rgba(14,13,12,.96);transform:rotate(45deg);
   box-shadow:2px 2px 3px rgba(0,0,0,.4)}
+.slug.hint{box-shadow:0 0 0 2px #f0d58a,0 0 9px 2px rgba(240,213,138,.75)} /* the head that types the next letter of a floating word */
 .pred.km{font-family:"Noto Sans Khmer","Noto Sans",var(--ui)}
 .fan .slug{touch-action:none}
 
@@ -448,7 +449,7 @@ const IC={
 const LS='lamplight.v1';
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 function defaults(){const id=uid();return{docs:[{id,text:'',t:Date.now()}],cur:id,goal:3000,unit:'chars',sound:true,bell:true,lamp:true,focus:false,
-  noErase:false,autoCap:true,osk:true,size:coarse?18:20,lang:'km',face:'type',faceV:3,ink:'black',paper:'ivory',collapsed:false}}
+  noErase:false,autoCap:true,pred:true,osk:true,size:coarse?18:20,lang:'km',face:'type',faceV:3,ink:'black',paper:'ivory',collapsed:false}}
 let S=defaults();
 try{const j=JSON.parse(localStorage.getItem(LS));if(j&&Array.isArray(j.docs)&&j.docs.length){if(j.faceV!==3){j.face='type';j.faceV=3}S=Object.assign(S,j)}}catch(e){}
 const LIGHTS={spot:'Spotlight',flash:'Flashlight',beam:'Projector beam',candle:'Candle',room:'Room light',off:'Lights off'};
@@ -628,7 +629,7 @@ function buildBars(){
      the same amount, so the rows keep their proportions; heads widen with it. Portrait is already width-limited, so this only
      takes up the last pixels there; in landscape the height limits the heads and the stretch carries them out to the sides. */
   if(touch&&lay.ext>0){const sx=half/lay.ext;lay.out.forEach(o=>{o.x*=sx;o.wd*=sx})}
-  headPos={};lay.out.forEach(o=>headPos[o.id]={x:o.x,y:o.y,sh});
+  headPos={};lay.out.forEach(o=>headPos[o.id]={x:o.x,y:o.y,sh,wd:o.wd});
   const {out,dB,b0}=lay;fanB=lay.maxY;fanSh=sh*.6;
   let h='';const segs=[],rests=[];
   out.forEach(o=>{const Lc=Math.hypot(o.x,o.y);o.Lc=Lc;
@@ -954,17 +955,34 @@ function predictList(){
     }
   }
   return {prefix,words}}
-/* put each word over the head whose letter comes next, as BlackBerry 10 did, so a flick up from that key types it */
+/* the likeliest words float in a row above the key set, never over a head; the head that starts each word glows, and a
+   tap on the word, or a flick up from that head, types it. Each head carries at most one word */
 function renderPreds(){
   const el=$('preds');if(!el)return;
-  if(!fanW||!headPos||D||(isPhone()&&mode==='123')){el.innerHTML='';predMap={};return}
+  const fan=$('fan');if(fan)fan.querySelectorAll('.slug.hint').forEach(e=>e.classList.remove('hint'));
+  if(!S.pred||!fanW||!headPos||D||(isPhone()&&mode==='123')){el.innerHTML='';predMap={};return}
   const {prefix,words}=predictList();sgPrefix=prefix;
-  const used={},chips=[];predMap={};
-  for(const w of words){if(chips.length>=4)break;const rest=w.slice(prefix.length);if(!rest||w===prefix)continue;const nc=[...rest][0].toLowerCase();
-    const id=Object.keys(headPos).find(k=>!k.startsWith('fn:')&&headChar(k).toLowerCase()===nc);if(!id)continue;
-    const n=used[id]=(used[id]||0)+1;if(n>2)continue;chips.push({w,id,lv:n-1});if(n===1)predMap[id]=w}
-  el.innerHTML=chips.map(c=>{const p=headPos[c.id];return `<button class="pred${S.lang==='km'?' km':''}" tabindex="-1" data-w="${c.w.replace(/"/g,'&quot;')}" style="left:${p.x.toFixed(1)}px;top:${(p.y-p.sh/2-5-c.lv*30).toFixed(1)}px">${c.w}</button>`}).join('');
-  el.querySelectorAll('.pred').forEach(b=>{const r=b.getBoundingClientRect(),dx=r.left<4?4-r.left:r.right>innerWidth-4?innerWidth-4-r.right:0;if(dx)b.style.left=(parseFloat(b.style.left)+dx)+'px'})} /* keep every word on the screen */
+  const used={},chips=[],max=coarse||innerWidth<700?3:4;predMap={};
+  for(const w of words){if(chips.length>=max)break;const rest=w.slice(prefix.length);if(!rest||w===prefix)continue;const nc=[...rest][0].toLowerCase();
+    const id=Object.keys(headPos).find(k=>!k.startsWith('fn:')&&headChar(k).toLowerCase()===nc);if(!id||used[id])continue;
+    used[id]=1;chips.push({w,id})}
+  el.innerHTML=chips.map(c=>`<button class="pred${S.lang==='km'?' km':''}" tabindex="-1" data-w="${c.w.replace(/"/g,'&quot;')}" data-id="${c.id}" style="left:${headPos[c.id].x.toFixed(1)}px;top:0">${c.w}</button>`).join('');
+  const bs=[...el.querySelectorAll('.pred')];if(!bs.length)return;
+  const r0=bs[0].getBoundingClientRect(),ox=r0.left+r0.width/2-headPos[bs[0].dataset.id].x; /* where the fan's centre line is on the screen */
+  const items=bs.map(b=>({b,id:b.dataset.id,w:b.offsetWidth,h:b.offsetHeight,cx:headPos[b.dataset.id].x})).sort((u,v)=>u.cx-v.cx),placed=[];
+  for(const it of items){
+    const left=Math.max(4-ox+it.w/2,Math.min(innerWidth-4-ox-it.w/2,it.cx));
+    let lv=0;while(placed.some(q=>q.lv===lv&&Math.abs(q.left-left)<(q.w+it.w)/2+6))lv++;
+    if(lv>1){it.b.remove();continue}
+    /* sit above the top edge of every head the word would otherwise cover */
+    let top=1e9;for(const k in headPos){const h=headPos[k];if(Math.abs(h.x-left)<h.wd/2+it.w/2+2)top=Math.min(top,h.y-h.sh/2)}
+    if(top===1e9)top=headPos[it.id].y-headPos[it.id].sh/2;
+    it.left=left;it.lv=lv;placed.push(it);
+    it.b.style.left=left.toFixed(1)+'px';it.b.style.top=(top-9-lv*(it.h+6)).toFixed(1)+'px';
+    it.b.style.setProperty('--tx',Math.max(-it.w/2+12,Math.min(it.w/2-12,it.cx-left)).toFixed(1)+'px');
+    predMap[it.id]=it.b.dataset.w;
+    const e=barEl[it.id];if(e)e.firstElementChild.firstElementChild.classList.add('hint');
+  }}
 $('preds').addEventListener('pointerdown',e=>{const b=e.target.closest('.pred');if(!b)return;e.preventDefault();audio();pick(b.dataset.w);haptic('light');focusTa()});
 $('preds').addEventListener('mousedown',e=>e.preventDefault());
 function pick(w){const e=ta.selectionStart,s=e-sgPrefix.length;ta.setRangeText(w+(S.lang==='km'?'':' '),s,ta.selectionEnd,'end');onChange('key')}
@@ -1053,6 +1071,7 @@ function showPanel(id){
     <div class="field"><label for="sOsk">On-screen keys<small>${coarse?'Turn off to use your device keyboard':'Shows each key as you type; turn off for more page'}</small></label><input type="checkbox" id="sOsk"${S.osk?' checked':''}></div>
     <div class="field"><label for="sErase">No erasing<small>Like real paper: delete is disabled</small></label><input type="checkbox" id="sErase"${S.noErase?' checked':''}></div>
     <div class="field"><label for="sCap">Capitalize new sentences<small>On-screen keys only</small></label><input type="checkbox" id="sCap"${S.autoCap?' checked':''}></div>
+    <div class="field"><label for="sPred">Word prediction<small>Floats the likely next words above the keys</small></label><input type="checkbox" id="sPred"${S.pred?' checked':''}></div>
     <div class="field"><label for="sDev">Keyboard<small>Which keyboard the type heads copy. Mac and Windows also set the Khmer key map for a physical keyboard</small></label><select id="sDev"><option value="mac">Mac</option><option value="windows">Windows PC</option><option value="ios">iPhone / iPad</option><option value="android">Android</option></select></div>`;
   if(id==='set'){const p=$('sDev');if(p)p.value=dev}
   if(id==='set'){$('sFace').value=S.face;$('sUnit').value=S.unit}
@@ -1080,6 +1099,7 @@ panel.addEventListener('input',e=>{
     if(dev==='mac'||dev==='windows'){try{localStorage.setItem('nidaPlat',plat)}catch(e){}} /* shared with the tutor */
     const m=window.NIDA&&window.NIDA[plat];if(m){for(const k in KMP)delete KMP[k];Object.assign(KMP,m)}
     mode='abc';shift=0;altOn=0;moreOn=false;buildKb();layout();paintBars()}
+  else if(t.id==='sPred'){S.pred=t.checked;renderPreds()}
   else if(t.id==='sCap'){S.autoCap=t.checked;if(!S.autoCap&&shift===1){shift=0;paintShift()}}
   save();
 });
