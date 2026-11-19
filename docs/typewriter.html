@@ -516,13 +516,33 @@ const KROWS=[['Backquote','Digit1','Digit2','Digit3','Digit4','Digit5','Digit6',
   ['KeyQ','KeyW','KeyE','KeyR','KeyT','KeyY','KeyU','KeyI','KeyO','KeyP','BracketLeft','BracketRight','Backslash'],
   ['KeyA','KeyS','KeyD','KeyF','KeyG','KeyH','KeyJ','KeyK','KeyL','Semicolon','Quote'],
   ['KeyZ','KeyX','KeyC','KeyV','KeyB','KeyN','KeyM','Comma','Period','Slash']];
+/* ---------- which keyboard the heads copy: Mac, Windows PC, iPhone / iPad or Android ---------- */
+function detectDev(){const ua=navigator.userAgent||'',pf=navigator.platform||'';
+  if(/iPhone|iPad|iPod/.test(ua)||(pf==='MacIntel'&&navigator.maxTouchPoints>1))return 'ios';
+  if(/Android/.test(ua))return 'android';
+  if(/Mac/.test(pf||ua))return 'mac';return 'windows'}
+let dev=detectDev();try{const v=localStorage.getItem('twDevice');if(/^(mac|windows|ios|android)$/.test(v||''))dev=v}catch(e){}
+const isPhone=()=>dev==='ios'||dev==='android';
 const BARS=KROWS.flatMap((r,ri)=>r.map((c,i)=>({c,x:i+[0,1.5,1.8,2.3][ri]+ri*.01}))).sort((p,q)=>p.x-q.x).map(o=>o.c);
 const barEl={},mods={shift:false,alt:false};let fanW=0,fanB=0,fanSh=0,fanKey='';
-const headKey=()=>(S.size||18)+'|'+S.lang+'|'+S.face;
+const headKey=()=>(S.size||18)+'|'+S.lang+'|'+S.face+'|'+dev+'|'+(isPhone()&&mode==='123'?'n':'a');
 function barMap(){return S.lang==='km'?KMP:EN}
 let altOn=0;
-function barLayer(){return (mods.alt||altOn)?2:(mods.shift||shift)?1:0}
-const FN=[['fn:shift',1],['fn:alt',1],['fn:globe',1],['fn:space',4],['fn:back',2],['fn:enter',1]];
+/* option / AltGr is a layer on a Mac and for Khmer on Windows; a phone has only shift and its number layer */
+function barLayer(){return !isPhone()&&(mods.alt||altOn)&&(dev==='mac'||S.lang==='km')?2:(mods.shift||shift)?1:0}
+/* the phone layout, the same on iPhone / iPad and Android: three rows of letters, a number and symbol layer */
+const ENP={base:['qwertyuiop','asdfghjkl','zxcvbnm'].map(t=>[...t]),num:['1234567890','-/:;()$&@"','.,?!\'#%'].map(t=>[...t])};
+const phoneBase=()=>S.lang==='km'?(mode==='123'?KM.num:KM.base):(mode==='123'?ENP.num:ENP.base);
+function headChar(id){
+  const m=/^p(\d+)_(\d+)$/.exec(id);
+  if(m){const r=+m[1],c=+m[2];
+    if(S.lang==='km')return (mode==='123'?KM.num:(barLayer()===1?KM.shift:KM.base))[r]?.[c]||'';
+    const ch=phoneBase()[r]?.[c]||'';return mode!=='123'&&barLayer()===1?ch.toUpperCase():ch}
+  return (barMap()[id]||[])[barLayer()]||''}
+const headRows=()=>isPhone()?phoneBase().map((r,ri)=>r.map((_,ci)=>['p'+ri+'_'+ci,1])):KROWS.map(r=>r.map(c=>[c,1]));
+/* the machine's own keys: no option key on a phone, or for English on Windows; a phone has a 123 key instead */
+function fnItems(){const a=[['fn:shift',1]];if(isPhone())a.push(['fn:num',1]);else if(dev==='mac'||S.lang==='km')a.push(['fn:alt',1]);
+  a.push(['fn:globe',1],['fn:space',4],['fn:back',2],['fn:enter',1]);return a}
 function buildBars(){
   const fan=$('fan'),rail=fan&&fan.parentElement;if(!rail)return;
   const W=rail.clientWidth;if(!W||Math.abs(W-fanW)<2&&fan.childElementCount&&fanKey===headKey())return;fanW=W;fanKey=headKey();
@@ -535,12 +555,12 @@ function buildBars(){
     TMAX=(touch?68:62)*Math.PI/180,
     DY=Math.round(fs*1.9); /* the key set sits this far below the print line, in its own area under the paper's edge; the bars reach up to the line */
   const w0=Math.round(Math.max(letterW()*1.3,fs*.72)+3),h0=Math.round(fs*1.15+4);
-  const rows=KROWS.map(r=>r.map(c=>[c,1])).concat([FN]);
+  const rows=headRows().concat([fnItems()]);
   const arc=(A,B,T=TMAX)=>{const smp=[],N=300;let len=0;for(let k=0;k<=N;k++){const t=-T+2*T*k/N,q=[A*Math.sin(t),B*Math.cos(t)];if(k)len+=Math.hypot(q[0]-smp[k-1][0],q[1]-smp[k-1][1]);q.push(len);smp.push(q)}return {smp,len}};
   /* on a phone the heads grow toward a comfortable thumb size, as far as the width and about half of the screen's height
      allow; the paper shortens to make room */
   const kmax=touch?Math.max(1,Math.min(3,44/w0)):1,hmax=touch?innerHeight*.5:1e9;
-  let sw,sh,lf,lay=null;
+  let sw,sh,lf,lay=null,fb=null;
   /* lay one set of rings out from the middle of each outward, a head at a time. Heads are spaced by how steep the ring is
      where they sit: close side by side near the bottom, further apart on the steep sides, where they would stack and overlap */
   const place=(a0,dB,dA)=>{
@@ -551,9 +571,15 @@ function buildBars(){
         const dx=Math.abs(smp[j+1][0]-smp[j][0]),dy=Math.abs(smp[j+1][1]-smp[j][1]),h=Math.hypot(dx,dy)||1;return [dx/h,dy/h]};
       const need=(i,s)=>{const [c,sn]=tg(s);return Math.min(((wd[i]+wd[i+1])/2+GAP)/Math.max(c,1e-3),(sh+GAP)/Math.max(sn,1e-3))};
       const pos=new Array(n),m=n>>1;
+      if(row.some(q=>q[1]!==1)){ /* a row with wide heads: lay it out left to right, then centre its whole span on the ring */
+        let tot=0;for(let i=0;i<n;i++)tot+=wd[i]+GAP;pos[0]=len/2-tot/2+wd[0]/2;
+        for(let i=0;i<n-1;i++){const d0=need(i,pos[i]);pos[i+1]=pos[i]+need(i,pos[i]+d0/2)}
+        const sh0=len/2-(pos[0]-wd[0]/2+pos[n-1]+wd[n-1]/2)/2;for(let i=0;i<n;i++)pos[i]+=sh0}
+      else{
       if(n%2){pos[m]=len/2}else{const d=need(m-1,len/2);pos[m]=len/2+d/2;pos[m-1]=len/2-d/2}
       for(let i=m;i<n-1;i++){const d0=need(i,pos[i]);pos[i+1]=pos[i]+need(i,pos[i]+d0/2)} /* the slope is read half way between the two heads */
       for(let i=n%2?m:m-1;i>0;i--){const d0=need(i-1,pos[i]);pos[i-1]=pos[i]-need(i-1,pos[i]-d0/2)}
+      }
       if(pos[0]<0||pos[n-1]>len)return null;
       row.forEach(([id],i)=>{
         let j=0,lo=0,hi=smp.length-2;while(lo<hi){const mm=(lo+hi+1)>>1;if(smp[mm][2]<=pos[i])lo=mm;else hi=mm-1}j=lo;
@@ -566,12 +592,17 @@ function buildBars(){
   for(let k=kmax;k>.3;k-=touch?.012:.05){
     sw=touch?Math.max(8,w0*k):Math.max(8,Math.round(w0*k));sh=touch?sw*1.3:Math.max(12,Math.round(h0*k)); /* phones size to fractions of a pixel, so the width can be filled exactly */ /* phone heads stay squarer, so the width fills before the height runs out */
     lf=Math.round(Math.min(fs*.95*k,sw*.82));
-    const dB=sh+RG,dA=touch?Math.max(dB*.5,sw+RG*.6):dB*.5; /* on a phone the rings are also spaced out sideways */
+    const dB=sh+RG,dA=touch?Math.max(dB*.5,sw*1.2+RG*.5):dB*.5; /* on a phone the rings are also spaced out sideways */
     let L=null;for(let a0=60;a0<700&&!L;a0+=6)L=place(a0,dB,dA);
-    if(!L)continue;lay=L;
-    if(L.ext<=W/2-(touch?1:6)&&L.b0+4*dB+DY+sh*1.6<=hmax)break;
+    if(!L)continue;fb=L;
+    /* no two heads, in any rows, may touch: if they do at this size, try a smaller one */
+    let hit=false;for(let i=0;i<L.out.length&&!hit;i++)for(let j=i+1;j<L.out.length;j++){const a=L.out[i],b=L.out[j];
+      if(Math.abs(a.x-b.x)<(a.wd+b.wd)/2+.2&&Math.abs(a.y-b.y)<sh+.2){hit=true;break}}
+    if(hit)continue;lay=L;
+    if(L.ext<=W/2-(touch?1:6)&&L.b0+(rows.length-1)*dB+DY+sh*1.6<=hmax)break;
   }
-  const {out,dB,b0}=lay;fanB=b0+4*dB+DY;fanSh=sh*.6;
+  if(!lay)lay=fb;
+  const {out,dB,b0}=lay;fanB=b0+(rows.length-1)*dB+DY;fanSh=sh*.6;
   let h='';const segs=[],rests=[];
   out.forEach(o=>{const Lc=Math.hypot(o.x,o.y);o.Lc=Lc;
     const q=(segs[o.ri]=segs[o.ri]||[]);q.push([o.x*.5,o.y*.5]);
@@ -587,25 +618,25 @@ function buildBars(){
   const sv=`<svg width="1" height="1">`+rests.map(r=>`<path d="${path(r)}" fill="none" stroke="#0b0a09" stroke-width="${(sh*1.12).toFixed(1)}" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/>`).join('')+
     segs.map((sg,i)=>`<path d="${path(sg)}" fill="none" stroke="var(--brass)" stroke-width="${i?1.5:4}" stroke-linecap="round" stroke-linejoin="round" opacity="${i?.65:1}"/>`).join('')+`</svg>`;
   fan.innerHTML=sv+h;
-  fan.querySelectorAll('.tbar').forEach(e=>barEl[e.dataset.c]=e);
+  for(const k in barEl)delete barEl[k];fan.querySelectorAll('.tbar').forEach(e=>barEl[e.dataset.c]=e);
   const sl=rail.querySelector('.spool.l'),sr=rail.querySelector('.spool.r');
   [[sl,-1],[sr,1]].forEach(([e,d2])=>{if(e){e.style.setProperty('--sp',(d2*(W/2-22))+'px');e.style.setProperty('--spt',(py+24)+'px')}});
   paintBars();
 }
 function paintBars(){
-  if(!fanW)return;if(fanKey!==headKey()){buildBars();return}const M=barMap(),l=barLayer();
-  for(const c of BARS){const e=barEl[c];if(!e)continue;const u=(M[c]&&M[c][l])||'';
-    e.querySelector('b').textContent=/^\p{M}/u.test(u)?'◌'+u:u}
-
-  const T={shift:'⇧',alt:'⌥',globe:S.lang==='km'?'A':'ក',back:'⌫',enter:'↵',space:S.lang==='km'?'ខ្មែរ':'English'};
+  if(!fanW)return;if(fanKey!==headKey()){buildBars();return}
+  for(const id in barEl){if(id.startsWith('fn:'))continue;const u=headChar(id);barEl[id].querySelector('b').textContent=/^\p{M}/u.test(u)?'◌'+u:u}
+  const km=S.lang==='km',T={shift:'⇧',alt:dev==='mac'?'⌥':'AltGr',num:mode==='123'?(km?'កខគ':'ABC'):(km?'១២៣':'123'),globe:km?'A':'ក',back:'⌫',enter:'↵',space:km?'ខ្មែរ':'English'};
   for(const k in T){const e=barEl['fn:'+k];if(!e)continue;const sl=e.firstElementChild.firstElementChild,b=sl.firstElementChild;
-    b.textContent=T[k];if(k==='space')b.style.fontSize='.62em';sl.classList.toggle('on',k==='shift'?(shift>0||mods.shift):k==='alt'?!!(altOn||mods.alt):false)}
+    b.textContent=T[k];b.style.fontSize=(k==='space'||k==='num'||(k==='alt'&&dev!=='mac'))?'.62em':'';
+    sl.classList.toggle('on',k==='shift'?(shift>0||mods.shift):k==='alt'?!!(altOn||mods.alt):k==='num'?mode==='123':false)}
 }
 function whip(ch){
-  if(!ch||!fanW)return;const M=barMap(),l=barLayer();
-  let c=BARS.find(k=>M[k]&&M[k][l]===ch)||BARS.find(k=>M[k]&&M[k].includes(ch));
-  if(!c){const f=[...ch][0];c=BARS.find(k=>M[k]&&M[k][l]===f)||BARS.find(k=>M[k]&&M[k].includes(f))}
-  if(!c&&S.lang==='km')c=BARS.find(k=>EN[k].includes(ch));
+  if(!ch||!fanW)return;
+  const ids=Object.keys(barEl).filter(k=>!k.startsWith('fn:')),f=[...ch][0];
+  let c=ids.find(k=>headChar(k)===ch)||ids.find(k=>headChar(k)===f);
+  if(!c&&!isPhone()){const M=barMap();c=ids.find(k=>M[k]&&M[k].includes(ch))||ids.find(k=>M[k]&&M[k].includes(f));
+    if(!c&&S.lang==='km')c=ids.find(k=>EN[k]&&EN[k].includes(ch))}
   const e=c&&barEl[c];if(!e)return;whipEl(e);
 }
 /* the whip itself, for any head */
@@ -790,12 +821,14 @@ $('fan').addEventListener('pointerdown',e=>{
   const bar=e.target.closest('.tbar');if(!bar)return;e.preventDefault();const c=bar.dataset.c;
   if(c.startsWith('fn:')){
     const k=c.slice(3);audio();
-    if(k==='alt'){altOn=altOn?0:1;paintBars()}else press({dataset:{k}});
-    if(k!=='space'&&!still)whipEl(bar); /* every key whips except the space bar, which only presses in */
+    if(k==='alt'){altOn=altOn?0:1;paintBars()}
+    else if(k==='num')press({dataset:{k:mode==='123'?'abc':'123'}});
+    else press({dataset:{k}});
+    if((k==='shift'||k==='alt'||k==='back'||k==='enter')&&!still)whipEl(bar); /* these whip; space, language and 123 only press in */
     else{const sl=bar.firstElementChild.firstElementChild,up=bar.firstElementChild.dataset.up+'rad';
     sl.animate([{transform:`translateY(0) rotateX(0deg) rotate(${up})`},{transform:`translateY(-3px) rotateX(0deg) rotate(${up})`,offset:.4},{transform:`translateY(0) rotateX(0deg) rotate(${up})`}],{duration:110,easing:'ease-out'})}
     paintBars();haptic(k==='space'||k==='enter'?'medium':'light');focusTa();return}
-  const u=(barMap()[c]||[])[barLayer()];if(!u)return;
+  const u=headChar(c);if(!u)return;
   audio();insert(u);
   if(shift===1){shift=0;paintShift()}if(altOn){altOn=0;paintBars()}
   haptic('light');focusTa();if(D)drillHint();
@@ -854,7 +887,8 @@ function pick(w){const e=ta.selectionStart,s=e-sgPrefix.length;ta.setRangeText(w
 /* physical keys use the tutor's own NiDA maps (nida-layouts.js), Windows or Mac as chosen in the tutor */
 let plat='windows';
 try{plat=localStorage.getItem('nidaPlat')||(/Mac|iPhone|iPad/.test(navigator.platform||navigator.userAgent)?'mac':'windows')}catch(e){}
-const KMP=(window.NIDA&&window.NIDA[plat==='mac'?'mac':'windows'])||{};
+try{if(localStorage.getItem('twDevice'))plat=(dev==='mac'||dev==='ios')?'mac':'windows'}catch(e){}
+const KMP=Object.assign({},(window.NIDA&&window.NIDA[plat==='mac'?'mac':'windows'])||{});
 const KEYMAP={' ':'space','Enter':'enter','Backspace':'back','Shift':'shift'};
 addEventListener('keydown',e=>{
   if(e.key==='Escape'){closePanel();pages.hidden=true;if(!learnEl.hidden)learnEl.hidden=true;else if(D)exitDrill(true);focusTa();return}
@@ -933,8 +967,8 @@ function showPanel(id){
     <div class="field"><label for="sOsk">On-screen keys<small>${coarse?'Turn off to use your device keyboard':'Shows each key as you type; turn off for more page'}</small></label><input type="checkbox" id="sOsk"${S.osk?' checked':''}></div>
     <div class="field"><label for="sErase">No erasing<small>Like real paper: delete is disabled</small></label><input type="checkbox" id="sErase"${S.noErase?' checked':''}></div>
     <div class="field"><label for="sCap">Capitalize new sentences<small>On-screen keys only</small></label><input type="checkbox" id="sCap"${S.autoCap?' checked':''}></div>
-    <div class="field"><label for="sPlat">Computer keyboard<small>Khmer key map for a physical keyboard, shared with the tutor</small></label><select id="sPlat"><option value="windows">Windows NiDA</option><option value="mac">Mac NiDA</option></select></div>`;
-  if(id==='set'){const p=$('sPlat');if(p)p.value=plat==='mac'?'mac':'windows'}
+    <div class="field"><label for="sDev">Keyboard<small>Which keyboard the type heads copy. Mac and Windows also set the Khmer key map for a physical keyboard</small></label><select id="sDev"><option value="mac">Mac</option><option value="windows">Windows PC</option><option value="ios">iPhone / iPad</option><option value="android">Android</option></select></div>`;
+  if(id==='set'){const p=$('sDev');if(p)p.value=dev}
   if(id==='set'){$('sFace').value=S.face;$('sUnit').value=S.unit}
   renderTools();
 }
@@ -955,8 +989,11 @@ panel.addEventListener('input',e=>{
   else if(t.id==='sUnit'){S.unit=t.value;lastN=count()}
   else if(t.id==='sOsk'){S.osk=t.checked;S.oskChosen=true;applyOsk();renderTools();openPanel='set';layout()}
   else if(t.id==='sErase'){S.noErase=t.checked}
-  else if(t.id==='sPlat'){plat=t.value;try{localStorage.setItem('nidaPlat',plat)}catch(e){}
-    const m=window.NIDA&&window.NIDA[plat];if(m){for(const k in KMP)delete KMP[k];Object.assign(KMP,m)}}
+  else if(t.id==='sDev'){dev=t.value;try{localStorage.setItem('twDevice',dev)}catch(e){}
+    plat=(dev==='mac'||dev==='ios')?'mac':'windows';
+    if(dev==='mac'||dev==='windows'){try{localStorage.setItem('nidaPlat',plat)}catch(e){}} /* shared with the tutor */
+    const m=window.NIDA&&window.NIDA[plat];if(m){for(const k in KMP)delete KMP[k];Object.assign(KMP,m)}
+    mode='abc';shift=0;altOn=0;buildKb();layout();paintBars()}
   else if(t.id==='sCap'){S.autoCap=t.checked;if(!S.autoCap&&shift===1){shift=0;paintShift()}}
   save();
 });
