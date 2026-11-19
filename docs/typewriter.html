@@ -167,6 +167,15 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 .tbar.hot{z-index:5}
 /* off the rest pad it casts no shadow while it flies and hits */
 .tbar.hot .slug{box-shadow:inset 0 0 0 .5px #2f2d2b,0 1px 0 #7d7973,0 2px 0 #4f4c48}
+/* black keys: the same heads in black enamel with pale letters */
+[data-keys=black] .slug{background:linear-gradient(90deg,#0b0b0c 0%,#4a4b4f 28%,#222326 55%,#040404 100%);
+  box-shadow:inset 0 0 0 .5px #000,0 1px 0 #55575b,0 2px 0 #1a1a1c,0 3px 3px rgba(0,0,0,.6),0 5px 7px rgba(0,0,0,.35)}
+[data-keys=black] .slug::before{background:#18181a}
+[data-keys=black] .slug::after{background:rgba(255,255,255,.28)}
+[data-keys=black] .slug b{color:#f1ede4}
+[data-keys=black] .tbar.hot .slug{box-shadow:inset 0 0 0 .5px #000,0 1px 0 #55575b,0 2px 0 #1a1a1c}
+[data-keys=black] .slug.on{background:linear-gradient(90deg,#6e5424 0%,#f0d58a 30%,#c39a45 55%,#5e4619 100%)}
+[data-keys=black] .slug.on b{color:#2f2d2b}
 
 
 /* tool strip */
@@ -452,7 +461,7 @@ const IC={
 const LS='lamplight.v1';
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 function defaults(){const id=uid();return{docs:[{id,text:'',t:Date.now()}],cur:id,goal:3000,unit:'chars',sound:true,bell:true,lamp:true,focus:false,
-  noErase:false,autoCap:true,pred:true,osk:true,size:coarse?18:20,lang:'km',face:'type',faceV:3,ink:'black',paper:'ivory',collapsed:false}}
+  noErase:false,autoCap:true,pred:true,keys:'ivory',osk:true,size:coarse?18:20,lang:'km',face:'type',faceV:3,ink:'black',paper:'ivory',collapsed:false}}
 let S=defaults();
 try{const j=JSON.parse(localStorage.getItem(LS));if(j&&Array.isArray(j.docs)&&j.docs.length){if(j.faceV!==3){j.face='type';j.faceV=3}S=Object.assign(S,j)}}catch(e){}
 const LIGHTS={spot:'Spotlight',flash:'Flashlight',beam:'Projector beam',candle:'Candle',room:'Room light',off:'Lights off'};
@@ -574,7 +583,7 @@ function buildBars(){
      Heads are packed close along each ring. Every bar runs to the print point and pivots halfway, so a struck head
      whips up and lands on the letter */
   const touch=W<700||coarse||isPhone(),fs=S.size||18,py=-40,
-    RG=touch?(innerWidth>innerHeight?6:8):5,GAP=touch?2:3, /* a small clear space between neighbouring heads and between rows, so a thumb doesn't hit two */
+    RG=touch?(innerWidth>innerHeight?3:6):3,GAP=touch?1:1.5, /* a small clear space between neighbouring heads and between rows, so a thumb doesn't hit two */
     TMAX=(touch?68:62)*Math.PI/180,
     lnd=(touch&&innerWidth>innerHeight),DY=Math.round(fs*(lnd?1.45:1.9))+(S.pred?(lnd?16:30):(lnd?4:14)); /* clear space under the paper for the floating words, and a gap even without them; */ /* the key set sits this far below the print line, in its own area under the paper's edge; the bars reach up to the line */
   const half=touch?Math.min(W/2-.5,460):W/2-6; /* half the width the key set may fill; a phone layout on a wide window stops at 920px */
@@ -617,7 +626,7 @@ function buildBars(){
   for(let k=kmax;k>.3;k-=touch?.012:.05){
     sw=touch?Math.max(8,w0*k):Math.max(8,Math.round(w0*k));sh=touch?Math.min(sw*1.3,Math.max(lnd?12:18,(hmax-DY-(lnd?14:30))/rows.length-RG)):Math.max(12,Math.round(h0*k)); /* phones size to fractions of a pixel, so the width can be filled exactly */ /* phone heads stay squarer, so the width fills before the height runs out */
     lf=Math.round(Math.min(fs*.95*k,sw*.82,touch?sh*.72:99));
-    const dB=sh+RG,dA=touch?Math.max(dB*.5,sw*1.2+RG*.5):dB*.5;
+    const dB=sh+RG,dA=touch?Math.max(dB*.5,sw*1.2+4):dB*.5;
     let L=null;for(let a0=60;a0<700&&!L;a0+=6)L=place(a0,dB,dA);
     if(!L)continue;fb=L;
     /* no two heads, in any rows, may touch: if they do at this size, try a smaller one */
@@ -1053,7 +1062,7 @@ function renderTools(){
   tools.classList.toggle('collapsed',S.collapsed);
 }
 function applyLook(){
-  device.dataset.light=S.light;device.classList.toggle('focus',S.focus);
+  device.dataset.light=S.light;device.dataset.keys=S.keys;device.classList.toggle('focus',S.focus);
   device.classList.toggle('inked',/^type/.test(S.face));device.classList.toggle('heavy',S.face==='type2');
   const p=PAPERS[S.paper]||PAPERS.ivory,r=device.style;
   r.setProperty('--paper-dim',p[0]);r.setProperty('--paper-lit',p[1]);r.setProperty('--paper-flat',p[2]);
@@ -1086,10 +1095,11 @@ function showPanel(id){
     <div class="field"><label for="sOsk">On-screen keys<small>${coarse?'Turn off to use your device keyboard':'Shows each key as you type; turn off for more page'}</small></label><input type="checkbox" id="sOsk"${S.osk?' checked':''}></div>
     <div class="field"><label for="sErase">No erasing<small>Like real paper: delete is disabled</small></label><input type="checkbox" id="sErase"${S.noErase?' checked':''}></div>
     <div class="field"><label for="sCap">Capitalize new sentences<small>On-screen keys only</small></label><input type="checkbox" id="sCap"${S.autoCap?' checked':''}></div>
+    <div class="field"><label for="sKeys">Key colour</label><select id="sKeys"><option value="ivory">Ivory</option><option value="black">Black</option></select></div>
     <div class="field"><label for="sPred">Word prediction<small>Floats the likely next words above the keys</small></label><input type="checkbox" id="sPred"${S.pred?' checked':''}></div>
     <div class="field"><label for="sDev">Keyboard<small>Which keyboard the type heads copy. Mac and Windows also set the Khmer key map for a physical keyboard</small></label><select id="sDev"><option value="mac">Mac</option><option value="windows">Windows PC</option><option value="ios">iPhone / iPad</option><option value="android">Android</option></select></div>`;
   if(id==='set'){const p=$('sDev');if(p)p.value=dev}
-  if(id==='set'){$('sFace').value=S.face;$('sUnit').value=S.unit}
+  if(id==='set'){$('sFace').value=S.face;$('sUnit').value=S.unit;$('sKeys').value=S.keys}
   renderTools();
 }
 panel.addEventListener('click',e=>{
@@ -1114,6 +1124,7 @@ panel.addEventListener('input',e=>{
     if(dev==='mac'||dev==='windows'){try{localStorage.setItem('nidaPlat',plat)}catch(e){}} /* shared with the tutor */
     const m=window.NIDA&&window.NIDA[plat];if(m){for(const k in KMP)delete KMP[k];Object.assign(KMP,m)}
     mode='abc';shift=0;altOn=0;moreOn=false;buildKb();layout();paintBars()}
+  else if(t.id==='sKeys'){S.keys=t.value;applyLook()}
   else if(t.id==='sPred'){S.pred=t.checked;renderPreds()}
   else if(t.id==='sCap'){S.autoCap=t.checked;if(!S.autoCap&&shift===1){shift=0;paintShift()}}
   save();
