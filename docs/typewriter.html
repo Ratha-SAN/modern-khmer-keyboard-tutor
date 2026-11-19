@@ -249,7 +249,9 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 .slug.hint{box-shadow:0 0 0 2px #f0d58a,0 0 9px 2px rgba(240,213,138,.75)} /* the head that types the next letter of a floating word */
 .pred.km{font-family:"Noto Sans Khmer","Noto Sans",var(--ui)}
 .fan .slug{touch-action:none;will-change:transform}
-.lnd .pred{font-size:15px;padding:4px 10px 5px;border-radius:10px}
+.lnd .pred{font-size:14px;padding:3px 9px 4px;border-radius:9px}
+@media (orientation:landscape) and (max-height:480px){ /* short screens (a phone on its side, a Telegram mini app): a slimmer tool strip leaves the room to the paper */
+  .chassis{padding:3px 12px 4px}.tb{height:30px}.tools{padding:1px 8px}}
 
 /* pages */
 .pages{position:absolute;inset:0;z-index:10;background:var(--panel);display:flex;flex-direction:column}
@@ -538,7 +540,7 @@ let dev=detectDev();try{const v=localStorage.getItem('twDevice');if(/^(mac|windo
 const isPhone=()=>dev==='ios'||dev==='android';
 const BARS=KROWS.flatMap((r,ri)=>r.map((c,i)=>({c,x:i+[0,1.5,1.8,2.3][ri]+ri*.01}))).sort((p,q)=>p.x-q.x).map(o=>o.c);
 let headPos=null,predMap={};
-const barEl={},mods={shift:false,alt:false};let fanW=0,fanB=0,fanSh=0,fanKey='';
+const barEl={},mods={shift:false,alt:false};let fanW=0,fanB=0,fanSh=0,fanKey='',fanLnd=false;
 const headKey=()=>(S.size||18)+'|'+(S.pred?1:0)+'|'+S.lang+'|'+S.face+'|'+dev+'|'+(isPhone()&&mode==='123'?(moreOn?'m':'n'):'a');
 function barMap(){return S.lang==='km'?KMP:EN}
 let altOn=0;
@@ -572,9 +574,9 @@ function buildBars(){
      Heads are packed close along each ring. Every bar runs to the print point and pivots halfway, so a struck head
      whips up and lands on the letter */
   const touch=W<700||coarse||isPhone(),fs=S.size||18,py=-40,
-    RG=touch?8:5,GAP=touch?2:3, /* a small clear space between neighbouring heads and between rows, so a thumb doesn't hit two */
+    RG=touch?(innerWidth>innerHeight?6:8):5,GAP=touch?2:3, /* a small clear space between neighbouring heads and between rows, so a thumb doesn't hit two */
     TMAX=(touch?68:62)*Math.PI/180,
-    lnd=(touch&&innerWidth>innerHeight),DY=Math.round(fs*1.9)+(S.pred?(lnd?28:30):(lnd?8:14)); /* clear space under the paper for the floating words, and a gap even without them; */ /* the key set sits this far below the print line, in its own area under the paper's edge; the bars reach up to the line */
+    lnd=(touch&&innerWidth>innerHeight),DY=Math.round(fs*(lnd?1.45:1.9))+(S.pred?(lnd?16:30):(lnd?4:14)); /* clear space under the paper for the floating words, and a gap even without them; */ /* the key set sits this far below the print line, in its own area under the paper's edge; the bars reach up to the line */
   const half=touch?Math.min(W/2-.5,460):W/2-6; /* half the width the key set may fill; a phone layout on a wide window stops at 920px */
   const w0=Math.round(Math.max((letterW()||fs*.6)*1.3,fs*.72)+3),h0=Math.round(fs*1.15+4);
   const rows=headRows().concat([fnItems()]);
@@ -582,7 +584,7 @@ function buildBars(){
   /* on a phone the heads grow toward a comfortable thumb size, as far as the width and about half of the screen's height
      allow; the paper shortens to make room */
   const land=innerWidth>innerHeight,
-    kmax=touch?Math.max(1,Math.min(3.4,56/w0)):1,hmax=touch?innerHeight*(land?.55:.5):1e9;
+    kmax=touch?Math.max(1,Math.min(3.4,56/w0)):1,hmax=touch?(land?Math.max(innerHeight*.5,innerHeight-(document.querySelector('.chassis')||{offsetHeight:50}).offsetHeight-68):innerHeight*.5):1e9; /* landscape: the paper keeps about 100px, the heads take what is left */
   let sw,sh,lf,lay=null,fb=null;
   /* lay one set of rings out from the middle of each outward, a head at a time. Heads are spaced by how steep the ring is
      where they sit: close side by side near the bottom, further apart on the steep sides, where they would stack and overlap */
@@ -613,7 +615,7 @@ function buildBars(){
     return {out,dB,b0,ext,maxY};
   };
   for(let k=kmax;k>.3;k-=touch?.012:.05){
-    sw=touch?Math.max(8,w0*k):Math.max(8,Math.round(w0*k));sh=touch?Math.min(sw*1.3,Math.max(18,(hmax-DY-30)/rows.length-RG)):Math.max(12,Math.round(h0*k)); /* phones size to fractions of a pixel, so the width can be filled exactly */ /* phone heads stay squarer, so the width fills before the height runs out */
+    sw=touch?Math.max(8,w0*k):Math.max(8,Math.round(w0*k));sh=touch?Math.min(sw*1.3,Math.max(lnd?12:18,(hmax-DY-(lnd?14:30))/rows.length-RG)):Math.max(12,Math.round(h0*k)); /* phones size to fractions of a pixel, so the width can be filled exactly */ /* phone heads stay squarer, so the width fills before the height runs out */
     lf=Math.round(Math.min(fs*.95*k,sw*.82,touch?sh*.72:99));
     const dB=sh+RG,dA=touch?Math.max(dB*.5,sw*1.2+RG*.5):dB*.5;
     let L=null;for(let a0=60;a0<700&&!L;a0+=6)L=place(a0,dB,dA);
@@ -622,7 +624,7 @@ function buildBars(){
     let hit=false;for(let i=0;i<L.out.length&&!hit;i++)for(let j=i+1;j<L.out.length;j++){const a=L.out[i],b=L.out[j];
       if(Math.abs(a.x-b.x)<(a.wd+b.wd)/2+.2&&Math.abs(a.y-b.y)<sh+.2){hit=true;break}}
     if(hit)continue;lay=L;
-    if(L.ext<=half&&L.maxY+sh*.8<=hmax)break;
+    if(L.ext<=half&&L.maxY+sh*(lnd?1.4:.8)<=hmax)break;
   }
   if(!lay)lay=fb;
   if(!lay){fanW=0;fanKey='';return} /* nothing fitted yet (the page is still laying out): try again on the next pass */
@@ -630,9 +632,9 @@ function buildBars(){
      the same amount, so the rows keep their proportions; heads widen with it. Portrait is already width-limited, so this only
      takes up the last pixels there; in landscape the height limits the heads and the stretch carries them out to the sides. */
   if(touch&&lay.ext>0){let sx=half/lay.ext;
-    if(lnd)sx=Math.min(sx,Math.max(1,2.4*sh/Math.max(1,lay.out[0].wd))); /* on a wide, short screen keep the heads from stretching into flat slabs: they stay close to key-shaped and the set sits in the middle */lay.out.forEach(o=>{o.x*=sx;o.wd*=sx})}
+    if(lnd)sx=Math.min(340/lay.ext,sx,Math.max(1,1.55*sh/Math.max(1,lay.out[0].wd))); /* on a wide, short screen keep the heads from stretching into flat slabs: they stay close to key-shaped and the set sits in the middle */lay.out.forEach(o=>{o.x*=sx;o.wd*=sx})}
   headPos={};lay.out.forEach(o=>headPos[o.id]={x:o.x,y:o.y,sh,wd:o.wd});
-  const {out,dB,b0}=lay;fanB=lay.maxY;fanSh=sh*.6;
+  const {out,dB,b0}=lay;fanB=lay.maxY;fanSh=sh*.6;fanLnd=lnd;
   let h='';const segs=[],rests=[];
   out.forEach(o=>{const Lc=Math.hypot(o.x,o.y);o.Lc=Lc;
     const q=(segs[o.ri]=segs[o.ri]||[]);q.push([o.x*.5,o.y*.5]);
@@ -733,7 +735,7 @@ function follow(smooth=true){
     device.style.setProperty('--tx',tx+'px');lastTx=tx}
   const rail=headEl.offsetParent,fr=paper.getBoundingClientRect();
   if(rail){const py=Math.round((m.top+m.bottom)/2-rail.getBoundingClientRect().top);device.style.setProperty('--py',py+'px');
-    if(fanB){const want=Math.max(40,Math.ceil(py+fanB+fanSh*2.3+10));if(Math.abs(rail.offsetHeight-want)>1)rail.style.height=want+'px'}}
+    if(fanB){const want=Math.max(40,Math.ceil(py+fanB+fanSh*(fanLnd?1.6:2.3)+(fanLnd?4:10)));if(Math.abs(rail.offsetHeight-want)>1)rail.style.height=want+'px'}}
   device.style.setProperty('--rx',(rail?fr.left+fr.width/2-rail.getBoundingClientRect().left:mid)+'px');
   /* lights live on the page, so they are placed where the print point falls on it */
   device.style.setProperty('--hx',x+'px');caretX=x;
