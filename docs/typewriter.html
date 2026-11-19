@@ -531,7 +531,7 @@ function buildBars(){
      Heads are packed close along each ring. Every bar runs to the print point and pivots halfway, so a struck head
      whips up and lands on the letter */
   const touch=W<700||coarse,fs=S.size||18,py=-40,
-    RG=touch?8:5,GAP=touch?5:3, /* a small clear space between neighbouring heads and between rows, so a thumb doesn't hit two */
+    RG=touch?8:5,GAP=touch?2:3, /* a small clear space between neighbouring heads and between rows, so a thumb doesn't hit two */
     TMAX=(touch?68:62)*Math.PI/180,
     DY=Math.round(fs*1.9); /* the key set sits this far below the print line, in its own area under the paper's edge; the bars reach up to the line */
   const w0=Math.round(Math.max(letterW()*1.3,fs*.72)+3),h0=Math.round(fs*1.15+4);
