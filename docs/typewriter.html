@@ -530,7 +530,9 @@ function buildBars(){
      four, the number row innermost; the shift, option, language, space, delete and return heads sit on the outer one.
      Heads are packed close along each ring. Every bar runs to the print point and pivots halfway, so a struck head
      whips up and lands on the letter */
-  const touch=W<700||coarse,fs=S.size||18,py=-40,RG=4,GAP=2,TMAX=(touch?68:62)*Math.PI/180,
+  const touch=W<700||coarse,fs=S.size||18,py=-40,
+    RG=touch?8:5,GAP=touch?5:3, /* a small clear space between neighbouring heads and between rows, so a thumb doesn't hit two */
+    TMAX=(touch?68:62)*Math.PI/180,
     DY=Math.round(fs*1.9); /* the key set sits this far below the print line, in its own area under the paper's edge; the bars reach up to the line */
   const w0=Math.round(Math.max(letterW()*1.3,fs*.72)+3),h0=Math.round(fs*1.15+4);
   const rows=KROWS.map(r=>r.map(c=>[c,1])).concat([FN]);
@@ -550,8 +552,8 @@ function buildBars(){
       const need=(i,s)=>{const [c,sn]=tg(s);return Math.min(((wd[i]+wd[i+1])/2+GAP)/Math.max(c,1e-3),(sh+GAP)/Math.max(sn,1e-3))};
       const pos=new Array(n),m=n>>1;
       if(n%2){pos[m]=len/2}else{const d=need(m-1,len/2);pos[m]=len/2+d/2;pos[m-1]=len/2-d/2}
-      for(let i=n%2?m:m;i<n-1;i++)pos[i+1]=pos[i]+need(i,pos[i]);
-      for(let i=n%2?m:m-1;i>0;i--)pos[i-1]=pos[i]-need(i-1,pos[i]);
+      for(let i=m;i<n-1;i++){const d0=need(i,pos[i]);pos[i+1]=pos[i]+need(i,pos[i]+d0/2)} /* the slope is read half way between the two heads */
+      for(let i=n%2?m:m-1;i>0;i--){const d0=need(i-1,pos[i]);pos[i-1]=pos[i]-need(i-1,pos[i]-d0/2)}
       if(pos[0]<0||pos[n-1]>len)return null;
       row.forEach(([id],i)=>{
         let j=0,lo=0,hi=smp.length-2;while(lo<hi){const mm=(lo+hi+1)>>1;if(smp[mm][2]<=pos[i])lo=mm;else hi=mm-1}j=lo;
@@ -564,7 +566,7 @@ function buildBars(){
   for(let k=kmax;k>.3;k-=touch?.03:.05){
     sw=Math.max(8,Math.round(w0*k));sh=touch?Math.round(sw*1.3):Math.max(12,Math.round(h0*k)); /* phone heads stay squarer, so the width fills before the height runs out */
     lf=Math.round(Math.min(fs*.95*k,sw*.82));
-    const dB=sh+RG,dA=touch?Math.max(dB*.5,sw*1.0):dB*.5; /* on a phone the rings are also spaced out sideways */
+    const dB=sh+RG,dA=touch?Math.max(dB*.5,sw+RG*.6):dB*.5; /* on a phone the rings are also spaced out sideways */
     let L=null;for(let a0=60;a0<700&&!L;a0+=6)L=place(a0,dB,dA);
     if(!L)continue;lay=L;
     if(L.ext<=W/2-(touch?3:6)&&L.b0+4*dB+DY+sh*1.6<=hmax)break;
