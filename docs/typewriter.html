@@ -535,8 +535,11 @@ function buildBars(){
   const w0=Math.round(Math.max(letterW()*1.3,fs*.72)+3),h0=Math.round(fs*1.15+4);
   const rows=KROWS.map(r=>r.map(c=>[c,1])).concat([FN]);
   const arc=(A,B,T=TMAX)=>{const smp=[],N=300;let len=0;for(let k=0;k<=N;k++){const t=-T+2*T*k/N,q=[A*Math.sin(t),B*Math.cos(t)];if(k)len+=Math.hypot(q[0]-smp[k-1][0],q[1]-smp[k-1][1]);q.push(len);smp.push(q)}return {smp,len}};
+  /* on a phone the heads grow toward a comfortable thumb size, as far as the width and about half of the screen's height
+     allow; the paper shortens to make room */
+  const touch=W<700||coarse,kmax=touch?Math.max(1,Math.min(2.4,32/w0)):1,hmax=touch?innerHeight*.5:1e9;
   let sw,sh,lf,lay;
-  for(let k=1;k>.35;k-=.05){
+  for(let k=kmax;k>.35;k-=.05){
     sw=Math.max(8,Math.round(w0*k));sh=Math.max(12,Math.round(h0*k));lf=Math.round(Math.min(fs*.95*k,sw*.82));
     const step=sw+GAP,dB=sh+RG,dA=dB*.5,need=Math.max(...rows.map(r=>r.reduce((t,q)=>t+q[1],0)))*step-GAP;
     let a0=60;for(;a0<500;a0+=4)if(arc(a0,a0*.6).len>=need)break;
@@ -551,7 +554,7 @@ function buildBars(){
       });
     });
     lay={out,dB,b0};
-    if(ext<=W/2-6)break;
+    if(ext<=W/2-6&&b0+4*dB+DY+sh*1.6<=hmax)break;
   }
   const {out,dB,b0}=lay;fanB=b0+4*dB+DY;fanSh=sh*.6;
   let h='';const segs=[],rests=[];
