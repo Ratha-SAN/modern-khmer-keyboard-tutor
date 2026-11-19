@@ -243,12 +243,13 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 #preds{z-index:7}
 .pred{position:absolute;transform:translate(-50%,-100%);padding:6px 13px 7px;border:0;border-radius:12px;pointer-events:auto;cursor:pointer;touch-action:none;
   background:rgba(14,13,12,.96);color:#f4efe5;font:600 18px/1.15 var(--ui),"Noto Sans Khmer";white-space:nowrap;
-  box-shadow:0 0 0 1px rgba(240,213,138,.45),0 5px 12px rgba(0,0,0,.65)}
+  box-shadow:0 0 0 1px rgba(240,213,138,.45),0 5px 12px rgba(0,0,0,.65);transition:left .12s ease-out,top .12s ease-out,opacity .15s}
 .pred::after{content:"";position:absolute;left:calc(50% + var(--tx,0px));bottom:-5px;width:9px;height:9px;margin-left:-4px;background:rgba(14,13,12,.96);transform:rotate(45deg);
   box-shadow:2px 2px 3px rgba(0,0,0,.4)}
 .slug.hint{box-shadow:0 0 0 2px #f0d58a,0 0 9px 2px rgba(240,213,138,.75)} /* the head that types the next letter of a floating word */
 .pred.km{font-family:"Noto Sans Khmer","Noto Sans",var(--ui)}
-.fan .slug{touch-action:none}
+.fan .slug{touch-action:none;will-change:transform}
+.lnd .pred{font-size:15px;padding:4px 10px 5px;border-radius:10px}
 
 /* pages */
 .pages{position:absolute;inset:0;z-index:10;background:var(--panel);display:flex;flex-direction:column}
@@ -538,7 +539,7 @@ const isPhone=()=>dev==='ios'||dev==='android';
 const BARS=KROWS.flatMap((r,ri)=>r.map((c,i)=>({c,x:i+[0,1.5,1.8,2.3][ri]+ri*.01}))).sort((p,q)=>p.x-q.x).map(o=>o.c);
 let headPos=null,predMap={};
 const barEl={},mods={shift:false,alt:false};let fanW=0,fanB=0,fanSh=0,fanKey='';
-const headKey=()=>(S.size||18)+'|'+S.lang+'|'+S.face+'|'+dev+'|'+(isPhone()&&mode==='123'?(moreOn?'m':'n'):'a');
+const headKey=()=>(S.size||18)+'|'+(S.pred?1:0)+'|'+S.lang+'|'+S.face+'|'+dev+'|'+(isPhone()&&mode==='123'?(moreOn?'m':'n'):'a');
 function barMap(){return S.lang==='km'?KMP:EN}
 let altOn=0;
 /* option / AltGr is a layer on a Mac and for Khmer on Windows; a phone has only shift and its number layer */
@@ -573,7 +574,7 @@ function buildBars(){
   const touch=W<700||coarse||isPhone(),fs=S.size||18,py=-40,
     RG=touch?8:5,GAP=touch?2:3, /* a small clear space between neighbouring heads and between rows, so a thumb doesn't hit two */
     TMAX=(touch?68:62)*Math.PI/180,
-    DY=Math.round(fs*1.9); /* the key set sits this far below the print line, in its own area under the paper's edge; the bars reach up to the line */
+    lnd=(touch&&innerWidth>innerHeight),DY=Math.round(fs*1.9)+(S.pred?(lnd?28:30):(lnd?8:14)); /* clear space under the paper for the floating words, and a gap even without them; */ /* the key set sits this far below the print line, in its own area under the paper's edge; the bars reach up to the line */
   const half=touch?Math.min(W/2-.5,460):W/2-6; /* half the width the key set may fill; a phone layout on a wide window stops at 920px */
   const w0=Math.round(Math.max((letterW()||fs*.6)*1.3,fs*.72)+3),h0=Math.round(fs*1.15+4);
   const rows=headRows().concat([fnItems()]);
@@ -628,7 +629,8 @@ function buildBars(){
   /* phones: stretch the whole layout sideways so its widest row reaches both edges of the screen. Every other row stretches by
      the same amount, so the rows keep their proportions; heads widen with it. Portrait is already width-limited, so this only
      takes up the last pixels there; in landscape the height limits the heads and the stretch carries them out to the sides. */
-  if(touch&&lay.ext>0){const sx=half/lay.ext;lay.out.forEach(o=>{o.x*=sx;o.wd*=sx})}
+  if(touch&&lay.ext>0){let sx=half/lay.ext;
+    if(lnd)sx=Math.min(sx,Math.max(1,2.4*sh/Math.max(1,lay.out[0].wd))); /* on a wide, short screen keep the heads from stretching into flat slabs: they stay close to key-shaped and the set sits in the middle */lay.out.forEach(o=>{o.x*=sx;o.wd*=sx})}
   headPos={};lay.out.forEach(o=>headPos[o.id]={x:o.x,y:o.y,sh,wd:o.wd});
   const {out,dB,b0}=lay;fanB=lay.maxY;fanSh=sh*.6;
   let h='';const segs=[],rests=[];
@@ -958,7 +960,7 @@ function predictList(){
 /* the likeliest words float in a row above the key set, never over a head; the head that starts each word glows, and a
    tap on the word, or a flick up from that head, types it. Each head carries at most one word */
 function renderPreds(){
-  const el=$('preds');if(!el)return;
+  const el=$('preds');if(!el)return;el.classList.toggle('lnd',coarse&&innerWidth>innerHeight||isPhone()&&innerWidth>innerHeight);
   const fan=$('fan');if(fan)fan.querySelectorAll('.slug.hint').forEach(e=>e.classList.remove('hint'));
   if(!S.pred||!fanW||!headPos||D||(isPhone()&&mode==='123')){el.innerHTML='';predMap={};return}
   const {prefix,words}=predictList();sgPrefix=prefix;
@@ -966,23 +968,34 @@ function renderPreds(){
   for(const w of words){if(chips.length>=max)break;const rest=w.slice(prefix.length);if(!rest||w===prefix)continue;const nc=[...rest][0].toLowerCase();
     const id=Object.keys(headPos).find(k=>!k.startsWith('fn:')&&headChar(k).toLowerCase()===nc);if(!id||used[id])continue;
     used[id]=1;chips.push({w,id})}
-  el.innerHTML=chips.map(c=>`<button class="pred${S.lang==='km'?' km':''}" tabindex="-1" data-w="${c.w.replace(/"/g,'&quot;')}" data-id="${c.id}" style="left:${headPos[c.id].x.toFixed(1)}px;top:0">${c.w}</button>`).join('');
-  const bs=[...el.querySelectorAll('.pred')];if(!bs.length)return;
-  const r0=bs[0].getBoundingClientRect(),ox=r0.left+r0.width/2-headPos[bs[0].dataset.id].x; /* where the fan's centre line is on the screen */
-  const items=bs.map(b=>({b,id:b.dataset.id,w:b.offsetWidth,h:b.offsetHeight,cx:headPos[b.dataset.id].x})).sort((u,v)=>u.cx-v.cx),placed=[];
+  /* keep a word's button while it stays on the list, so it glides to its new place instead of blinking out and back */
+  const have={};el.querySelectorAll('.pred').forEach(b=>{have[b.dataset.id+'|'+b.dataset.w]=b});
+  const keep=new Set(chips.map(c=>c.id+'|'+c.w));for(const k in have)if(!keep.has(k))have[k].remove();
+  const fresh=[];
+  for(const c of chips){const k=c.id+'|'+c.w;if(have[k])continue;
+    const b=document.createElement('button');b.className='pred'+(S.lang==='km'?' km':'');b.tabIndex=-1;b.dataset.w=c.w;b.dataset.id=c.id;b.textContent=c.w;
+    b.style.transition='none';b.style.opacity='0';b.style.left=headPos[c.id].x.toFixed(1)+'px';b.style.top='0';el.appendChild(b);have[k]=b;fresh.push(b)}
+  const bs=chips.map(c=>have[c.id+'|'+c.w]);if(!bs.length)return;
+  const ox=el.getBoundingClientRect().left; /* where the fan's centre line is on the screen */
+  /* every word rides at the same low level, hugging the top of the keys. Neighbours that would touch slide apart sideways
+     (the pointer still aims at their key); if the screen has no room for all of them, the least likely are dropped */
+  let items=bs.map(b=>({b,id:b.dataset.id,w:b.offsetWidth,cx:headPos[b.dataset.id].x})).sort((u,v)=>u.cx-v.cx);
+  const lo=4-ox,hi=innerWidth-4-ox,SP=8,fits=a=>a.reduce((n,q)=>n+q.w,0)+SP*(a.length-1)<=hi-lo;
+  while(items.length&&!fits(items)){const drop=items.reduce((m,q)=>bs.indexOf(q.b)>bs.indexOf(m.b)?q:m);drop.b.remove();items=items.filter(q=>q!==drop)}
+  items.forEach(q=>q.left=Math.max(lo+q.w/2,Math.min(hi-q.w/2,q.cx)));
+  for(let i=1;i<items.length;i++)items[i].left=Math.max(items[i].left,items[i-1].left+(items[i-1].w+items[i].w)/2+SP);
+  for(let i=items.length-2;i>=0;i--)items[i].left=Math.min(items[i].left,items[i+1].left-(items[i].w+items[i+1].w)/2-SP);
   for(const it of items){
-    const left=Math.max(4-ox+it.w/2,Math.min(innerWidth-4-ox-it.w/2,it.cx));
-    let lv=0;while(placed.some(q=>q.lv===lv&&Math.abs(q.left-left)<(q.w+it.w)/2+6))lv++;
-    if(lv>1){it.b.remove();continue}
-    /* sit above the top edge of every head the word would otherwise cover */
+    const left=it.left;
+    /* sit just above the top edge of every head the word would otherwise cover */
     let top=1e9;for(const k in headPos){const h=headPos[k];if(Math.abs(h.x-left)<h.wd/2+it.w/2+2)top=Math.min(top,h.y-h.sh/2)}
     if(top===1e9)top=headPos[it.id].y-headPos[it.id].sh/2;
-    it.left=left;it.lv=lv;placed.push(it);
-    it.b.style.left=left.toFixed(1)+'px';it.b.style.top=(top-9-lv*(it.h+6)).toFixed(1)+'px';
+    it.b.style.left=left.toFixed(1)+'px';it.b.style.top=(top-7).toFixed(1)+'px';
     it.b.style.setProperty('--tx',Math.max(-it.w/2+12,Math.min(it.w/2-12,it.cx-left)).toFixed(1)+'px');
     predMap[it.id]=it.b.dataset.w;
     const e=barEl[it.id];if(e)e.firstElementChild.firstElementChild.classList.add('hint');
-  }}
+  }
+  if(fresh.length){el.offsetWidth;fresh.forEach(b=>{b.style.transition='';b.style.opacity=''})}}
 $('preds').addEventListener('pointerdown',e=>{const b=e.target.closest('.pred');if(!b)return;e.preventDefault();audio();pick(b.dataset.w);haptic('light');focusTa()});
 $('preds').addEventListener('mousedown',e=>e.preventDefault());
 function pick(w){const e=ta.selectionStart,s=e-sgPrefix.length;ta.setRangeText(w+(S.lang==='km'?'':' '),s,ta.selectionEnd,'end');onChange('key')}
@@ -1147,8 +1160,11 @@ $('backBtn').addEventListener('click',()=>D?exitDrill(true):showPages());
 $('pagesClose').addEventListener('click',()=>{pages.hidden=true;focusTa()});
 
 /* ---------- boot ---------- */
-function fit(){if(window.visualViewport){document.documentElement.style.setProperty('--app-h',visualViewport.height+'px');scrollTo(0,0)}buildBars();layout()}
-if(window.visualViewport)visualViewport.addEventListener('resize',fit);
+let fitRaf=0,fitH=0;
+function fit(){if(window.visualViewport){if(visualViewport.scale>1.02)return; /* a pinch-zoom is not a new screen size */
+    const h=Math.round(visualViewport.height);if(h===fitH&&fanW)return;fitH=h;
+    document.documentElement.style.setProperty('--app-h',h+'px');if(scrollY||scrollX)scrollTo(0,0)}buildBars();layout()}
+if(window.visualViewport)visualViewport.addEventListener('resize',()=>{cancelAnimationFrame(fitRaf);fitRaf=requestAnimationFrame(fit)});
 new ResizeObserver(()=>layout()).observe(scroll);
 applyLook();applyOsk();renderTools();buildKb();
 ta.value=doc().text;ta.setSelectionRange(ta.value.length,ta.value.length);lastN=count();autoShift();
