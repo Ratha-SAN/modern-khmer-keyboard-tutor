@@ -522,7 +522,7 @@ const headKey=()=>(S.size||18)+'|'+S.lang+'|'+S.face;
 function barMap(){return S.lang==='km'?KMP:EN}
 let altOn=0;
 function barLayer(){return (mods.alt||altOn)?2:(mods.shift||shift)?1:0}
-const FN=[['fn:shift',1],['fn:alt',1],['fn:globe',1],['fn:space',4],['fn:back',1],['fn:enter',1]];
+const FN=[['fn:shift',1],['fn:alt',1],['fn:globe',1],['fn:space',4],['fn:back',2],['fn:enter',1]];
 function buildBars(){
   const fan=$('fan'),rail=fan&&fan.parentElement;if(!rail)return;
   const W=rail.clientWidth;if(!W||Math.abs(W-fanW)<2&&fan.childElementCount&&fanKey===headKey())return;fanW=W;fanKey=headKey();
@@ -544,7 +544,7 @@ function buildBars(){
   /* lay one set of rings out from the middle of each outward, a head at a time. Heads are spaced by how steep the ring is
      where they sit: close side by side near the bottom, further apart on the steep sides, where they would stack and overlap */
   const place=(a0,dB,dA)=>{
-    const b0=a0*.6,out=[];let ext=0;
+    const b0=a0*(touch?.5:.6),out=[];let ext=0; /* rings are a little flatter on phones, so the width fills before the height runs out */
     for(let ri=0;ri<rows.length;ri++){
       const row=rows[ri],A=a0+ri*dA,B=b0+ri*dB,{smp,len}=arc(A,B),n=row.length,wd=row.map(q=>q[1]*sw+(q[1]-1)*GAP);
       const tg=s=>{let j=0,lo=0,hi=smp.length-2;while(lo<hi){const m=(lo+hi+1)>>1;if(smp[m][2]<=s)lo=m;else hi=m-1}j=lo;
@@ -563,13 +563,13 @@ function buildBars(){
     }
     return {out,dB,b0,ext};
   };
-  for(let k=kmax;k>.3;k-=touch?.03:.05){
-    sw=Math.max(8,Math.round(w0*k));sh=touch?Math.round(sw*1.3):Math.max(12,Math.round(h0*k)); /* phone heads stay squarer, so the width fills before the height runs out */
+  for(let k=kmax;k>.3;k-=touch?.012:.05){
+    sw=touch?Math.max(8,w0*k):Math.max(8,Math.round(w0*k));sh=touch?sw*1.3:Math.max(12,Math.round(h0*k)); /* phones size to fractions of a pixel, so the width can be filled exactly */ /* phone heads stay squarer, so the width fills before the height runs out */
     lf=Math.round(Math.min(fs*.95*k,sw*.82));
     const dB=sh+RG,dA=touch?Math.max(dB*.5,sw+RG*.6):dB*.5; /* on a phone the rings are also spaced out sideways */
     let L=null;for(let a0=60;a0<700&&!L;a0+=6)L=place(a0,dB,dA);
     if(!L)continue;lay=L;
-    if(L.ext<=W/2-(touch?3:6)&&L.b0+4*dB+DY+sh*1.6<=hmax)break;
+    if(L.ext<=W/2-(touch?1:6)&&L.b0+4*dB+DY+sh*1.6<=hmax)break;
   }
   const {out,dB,b0}=lay;fanB=b0+4*dB+DY;fanSh=sh*.6;
   let h='';const segs=[],rests=[];
