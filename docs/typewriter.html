@@ -238,6 +238,17 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 .slug.on{background:linear-gradient(90deg,#6e5424 0%,#f0d58a 30%,#c39a45 55%,#5e4619 100%)}
 .slug.on::before{background:#f1dca0}
 
+/* BlackBerry-style word prediction: the likeliest next words float over the key of their next letter. Tap a word, or
+   flick up from its key, to type it */
+#preds{z-index:7}
+.pred{position:absolute;transform:translate(-50%,-100%);padding:4px 9px 5px;border:0;border-radius:10px;pointer-events:auto;cursor:pointer;touch-action:none;
+  background:rgba(14,13,12,.95);color:#f4efe5;font:600 14px/1.1 var(--ui),"Noto Sans Khmer";white-space:nowrap;
+  box-shadow:0 0 0 1px rgba(255,255,255,.18),0 4px 10px rgba(0,0,0,.6)}
+.pred::after{content:"";position:absolute;left:50%;bottom:-4px;width:8px;height:8px;margin-left:-4px;background:rgba(14,13,12,.95);transform:rotate(45deg);
+  box-shadow:2px 2px 3px rgba(0,0,0,.4)}
+.pred.km{font-family:"Noto Sans Khmer","Noto Sans",var(--ui)}
+.fan .slug{touch-action:none}
+
 /* pages */
 .pages{position:absolute;inset:0;z-index:10;background:var(--panel);display:flex;flex-direction:column}
 .pages header{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--panel-line)}
@@ -367,7 +378,7 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
     <div class="toast" id="toast" role="status"></div>
   </div>
 
-  <div class="rail"><div class="fan" id="fan" aria-hidden="true"></div>
+  <div class="rail"><div class="fan" id="fan" aria-hidden="true"></div><div class="fan" id="preds"></div>
   <span class="spool l" aria-hidden="true"></span><span class="spool r" aria-hidden="true"></span>
   <div class="carriage" aria-hidden="true"><span class="platen"></span><span class="bail"><b></b><b></b></span><span class="knob l"></span><span class="knob r"></span><span class="lever"></span></div>
   <div class="head">
@@ -524,19 +535,25 @@ function detectDev(){const ua=navigator.userAgent||'',pf=navigator.platform||'';
 let dev=detectDev();try{const v=localStorage.getItem('twDevice');if(/^(mac|windows|ios|android)$/.test(v||''))dev=v}catch(e){}
 const isPhone=()=>dev==='ios'||dev==='android';
 const BARS=KROWS.flatMap((r,ri)=>r.map((c,i)=>({c,x:i+[0,1.5,1.8,2.3][ri]+ri*.01}))).sort((p,q)=>p.x-q.x).map(o=>o.c);
+let headPos=null,predMap={};
 const barEl={},mods={shift:false,alt:false};let fanW=0,fanB=0,fanSh=0,fanKey='';
-const headKey=()=>(S.size||18)+'|'+S.lang+'|'+S.face+'|'+dev+'|'+(isPhone()&&mode==='123'?'n':'a');
+const headKey=()=>(S.size||18)+'|'+S.lang+'|'+S.face+'|'+dev+'|'+(isPhone()&&mode==='123'?(moreOn?'m':'n'):'a');
 function barMap(){return S.lang==='km'?KMP:EN}
 let altOn=0;
 /* option / AltGr is a layer on a Mac and for Khmer on Windows; a phone has only shift and its number layer */
 function barLayer(){return !isPhone()&&(mods.alt||altOn)&&(dev==='mac'||S.lang==='km')?2:(mods.shift||shift)?1:0}
 /* the phone layout, the same on iPhone / iPad and Android: three rows of letters, a number and symbol layer */
 const ENP={base:['qwertyuiop','asdfghjkl','zxcvbnm'].map(t=>[...t]),num:['1234567890','-/:;()$&@"','.,?!\'#%'].map(t=>[...t])};
-const phoneBase=()=>S.lang==='km'?(mode==='123'?KM.num:KM.base):(mode==='123'?ENP.num:ENP.base);
+/* the 123 layer has a second page, "more", for what the first does not hold: every Khmer independent vowel, sign and
+   punctuation mark, and every English symbol on a US keyboard. Together with the other layers nothing is missing */
+let moreOn=false;
+const MORE={km:[[...'ឥឦឧឨឩឪឫឬឭឮឯ'],[...'ឰឱឲឳឝឞៈ៌៎៏៑'],[...'៝៓៘៙៚ៜ'].concat(['\u200b'])],
+  en:[[...'[]{}#%^*+='],[...'_\\|~<>€£¥•'],[...'.,?!\'"`']]};
+const phoneBase=()=>S.lang==='km'?(mode==='123'?(moreOn?MORE.km:KM.num):KM.base):(mode==='123'?(moreOn?MORE.en:ENP.num):ENP.base);
 function headChar(id){
   const m=/^p(\d+)_(\d+)$/.exec(id);
   if(m){const r=+m[1],c=+m[2];
-    if(S.lang==='km')return (mode==='123'?KM.num:(barLayer()===1?KM.shift:KM.base))[r]?.[c]||'';
+    if(S.lang==='km')return (mode==='123'?phoneBase():(barLayer()===1?KM.shift:KM.base))[r]?.[c]||'';
     const ch=phoneBase()[r]?.[c]||'';return mode!=='123'&&barLayer()===1?ch.toUpperCase():ch}
   return (barMap()[id]||[])[barLayer()]||''}
 const headRows=()=>isPhone()?phoneBase().map((r,ri)=>r.map((_,ci)=>['p'+ri+'_'+ci,1])):KROWS.map(r=>r.map(c=>[c,1]));
@@ -550,28 +567,33 @@ function buildBars(){
      four, the number row innermost; the shift, option, language, space, delete and return heads sit on the outer one.
      Heads are packed close along each ring. Every bar runs to the print point and pivots halfway, so a struck head
      whips up and lands on the letter */
-  const touch=W<700||coarse,fs=S.size||18,py=-40,
+  const touch=W<700||coarse||isPhone(),fs=S.size||18,py=-40,
     RG=touch?8:5,GAP=touch?2:3, /* a small clear space between neighbouring heads and between rows, so a thumb doesn't hit two */
-    TMAX=(touch?68:62)*Math.PI/180,
+    TMAX=(touch?72:62)*Math.PI/180,
     DY=Math.round(fs*1.9); /* the key set sits this far below the print line, in its own area under the paper's edge; the bars reach up to the line */
   const w0=Math.round(Math.max(letterW()*1.3,fs*.72)+3),h0=Math.round(fs*1.15+4);
   const rows=headRows().concat([fnItems()]);
   const arc=(A,B,T=TMAX)=>{const smp=[],N=300;let len=0;for(let k=0;k<=N;k++){const t=-T+2*T*k/N,q=[A*Math.sin(t),B*Math.cos(t)];if(k)len+=Math.hypot(q[0]-smp[k-1][0],q[1]-smp[k-1][1]);q.push(len);smp.push(q)}return {smp,len}};
   /* on a phone the heads grow toward a comfortable thumb size, as far as the width and about half of the screen's height
      allow; the paper shortens to make room */
-  const kmax=touch?Math.max(1,Math.min(3,44/w0)):1,hmax=touch?innerHeight*.5:1e9;
+  const land=innerWidth>innerHeight, /* landscape keeps the same layout: rows spread edge to edge, flatter and wider keys */
+    kmax=touch?Math.max(1,Math.min(3.4,56/w0)):1,hmax=touch?innerHeight*(land?.55:.5):1e9;
   let sw,sh,lf,lay=null,fb=null;
   /* lay one set of rings out from the middle of each outward, a head at a time. Heads are spaced by how steep the ring is
      where they sit: close side by side near the bottom, further apart on the steep sides, where they would stack and overlap */
-  const place=(a0,dB,dA)=>{
-    const b0=a0*(touch?.5:.6),out=[];let ext=0; /* rings are a little flatter on phones, so the width fills before the height runs out */
+  const place=(a0,dB,dA,bMax)=>{
+    const b0=touch?a0*.55:a0*.6,out=[];let ext=0,maxY=0;
     for(let ri=0;ri<rows.length;ri++){
-      const row=rows[ri],A=a0+ri*dA,B=b0+ri*dB,{smp,len}=arc(A,B),n=row.length,wd=row.map(q=>q[1]*sw+(q[1]-1)*GAP);
+      const row=rows[ri],A=touch?a0:a0+ri*dA,B=touch?b0:b0+ri*dB,Xe=W/2-1-sw/2,{smp,len}=touch?arc(A,B,Math.asin(Math.min(1,Xe/A))):arc(A,B),n=row.length,wd=row.map(q=>q[1]*sw+(q[1]-1)*GAP);
       const tg=s=>{let j=0,lo=0,hi=smp.length-2;while(lo<hi){const m=(lo+hi+1)>>1;if(smp[m][2]<=s)lo=m;else hi=m-1}j=lo;
         const dx=Math.abs(smp[j+1][0]-smp[j][0]),dy=Math.abs(smp[j+1][1]-smp[j][1]),h=Math.hypot(dx,dy)||1;return [dx/h,dy/h]};
       const need=(i,s)=>{const [c,sn]=tg(s);return Math.min(((wd[i]+wd[i+1])/2+GAP)/Math.max(c,1e-3),(sh+GAP)/Math.max(sn,1e-3))};
       const pos=new Array(n),m=n>>1;
-      if(row.some(q=>q[1]!==1)){ /* a row with wide heads: lay it out left to right, then centre its whole span on the ring */
+      if(touch){ /* phones: every row runs from the left edge of the screen to the right, its heads spread evenly between */
+        if(A<=Xe)return null;
+        const pp=[0];for(let i=0;i<n-1;i++){const d0=need(i,pp[i]);pp.push(pp[i]+need(i,pp[i]+d0/2))}
+        const M=pp[n-1];if(M>len+.01)return null;const f=M>0?len/M:1;for(let i=0;i<n;i++)pos[i]=pp[i]*f}
+      else if(row.some(q=>q[1]!==1)){ /* a row with wide heads: lay it out left to right, then centre its whole span on the ring */
         let tot=0;for(let i=0;i<n;i++)tot+=wd[i]+GAP;pos[0]=len/2-tot/2+wd[0]/2;
         for(let i=0;i<n-1;i++){const d0=need(i,pos[i]);pos[i+1]=pos[i]+need(i,pos[i]+d0/2)}
         const sh0=len/2-(pos[0]-wd[0]/2+pos[n-1]+wd[n-1]/2)/2;for(let i=0;i<n;i++)pos[i]+=sh0}
@@ -583,26 +605,31 @@ function buildBars(){
       if(pos[0]<0||pos[n-1]>len)return null;
       row.forEach(([id],i)=>{
         let j=0,lo=0,hi=smp.length-2;while(lo<hi){const mm=(lo+hi+1)>>1;if(smp[mm][2]<=pos[i])lo=mm;else hi=mm-1}j=lo;
-        const q0=smp[j],q1=smp[j+1],f=(pos[i]-q0[2])/Math.max(1e-6,q1[2]-q0[2]),x=q0[0]+(q1[0]-q0[0])*f,y=q0[1]+(q1[1]-q0[1])*f+DY;
-        out.push({id,x,y,ri,wd:wd[i]});ext=Math.max(ext,Math.abs(x)+wd[i]/2);
+        const q0=smp[j],q1=smp[j+1],f=(pos[i]-q0[2])/Math.max(1e-6,q1[2]-q0[2]),x=q0[0]+(q1[0]-q0[0])*f,y=q0[1]+(q1[1]-q0[1])*f+(touch?-smp[smp.length-1][1]+DY+sh/2+ri*dB:DY); /* on a phone every row is the same curve, one row lower than the one inside it, its ends just under the paper's edge */
+        out.push({id,x,y,ri,wd:wd[i]});ext=Math.max(ext,Math.abs(x)+wd[i]/2);maxY=Math.max(maxY,y);
       });
     }
-    return {out,dB,b0,ext};
+    return {out,dB,b0,ext,maxY};
   };
   for(let k=kmax;k>.3;k-=touch?.012:.05){
-    sw=touch?Math.max(8,w0*k):Math.max(8,Math.round(w0*k));sh=touch?sw*1.3:Math.max(12,Math.round(h0*k)); /* phones size to fractions of a pixel, so the width can be filled exactly */ /* phone heads stay squarer, so the width fills before the height runs out */
-    lf=Math.round(Math.min(fs*.95*k,sw*.82));
-    const dB=sh+RG,dA=touch?Math.max(dB*.5,sw*1.2+RG*.5):dB*.5; /* on a phone the rings are also spaced out sideways */
-    let L=null;for(let a0=60;a0<700&&!L;a0+=6)L=place(a0,dB,dA);
+    sw=touch?Math.max(8,w0*k):Math.max(8,Math.round(w0*k));sh=touch?Math.min(sw*(land?.85:1.3),Math.max(18,(hmax-DY-30)/rows.length-RG)):Math.max(12,Math.round(h0*k)); /* phones size to fractions of a pixel, so the width can be filled exactly */ /* phone heads stay squarer, so the width fills before the height runs out */
+    lf=Math.round(Math.min(fs*.95*k,sw*.82,touch?sh*.72:99));
+    const dB=sh+RG,dA=touch?dB*.6:dB*.5,bMax=hmax-(rows.length-1)*dB-DY-sh*1.6;
+    const a0min=touch?(W/2-1-sw/2)/Math.sin(TMAX)+1:60;
+    let L=null;
+    if(touch){const Xe=W/2-1-sw/2,T0=2*Math.atan(28/(.55*Xe))*180/Math.PI; /* every row sags about 28px, so portrait and landscape share one look; a longer row bends further to fit */
+      for(let T=Math.max(10,T0);T<=72&&!L;T+=1.5)L=place(Xe/Math.sin(T*Math.PI/180),dB,dA,bMax)}
+    else for(let a0=a0min;a0<a0min+500&&!L;a0+=6)L=place(a0,dB,dA,bMax);
     if(!L)continue;fb=L;
     /* no two heads, in any rows, may touch: if they do at this size, try a smaller one */
     let hit=false;for(let i=0;i<L.out.length&&!hit;i++)for(let j=i+1;j<L.out.length;j++){const a=L.out[i],b=L.out[j];
       if(Math.abs(a.x-b.x)<(a.wd+b.wd)/2+.2&&Math.abs(a.y-b.y)<sh+.2){hit=true;break}}
     if(hit)continue;lay=L;
-    if(L.ext<=W/2-(touch?1:6)&&L.b0+(rows.length-1)*dB+DY+sh*1.6<=hmax)break;
+    if(L.ext<=W/2-(touch?.5:6)&&L.maxY+sh*.8<=hmax)break;
   }
   if(!lay)lay=fb;
-  const {out,dB,b0}=lay;fanB=b0+(rows.length-1)*dB+DY;fanSh=sh*.6;
+  headPos={};lay.out.forEach(o=>headPos[o.id]={x:o.x,y:o.y,sh});
+  const {out,dB,b0}=lay;fanB=lay.maxY;fanSh=sh*.6;
   let h='';const segs=[],rests=[];
   out.forEach(o=>{const Lc=Math.hypot(o.x,o.y);o.Lc=Lc;
     const q=(segs[o.ri]=segs[o.ri]||[]);q.push([o.x*.5,o.y*.5]);
@@ -619,17 +646,19 @@ function buildBars(){
     segs.map((sg,i)=>`<path d="${path(sg)}" fill="none" stroke="var(--brass)" stroke-width="${i?1.5:4}" stroke-linecap="round" stroke-linejoin="round" opacity="${i?.65:1}"/>`).join('')+`</svg>`;
   fan.innerHTML=sv+h;
   for(const k in barEl)delete barEl[k];fan.querySelectorAll('.tbar').forEach(e=>barEl[e.dataset.c]=e);
+  setTimeout(renderPreds,0);
   const sl=rail.querySelector('.spool.l'),sr=rail.querySelector('.spool.r');
   [[sl,-1],[sr,1]].forEach(([e,d2])=>{if(e){e.style.setProperty('--sp',(d2*(W/2-22))+'px');e.style.setProperty('--spt',(py+24)+'px')}});
   paintBars();
 }
 function paintBars(){
   if(!fanW)return;if(fanKey!==headKey()){buildBars();return}
-  for(const id in barEl){if(id.startsWith('fn:'))continue;const u=headChar(id);barEl[id].querySelector('b').textContent=/^\p{M}/u.test(u)?'◌'+u:u}
-  const km=S.lang==='km',T={shift:'⇧',alt:dev==='mac'?'⌥':'AltGr',num:mode==='123'?(km?'កខគ':'ABC'):(km?'១២៣':'123'),globe:km?'A':'ក',back:'⌫',enter:'↵',space:km?'ខ្មែរ':'English'};
+  for(const id in barEl){if(id.startsWith('fn:'))continue;const u=headChar(id);barEl[id].querySelector('b').textContent=u==='\u200b'?'ZW':/^\p{M}/u.test(u)?'◌'+u:u}
+  const km=S.lang==='km',pn=isPhone()&&mode==='123',T={shift:pn?(moreOn?'123':'#+='):'⇧',alt:dev==='mac'?'⌥':'AltGr',num:mode==='123'?(km?'កខគ':'ABC'):(km?'១២៣':'123'),globe:km?'A':'ក',back:'⌫',enter:'↵',space:km?'ខ្មែរ':'English'};
   for(const k in T){const e=barEl['fn:'+k];if(!e)continue;const sl=e.firstElementChild.firstElementChild,b=sl.firstElementChild;
-    b.textContent=T[k];b.style.fontSize=(k==='space'||k==='num'||(k==='alt'&&dev!=='mac'))?'.62em':'';
-    sl.classList.toggle('on',k==='shift'?(shift>0||mods.shift):k==='alt'?!!(altOn||mods.alt):k==='num'?mode==='123':false)}
+    b.textContent=T[k];b.style.fontSize=(k==='space'||k==='num'||(k==='alt'&&dev!=='mac')||(k==='shift'&&pn))?'.62em':'';
+    sl.classList.toggle('on',k==='shift'?(pn?moreOn:(shift>0||mods.shift)):k==='alt'?!!(altOn||mods.alt):k==='num'?mode==='123':false)}
+  renderPreds();
 }
 function whip(ch){
   if(!ch||!fanW)return;
@@ -822,16 +851,22 @@ $('fan').addEventListener('pointerdown',e=>{
   if(c.startsWith('fn:')){
     const k=c.slice(3);audio();
     if(k==='alt'){altOn=altOn?0:1;paintBars()}
-    else if(k==='num')press({dataset:{k:mode==='123'?'abc':'123'}});
-    else press({dataset:{k}});
+    else if(k==='num'){moreOn=false;press({dataset:{k:mode==='123'?'abc':'123'}})}
+    else if(k==='shift'&&isPhone()&&mode==='123'){moreOn=!moreOn;paintBars()}
+    else{if(k==='globe')moreOn=false;press({dataset:{k}})}
     if((k==='shift'||k==='alt'||k==='back'||k==='enter')&&!still)whipEl(bar); /* these whip; space, language and 123 only press in */
     else{const sl=bar.firstElementChild.firstElementChild,up=bar.firstElementChild.dataset.up+'rad';
     sl.animate([{transform:`translateY(0) rotateX(0deg) rotate(${up})`},{transform:`translateY(-3px) rotateX(0deg) rotate(${up})`,offset:.4},{transform:`translateY(0) rotateX(0deg) rotate(${up})`}],{duration:110,easing:'ease-out'})}
     paintBars();haptic(k==='space'||k==='enter'?'medium':'light');focusTa();return}
   const u=headChar(c);if(!u)return;
-  audio();insert(u);
-  if(shift===1){shift=0;paintShift()}if(altOn){altOn=0;paintBars()}
-  haptic('light');focusTa();if(D)drillHint();
+  const typeIt=()=>{audio();insert(u);if(shift===1){shift=0;paintShift()}if(altOn){altOn=0;paintBars()}haptic('light');focusTa();if(D)drillHint()};
+  const pw=predMap[c];
+  if(!pw){typeIt();return}
+  /* this key carries a floating word: a flick up types the word, a tap types the letter */
+  const y0=e.clientY;let done=false;
+  const mv=ev=>{if(!done&&y0-ev.clientY>=16){done=true;audio();pick(pw);haptic('medium');focusTa()}};
+  const end=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',end);removeEventListener('pointercancel',end);if(!done)typeIt()};
+  addEventListener('pointermove',mv);addEventListener('pointerup',end);addEventListener('pointercancel',end);
 });
 $('fan').addEventListener('mousedown',e=>e.preventDefault());
 addEventListener('pointerup',release);addEventListener('pointercancel',release);
@@ -879,8 +914,58 @@ function suggest(){
   }
   while(out.length<3)out.push({w:'',label:''});
   row.innerHTML=out.map(o=>`<button class="sg" tabindex="-1" data-w="${o.w.replace(/"/g,'&quot;')}">${o.label}</button>`).join('');
+  renderPreds();
 }
 const KMW='ខ្ញុំ នេះ នោះ ជា មាន និង ដែល បាន ទៅ មក ក្នុង របស់ គឺ ថា ពី ដោយ នៅ ឱ្យ ធ្វើ អ្នក យើង គាត់ ពួកគេ មួយ ច្រើន ណាស់ ហើយ ប៉ុន្តែ ព្រោះ ដូច្នេះ សួស្តី អរគុណ កម្ពុជា ភ្នំពេញ ថ្ងៃ យប់ ព្រឹក ល្ងាច ស្រឡាញ់ ចង់ ដឹង គិត និយាយ សរសេរ អាន រឿង ពេល កាលពី ម្តង ផ្ទះ សាលា មិត្ត គ្រួសារ ជីវិត បេះដូង ភ្លៀង ពន្លឺ ទៀន ក្រដាស អក្សរ ខ្មែរ ភាសា ល្អ ស្អាត ធំ តូច ថ្មី ចាស់ ទាំងអស់ ជាមួយ សម្រាប់ ប្រទេស មនុស្ស ការងារ រៀន'.split(' ');
+
+/* ---------- next-word prediction ---------- */
+const NEXT_EN={i:['am','have','was','think'],the:['way','world','same','first'],of:['the','a','my'],in:['the','a','my'],to:['be','the','see','do'],and:['the','then','i'],a:['little','new','long'],it:['was','is','would'],he:['was','had','said'],she:['was','had','said'],we:['are','have','were'],you:['are','have','can'],they:['were','are','had'],is:['a','the','not'],was:['a','the','not'],that:['the','is','was'],for:['the','a','me'],on:['the','a','my'],with:['the','a','my'],my:['own','life','heart'],this:['is','was','time'],there:['was','is','were'],what:['is','was','you'],would:['be','have','like'],will:['be','have','not'],can:['be','not','you'],not:['be','a','the'],at:['the','a','night'],as:['a','the','if'],but:['the','i','it'],so:['much','many','i'],if:['you','i','it'],when:['i','the','you'],do:['not','you','it'],have:['a','been','to'],had:['a','been','to'],been:['a','the','in'],very:['much','good','well'],once:['upon','more','again'],upon:['a','the','time']};
+const NEXT_KM={'ខ្ញុំ':['ចង់','ស្រឡាញ់','មាន'],'នេះ':['ជា','គឺ','ពី'],'នោះ':['ជា','គឺ'],'ជា':['មនុស្ស','ការ','ល្អ'],'មាន':['ការ','ម្នាក់','ច្រើន'],'ថា':['ខ្ញុំ','គាត់'],'និង':['ការ','ខ្ញុំ'],'ក្នុង':['ពេល','ប្រទេស','ជីវិត'],'របស់':['ខ្ញុំ','យើង','គាត់'],'ដែល':['មាន','ជា','បាន'],'ហើយ':['ខ្ញុំ','បាន'],'សួស្តី':['អ្នក','ខ្ញុំ'],'អរគុណ':['ច្រើន','អ្នក']};
+const uniq=a=>[...new Set(a)];
+/* Khmer has no spaces, so split a run into the words we know, longest first */
+function kmTokens(t){const known=new Set([...KMW,...Object.keys(NEXT_KM),...Object.values(NEXT_KM).flat()]),out=[];let i=0;
+  while(i<t.length){let hit='';for(let n=Math.min(10,t.length-i);n>0;n--){const w=t.substr(i,n);if(known.has(w)){hit=w;break}}
+    if(hit){out.push(hit);i+=hit.length}else i++}
+  return out}
+/* what the floating words should offer now: completions of the word being typed, or, between words, the words that
+   most often follow the last one (the page's own text first, then common pairs) */
+function predictList(){
+  const pre=ta.value.slice(Math.max(0,ta.selectionStart-4000),ta.selectionStart),km=S.lang==='km';let prefix='',words=[];
+  if(km){
+    const run=(pre.slice(-40).match(/[ក-៓៝]+$/)||[''])[0];
+    for(let n=Math.min(6,run.length);n>0&&!words.length;n--){const suf=run.slice(-n);words=KMW.filter(w=>w.length>n&&w.startsWith(suf));if(words.length)prefix=suf}
+    if(!words.length){
+      const tk=kmTokens(pre),last=tk[tk.length-1],learned={};
+      for(let i=0;i<tk.length-1;i++)if(tk[i]===last)learned[tk[i+1]]=(learned[tk[i+1]]||0)+1;
+      words=uniq([...Object.keys(learned).sort((a,b)=>learned[b]-learned[a]),...(NEXT_KM[last]||[]),...KMW.slice(0,10)])}
+  }else{
+    const m=pre.match(/[A-Za-z']+$/);prefix=m?m[0]:'';const pl=prefix.toLowerCase(),cap=/^[A-Z]/.test(prefix);
+    const toks=(pre.toLowerCase().match(/[a-z']+/g)||[]);
+    if(prefix){
+      const vocab={};for(const w of toks)if(w.length>2&&w!==pl&&w.startsWith(pl))vocab[w]=(vocab[w]||0)+1;
+      words=uniq([...Object.keys(vocab).sort((a,b)=>vocab[b]-vocab[a]),...WORDS.filter(w=>w.length>pl.length&&w.toLowerCase().startsWith(pl))]).map(w=>cap?w[0].toUpperCase()+w.slice(1):w)
+    }else{
+      const last=toks[toks.length-1]||'',learned={};
+      for(let i=0;i<toks.length-1;i++)if(toks[i]===last)learned[toks[i+1]]=(learned[toks[i+1]]||0)+1;
+      const start=!pre.trim()||/[.!?]\s*$/.test(pre);
+      words=uniq([...Object.keys(learned).sort((a,b)=>learned[b]-learned[a]),...(start?['I','The','It']:(NEXT_EN[last]||[])),'the','and','to','a']);
+      if(start)words=uniq(words.map(w=>w[0].toUpperCase()+w.slice(1)));
+    }
+  }
+  return {prefix,words}}
+/* put each word over the head whose letter comes next, as BlackBerry 10 did, so a flick up from that key types it */
+function renderPreds(){
+  const el=$('preds');if(!el)return;
+  if(!fanW||!headPos||D||(isPhone()&&mode==='123')){el.innerHTML='';predMap={};return}
+  const {prefix,words}=predictList();sgPrefix=prefix;
+  const used={},chips=[];predMap={};
+  for(const w of words){if(chips.length>=4)break;const rest=w.slice(prefix.length);if(!rest||w===prefix)continue;const nc=[...rest][0].toLowerCase();
+    const id=Object.keys(headPos).find(k=>!k.startsWith('fn:')&&headChar(k).toLowerCase()===nc);if(!id)continue;
+    const n=used[id]=(used[id]||0)+1;if(n>2)continue;chips.push({w,id,lv:n-1});if(n===1)predMap[id]=w}
+  el.innerHTML=chips.map(c=>{const p=headPos[c.id];return `<button class="pred${S.lang==='km'?' km':''}" tabindex="-1" data-w="${c.w.replace(/"/g,'&quot;')}" style="left:${p.x.toFixed(1)}px;top:${(p.y-p.sh/2-5-c.lv*30).toFixed(1)}px">${c.w}</button>`}).join('');
+  el.querySelectorAll('.pred').forEach(b=>{const r=b.getBoundingClientRect(),dx=r.left<4?4-r.left:r.right>innerWidth-4?innerWidth-4-r.right:0;if(dx)b.style.left=(parseFloat(b.style.left)+dx)+'px'})} /* keep every word on the screen */
+$('preds').addEventListener('pointerdown',e=>{const b=e.target.closest('.pred');if(!b)return;e.preventDefault();audio();pick(b.dataset.w);haptic('light');focusTa()});
+$('preds').addEventListener('mousedown',e=>e.preventDefault());
 function pick(w){const e=ta.selectionStart,s=e-sgPrefix.length;ta.setRangeText(w+(S.lang==='km'?'':' '),s,ta.selectionEnd,'end');onChange('key')}
 
 /* physical keyboard: light up the matching key, and always type into the page */
@@ -993,7 +1078,7 @@ panel.addEventListener('input',e=>{
     plat=(dev==='mac'||dev==='ios')?'mac':'windows';
     if(dev==='mac'||dev==='windows'){try{localStorage.setItem('nidaPlat',plat)}catch(e){}} /* shared with the tutor */
     const m=window.NIDA&&window.NIDA[plat];if(m){for(const k in KMP)delete KMP[k];Object.assign(KMP,m)}
-    mode='abc';shift=0;altOn=0;buildKb();layout();paintBars()}
+    mode='abc';shift=0;altOn=0;moreOn=false;buildKb();layout();paintBars()}
   else if(t.id==='sCap'){S.autoCap=t.checked;if(!S.autoCap&&shift===1){shift=0;paintShift()}}
   save();
 });
