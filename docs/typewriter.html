@@ -550,7 +550,7 @@ const isPhone=()=>dev==='ios'||dev==='android';
 const BARS=KROWS.flatMap((r,ri)=>r.map((c,i)=>({c,x:i+[0,1.5,1.8,2.3][ri]+ri*.01}))).sort((p,q)=>p.x-q.x).map(o=>o.c);
 let headPos=null,predMap={};
 const barEl={},mods={shift:false,alt:false};let fanW=0,fanB=0,fanSh=0,fanKey='',fanLnd=false;
-const headKey=()=>(S.size||18)+'|'+(S.pred?1:0)+'|'+S.lang+'|'+S.face+'|'+dev+'|'+(isPhone()&&mode==='123'?(moreOn?'m':'n'):'a');
+const headKey=()=>(S.size||18)+'|'+(innerWidth>innerHeight?'L':'P')+'|'+(S.pred?1:0)+'|'+S.lang+'|'+S.face+'|'+dev+'|'+(isPhone()&&mode==='123'?(moreOn?'m':'n'):'a');
 function barMap(){return S.lang==='km'?KMP:EN}
 let altOn=0;
 /* option / AltGr is a layer on a Mac and for Khmer on Windows; a phone has only shift and its number layer */
@@ -582,8 +582,9 @@ function buildBars(){
      four, the number row innermost; the shift, option, language, space, delete and return heads sit on the outer one.
      Heads are packed close along each ring. Every bar runs to the print point and pivots halfway, so a struck head
      whips up and lands on the letter */
-  const touch=W<700||coarse||isPhone(),fs=S.size||18,py=-40,
-    RG=touch?(innerWidth>innerHeight?3:6):3,GAP=touch?1:1.5, /* a small clear space between neighbouring heads and between rows, so a thumb doesn't hit two */
+  const touch=W<700||coarse||isPhone()||innerHeight<480, /* a short window, however wide, gets the compact thumb layout */
+   fs=S.size||18,py=-40,
+    RG=touch?(innerWidth>innerHeight?6:8):5,GAP=touch?2:3, /* a small clear space between neighbouring heads and between rows, so a thumb doesn't hit two */
     TMAX=(touch?68:62)*Math.PI/180,
     lnd=(touch&&innerWidth>innerHeight),DY=Math.round(fs*(lnd?1.45:1.9))+(S.pred?(lnd?16:30):(lnd?4:14)); /* clear space under the paper for the floating words, and a gap even without them; */ /* the key set sits this far below the print line, in its own area under the paper's edge; the bars reach up to the line */
   const half=touch?Math.min(W/2-.5,460):W/2-6; /* half the width the key set may fill; a phone layout on a wide window stops at 920px */
@@ -598,7 +599,7 @@ function buildBars(){
   /* lay one set of rings out from the middle of each outward, a head at a time. Heads are spaced by how steep the ring is
      where they sit: close side by side near the bottom, further apart on the steep sides, where they would stack and overlap */
   const place=(a0,dB,dA,bMax)=>{
-    const b0=a0*(touch?.5:.6),out=[];let ext=0,maxY=0; /* phone rings are a little flatter */
+    const b0=a0*(lnd?.34:touch?.5:.6),out=[];let ext=0,maxY=0; /* phone rings are a little flatter */
     for(let ri=0;ri<rows.length;ri++){
       const row=rows[ri],A=a0+ri*dA,B=b0+ri*dB,{smp,len}=arc(A,B),n=row.length,wd=row.map(q=>q[1]*sw+(q[1]-1)*GAP);
       const tg=s=>{let j=0,lo=0,hi=smp.length-2;while(lo<hi){const m=(lo+hi+1)>>1;if(smp[m][2]<=s)lo=m;else hi=m-1}j=lo;
@@ -641,19 +642,21 @@ function buildBars(){
      the same amount, so the rows keep their proportions; heads widen with it. Portrait is already width-limited, so this only
      takes up the last pixels there; in landscape the height limits the heads and the stretch carries them out to the sides. */
   if(touch&&lay.ext>0){let sx=half/lay.ext;
-    if(lnd)sx=Math.min(340/lay.ext,sx,Math.max(1,1.55*sh/Math.max(1,lay.out[0].wd))); /* on a wide, short screen keep the heads from stretching into flat slabs: they stay close to key-shaped and the set sits in the middle */lay.out.forEach(o=>{o.x*=sx;o.wd*=sx})}
+    if(lnd)sx=Math.min(300/lay.ext,sx,Math.max(1,1.55*sh/Math.max(1,lay.out[0].wd))); /* on a wide, short screen keep the heads from stretching into flat slabs: they stay close to key-shaped and the set sits in the middle */lay.out.forEach(o=>{o.x*=sx;o.wd*=sx})}
   headPos={};lay.out.forEach(o=>headPos[o.id]={x:o.x,y:o.y,sh,wd:o.wd});
   const {out,dB,b0}=lay;fanB=lay.maxY;fanSh=sh*.6;fanLnd=lnd;
+  /* the heads are drawn a little bigger than the slots they are laid out in, so the clear margin between keys shrinks while the keys themselves stay as large as before */
+  const IH=touch?4:2,IW=touch?2.5:1.5;
   let h='';const segs=[],rests=[];
   out.forEach(o=>{const Lc=Math.hypot(o.x,o.y);o.Lc=Lc;
     const q=(segs[o.ri]=segs[o.ri]||[]);q.push([o.x*.5,o.y*.5]);
     const Lr=Lc+sh*.6;(rests[o.ri]=rests[o.ri]||[]).push([o.x*Lr/Lc,o.y*Lr/Lc])});
   /* outer rings first, so their bars run under the heads of the rings inside them */
   [...out].sort((u,v)=>v.ri-u.ri).forEach(o=>{
-    const L=o.Lc+sh/2,ph=Math.atan2(o.x,o.y),pv=o.Lc/2; /* pivot halfway to the head's centre, so the head lands centred on the print point */
+    const L=o.Lc+(sh+IH)/2,ph=Math.atan2(o.x,o.y),pv=o.Lc/2; /* pivot halfway to the head's centre, so the head lands centred on the print point */
     const fn=o.id.startsWith('fn:'),lab=fn?' data-fn="'+o.id.slice(3)+'"':'';
     h+=`<div class="tbar" data-c="${o.id}"${lab} style="transform:rotate(${(-ph).toFixed(4)}rad);perspective:${Math.round(L*1.6)}px;perspective-origin:0 ${pv.toFixed(1)}px">`+
-      `<div class="arm" data-up="${ph.toFixed(4)}" style="left:${-o.wd/2}px;width:${o.wd}px;height:${L.toFixed(1)}px;--pv:${pv.toFixed(1)}px;--sh:${sh}px;--lf:${lf}px;--up:${ph.toFixed(4)}rad"><span class="slug"><b></b></span></div></div>`;
+      `<div class="arm" data-up="${ph.toFixed(4)}" style="left:${-(o.wd+IW)/2}px;width:${o.wd+IW}px;height:${L.toFixed(1)}px;--pv:${pv.toFixed(1)}px;--sh:${sh+IH}px;--lf:${lf}px;--up:${ph.toFixed(4)}rad"><span class="slug"><b></b></span></div></div>`;
   });
   const path=pts=>'M'+pts.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join('L');
   const sv=`<svg width="1" height="1">`+rests.map(r=>`<path d="${path(r)}" fill="none" stroke="#0b0a09" stroke-width="${(sh*1.12).toFixed(1)}" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/>`).join('')+
@@ -714,7 +717,9 @@ paper.addEventListener('pointermove',e=>{
 });
 function layout(){
   if(fanW&&fanKey!==headKey())buildBars(); /* type size, face or language changed: resize the heads */
-  const h=scroll.clientHeight;if(!h)return;
+  const h=scroll.clientHeight;
+  if(!h){ /* the old key set was taller than this screen and squeezed the paper to nothing (a turn from portrait to landscape): let the rail shrink back, then lay out again */
+    const r=document.querySelector('.rail');if(r&&r.style.height){r.style.height='';requestAnimationFrame(layout)}return}
   anchor=h-22;
   lh=parseFloat(getComputedStyle(ta).lineHeight)||28;
   sheet.style.paddingTop=Math.max(70,anchor-lh)+'px';
@@ -744,7 +749,9 @@ function follow(smooth=true){
     device.style.setProperty('--tx',tx+'px');lastTx=tx}
   const rail=headEl.offsetParent,fr=paper.getBoundingClientRect();
   if(rail){const py=Math.round((m.top+m.bottom)/2-rail.getBoundingClientRect().top);device.style.setProperty('--py',py+'px');
-    if(fanB){const want=Math.max(40,Math.ceil(py+fanB+fanSh*(fanLnd?1.6:2.3)+(fanLnd?4:10)));if(Math.abs(rail.offsetHeight-want)>1)rail.style.height=want+'px'}}
+    if(fanB){const want=Math.max(40,Math.ceil(py+fanB+fanSh*(fanLnd?1.6:2.3)+(fanLnd?4:10)));if(Math.abs(rail.offsetHeight-want)>1){rail.style.height=want+'px';
+      if((follow.n=(follow.n||0)+1)<4)requestAnimationFrame(()=>follow(false))} /* the print point moved with the rail: settle it again, a few times at most */
+    else follow.n=0}}
   device.style.setProperty('--rx',(rail?fr.left+fr.width/2-rail.getBoundingClientRect().left:mid)+'px');
   /* lights live on the page, so they are placed where the print point falls on it */
   device.style.setProperty('--hx',x+'px');caretX=x;
@@ -1175,9 +1182,13 @@ $('pagesClose').addEventListener('click',()=>{pages.hidden=true;focusTa()});
 /* ---------- boot ---------- */
 let fitRaf=0,fitH=0;
 function fit(){if(window.visualViewport){if(visualViewport.scale>1.02)return; /* a pinch-zoom is not a new screen size */
-    const h=Math.round(visualViewport.height);if(h===fitH&&fanW)return;fitH=h;
+    const h=Math.round(Math.min(visualViewport.height,innerHeight)); /* a browser can report the old height for a moment after a turn */if(h===fitH&&fanW)return;fitH=h;
     document.documentElement.style.setProperty('--app-h',h+'px');if(scrollY||scrollX)scrollTo(0,0)}buildBars();layout()}
-if(window.visualViewport)visualViewport.addEventListener('resize',()=>{cancelAnimationFrame(fitRaf);fitRaf=requestAnimationFrame(fit)});
+/* a turn of the phone: the size events can arrive before the new size has settled, so fit now and once more shortly after */
+let fitTimer=0;
+function refit(){cancelAnimationFrame(fitRaf);fitRaf=requestAnimationFrame(fit);clearTimeout(fitTimer);fitTimer=setTimeout(()=>{fitH=0;fit()},300)}
+if(window.visualViewport)visualViewport.addEventListener('resize',refit);
+addEventListener('resize',refit);addEventListener('orientationchange',refit);
 new ResizeObserver(()=>layout()).observe(scroll);
 applyLook();applyOsk();renderTools();buildKb();
 ta.value=doc().text;ta.setSelectionRange(ta.value.length,ta.value.length);lastN=count();autoShift();
