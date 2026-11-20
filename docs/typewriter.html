@@ -562,18 +562,27 @@ const ENP={base:['qwertyuiop','asdfghjkl','zxcvbnm'].map(t=>[...t]),num:['123456
 let moreOn=false;
 const MORE={km:[[...'ឥឦឧឨឩឪឫឬឭឮឯ'],[...'ឰឱឲឳឝឞៈ៌៎៏៑'],[...'៝៓៘៙៚ៜ'].concat(['\u200b'])],
   en:[[...'[]{}#%^*+='],[...'_\\|~<>€£¥•'],[...'.,?!\'"`']]};
-const phoneBase=()=>S.lang==='km'?(mode==='123'?(moreOn?MORE.km:KM.num):KM.base):(mode==='123'?(moreOn?MORE.en:ENP.num):ENP.base);
+/* the iPhone Khmer keyboard (read from a Pro Max): twelve keys across, a Khmer number row on top of the letters, the full
+   stop and the 12th-row sign inside the letter block, symbols on the 123 pages. Its shift page is the NiDA shift layer; that
+   page was not in the screenshots, so it is the NiDA one and still to be checked on a phone */
+const KMI={
+  base:[[...'១២៣៤៥៦៧៨៩០ឥឲ'],[...'ឆឹេរតយុិោផៀឪ'],[...'ាសដថងហ្កលើ់ឮ'],['ឋ','ខ','ច','វ','ប','ន','ម','ល្ស','។','៊']],
+  shift:[[...'!ៗ"៛%៍័៏()៌='],[...'ឈឺែឬទួូីៅភឿឧ'],['ាំ','ៃ','ឌ','ធ','អ','ះ','ញ','គ','ឡ','ោះ','៉','ឭ'],['ឍ','ឃ','ជ','េះ','ព','ណ','ំ','ុះ','៕','៊']],
+  num:[[...'1234567890'],['«','»','@','៓','៛','/','៙','៚','(',')'],['ឳ','ឝ','ឞ','?','!']],
+  more:[[...'[]{}#%^*+='],[...'-_:;<>$£€•'],[...'.,\'?!']]};
+const kmL=()=>dev==='ios'?KMI:KM;
+const phoneBase=()=>S.lang==='km'?(mode==='123'?(moreOn?(dev==='ios'?KMI.more:MORE.km):kmL().num):kmL().base):(mode==='123'?(moreOn?MORE.en:ENP.num):ENP.base);
 function headChar(id){
   const m=/^p(\d+)_(\d+)$/.exec(id);
   if(m){const r=+m[1],c=+m[2];
-    if(S.lang==='km')return (mode==='123'?phoneBase():(barLayer()===1?KM.shift:KM.base))[r]?.[c]||'';
+    if(S.lang==='km')return (mode==='123'?phoneBase():(barLayer()===1?kmL().shift:kmL().base))[r]?.[c]||'';
     const ch=phoneBase()[r]?.[c]||'';return mode!=='123'&&barLayer()===1?ch.toUpperCase():ch}
   return (barMap()[id]||[])[barLayer()]||''}
 const headRows=()=>isPhone()?phoneBase().map((r,ri)=>r.map((_,ci)=>['p'+ri+'_'+ci,1])):KROWS.map(r=>r.map(c=>[c,1]));
 /* the machine's own keys: no option key on a phone, or for English on Windows; a phone has a 123 key instead */
 function fnItems(){const a=[['fn:shift',1]];if(isPhone())a.push(['fn:num',1]);else if(dev==='mac'||S.lang==='km')a.push(['fn:alt',1]);
   /* on a Khmer phone keyboard the full stop ។ (៕ with shift) sits beside the space bar, where NiDA keeps it on the main layer */
-  const khanKey=isPhone()&&S.lang==='km'&&mode!=='123';
+  const khanKey=dev==='android'&&S.lang==='km'&&mode!=='123';
   a.push(['fn:globe',1],['fn:space',khanKey?3:4]);if(khanKey)a.push(['fn:khan',1]);a.push(['fn:back',2],['fn:enter',1]);return a}
 function buildBars(){
   const fan=$('fan'),rail=fan&&fan.parentElement;if(!rail)return;
@@ -669,7 +678,7 @@ function buildBars(){
   paintBars();
 }
 function paintBars(){
-  if(!fanW)return;if(fanKey!==headKey()){buildBars();return}
+  if(!fanW)return;if(fanKey!==headKey()){buildBars();follow.n=0;follow(false);return} /* a page with a different number of rows changes the key set's height: size the rail to it */
   for(const id in barEl){if(id.startsWith('fn:'))continue;const u=headChar(id);barEl[id].querySelector('b').textContent=u==='\u200b'?'ZW':/^\p{M}/u.test(u)?'◌'+u:u}
   const km=S.lang==='km',pn=isPhone()&&mode==='123',T={shift:pn?(moreOn?'123':'#+='):'⇧',alt:dev==='mac'?'⌥':'AltGr',num:mode==='123'?(km?'កខគ':'ABC'):(km?'១២៣':'123'),khan:barLayer()===1?'៕':'។',globe:km?'A':'ក',back:'⌫',enter:'↵',space:km?'ខ្មែរ':'English'};
   for(const k in T){const e=barEl['fn:'+k];if(!e)continue;const sl=e.firstElementChild.firstElementChild,b=sl.firstElementChild;
@@ -1272,7 +1281,7 @@ function buildCourse(){
 const getCourse=()=>(course&&course.plat===plat)?course:(course=buildCourse());
 
 /* what the on-screen keys can print; anything else is skipped over on touch screens */
-const oskSet=new Set([' ','។','៕']);Object.values(KM).forEach(l=>l.forEach(r=>r.forEach(k=>[...k].forEach(c=>oskSet.add(c)))));
+const oskSet=new Set([' ','។','៕']);[KM,KMI].forEach(M=>Object.values(M).forEach(l=>l.forEach(r=>r.forEach(k=>[...k].forEach(c=>oskSet.add(c))))));
 const typable=c=>c<'\u0080'||oskSet.has(c)||(!coarse&&course&&c in course.where);
 const CLUSTER=/[\s\S](?:្[ក-ឳ]|[ា-៓៝‌‍])*/gu;
 
