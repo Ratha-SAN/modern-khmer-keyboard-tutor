@@ -297,16 +297,15 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 .game.nokeys .rail{display:none}
 .game .page{transform:none!important}
 /* in the game every light option is centred on the bow and arrow (--gx, --gy and the aim --gt are set every frame); room and lights off stay as they are */
-.device.game[data-light=spot] .page{background:color-mix(in srgb,var(--paper-dim) 60%,#000)}
-.device.game[data-light=spot] .light{background:radial-gradient(circle clamp(150px,52vmin,320px) at var(--gx,50%) var(--gy,70%),var(--paper-lit) 0%,var(--paper-lit) 22%,color-mix(in srgb,var(--paper-lit) 60%,transparent) 50%,color-mix(in srgb,var(--paper-lit) 16%,transparent) 78%,transparent 100%)}
-/* the dark modes are dimmed less here, so the raining words stay readable outside the light */
-.device.game[data-light=flash] .page,.device.game[data-light=beam] .page{background:color-mix(in srgb,var(--paper-dim) 88%,#000)}
-.device.game[data-light=candle] .page{background:color-mix(in srgb,var(--paper-dim) 70%,#170a02)}
+.device.game[data-light=spot] .page{background:color-mix(in srgb,var(--paper-dim) 82%,#000)}
+.device.game[data-light=spot] .light{background:radial-gradient(circle farthest-corner at var(--gx,50%) var(--gy,70%),var(--paper-lit) 0%,var(--paper-lit) 26%,color-mix(in srgb,var(--paper-lit) 82%,var(--paper-dim)) 62%,color-mix(in srgb,var(--paper-lit) 58%,var(--paper-dim)) 100%)}
+/* the other lights fall off gently, so the whole sheet stays readable and only the brightness changes with the distance from the bow */
+.device.game[data-light=flash] .page,.device.game[data-light=beam] .page{background:var(--paper-dim)}
+.device.game[data-light=candle] .page{background:color-mix(in srgb,var(--paper-dim) 80%,#170a02)}
 .device.game[data-light=off] .page{background:color-mix(in srgb,var(--paper-dim) 94%,#000)}
-.device.game[data-light=flash] .light{background:radial-gradient(circle clamp(90px,26vmin,170px) at var(--gx,50%) var(--gy,70%),var(--paper-lit) 0%,var(--paper-lit) 26%,color-mix(in srgb,var(--paper-lit) 62%,transparent) 52%,color-mix(in srgb,var(--paper-lit) 18%,transparent) 78%,transparent 100%)}
-.device.game[data-light=beam] .light{background:conic-gradient(from calc(-62deg + var(--gt,0deg)) at var(--gx,50%) var(--gy,70%),transparent 0deg,color-mix(in srgb,var(--paper-lit) 50%,transparent) 16deg,var(--paper-lit) 34deg,var(--paper-lit) 90deg,color-mix(in srgb,var(--paper-lit) 50%,transparent) 108deg,transparent 124deg,transparent 360deg);
-  -webkit-mask-image:radial-gradient(circle at var(--gx,50%) var(--gy,70%),#000 0,#000 45%,rgba(0,0,0,.55) 72%,transparent 100%);mask-image:radial-gradient(circle at var(--gx,50%) var(--gy,70%),#000 0,#000 45%,rgba(0,0,0,.55) 72%,transparent 100%)}
-.device.game[data-light=candle] .light{background:radial-gradient(ellipse 100% 80% at var(--gx,50%) var(--gy,70%),color-mix(in srgb,var(--paper-lit) 70%,#ffc27a) 0%,color-mix(in srgb,var(--paper-lit) 52%,#ffa64d) 20%,color-mix(in srgb,var(--paper-lit) 30%,#e8852b) 44%,color-mix(in srgb,#b85f1c 34%,transparent) 70%,transparent 96%)}
+.device.game[data-light=flash] .light{background:radial-gradient(circle farthest-corner at var(--gx,50%) var(--gy,70%),var(--paper-lit) 0%,var(--paper-lit) 18%,color-mix(in srgb,var(--paper-lit) 70%,transparent) 48%,color-mix(in srgb,var(--paper-lit) 38%,transparent) 100%)}
+.device.game[data-light=beam] .light{background:conic-gradient(from calc(-62deg + var(--gt,0deg)) at var(--gx,50%) var(--gy,70%),color-mix(in srgb,var(--paper-lit) 34%,transparent) 0deg,color-mix(in srgb,var(--paper-lit) 62%,transparent) 16deg,var(--paper-lit) 34deg,var(--paper-lit) 90deg,color-mix(in srgb,var(--paper-lit) 62%,transparent) 108deg,color-mix(in srgb,var(--paper-lit) 34%,transparent) 124deg,color-mix(in srgb,var(--paper-lit) 34%,transparent) 360deg)}
+.device.game[data-light=candle] .light{background:radial-gradient(ellipse 140% 110% at var(--gx,50%) var(--gy,70%),color-mix(in srgb,var(--paper-lit) 70%,#ffc27a) 0%,color-mix(in srgb,var(--paper-lit) 52%,#ffa64d) 30%,color-mix(in srgb,var(--paper-lit) 34%,#e8852b) 62%,color-mix(in srgb,#b85f1c 40%,transparent) 100%)}
 .game .slug.hint{animation:gpulse .6s ease-in-out infinite alternate}
 @keyframes gpulse{to{box-shadow:0 0 0 3px #f0d58a,0 0 16px 5px rgba(240,213,138,.95)}}
 .drill #shareBtn{display:none}
@@ -1586,12 +1585,35 @@ function gameArcher(c){
     c.beginPath();c.moveTo(ax,ay);c.lineTo(ax-fx*.35*s+px*.2*s,ay-fy*.35*s+py*.2*s);c.lineTo(ax-fx*.35*s-px*.2*s,ay-fy*.35*s-py*.2*s);c.closePath();c.fill()}
   c.restore();
 }
+function gameScene(c,g){ /* the scenery, drawn in thin ink behind the words: mountains, a sun, drifting clouds and two trees */
+  const W=g.W,H=g.H,gy=g.gy,mh=Math.min(H*.36,W*.5),s=g.s;
+  c.save();c.lineCap='round';c.lineJoin='round';c.strokeStyle=g.ink;
+  const range=(pts,al,hatch)=>{c.globalAlpha=al;c.lineWidth=1.3;c.beginPath();pts.forEach((p,i)=>{const x=p[0]*W,y=gy-mh*p[1];i?c.lineTo(x,y):c.moveTo(x,y)});c.stroke();
+    if(hatch){c.lineWidth=.8;for(const p of pts){if(p[1]<.6)continue;const x=p[0]*W,y=gy-mh*p[1];for(let k=1;k<=4;k++){c.beginPath();c.moveTo(x+k*4,y+k*mh*.07);c.lineTo(x+k*4+mh*.09,y+k*mh*.07+mh*.11);c.stroke()}
+      c.beginPath();c.moveTo(x-mh*.1,y+mh*.13);c.lineTo(x-mh*.04,y+mh*.09);c.lineTo(x,y+mh*.14);c.lineTo(x+mh*.04,y+mh*.09);c.lineTo(x+mh*.1,y+mh*.13);c.stroke()}}};
+  range([[0,.3],[.14,.5],[.26,.3],[.4,.62],[.52,.34],[.66,.55],[.8,.3],[.92,.5],[1,.32]],.2,false);
+  range([[0,.38],[.1,.72],[.2,.46],[.33,1],[.45,.55],[.58,.82],[.7,.5],[.85,.92],[1,.42]],.34,true);
+  /* sun */
+  const sx=W*.76,sy=Math.max(H*.2,s*3.2),sr=Math.max(9,s*1.7);c.globalAlpha=.5;c.lineWidth=1.4;c.beginPath();c.arc(sx,sy,sr,0,6.283);c.stroke();
+  for(let k=0;k<12;k++){const a=k*.5236+g.t*.12;c.beginPath();c.moveTo(sx+Math.cos(a)*sr*1.35,sy+Math.sin(a)*sr*1.35);c.lineTo(sx+Math.cos(a)*sr*(k%2?1.7:2),sy+Math.sin(a)*sr*(k%2?1.7:2));c.stroke()}
+  /* clouds drift slowly to the left and come round again */
+  const cloud=(x,y,r)=>{c.beginPath();c.moveTo(x-r*1.6,y);c.arc(x-r*.9,y-r*.1,r*.7,Math.PI,Math.PI*1.9);c.arc(x,y-r*.5,r*.9,Math.PI*1.1,Math.PI*1.95);c.arc(x+r*1,y-r*.1,r*.7,Math.PI*1.15,Math.PI*2.1);c.lineTo(x+r*1.7,y);c.lineTo(x-r*1.6,y);c.stroke()};
+  c.globalAlpha=.4;c.lineWidth=1.3;
+  [[.18,.17,1.1,7],[.55,.3,.8,5],[.92,.1,1,9]].forEach(([fx,fy,k,v])=>{const r=Math.max(8,s*1.2)*k,x=((fx*W-g.t*v)%(W+r*6)+W+r*6)%(W+r*6)-r*3;cloud(x,Math.max(fy*H*.8,r*1.5),r)});
+  /* trees */
+  const tree=(x,h,lean)=>{c.globalAlpha=.55;c.lineWidth=1.6;c.beginPath();c.moveTo(x-h*.05,gy);c.quadraticCurveTo(x-h*.04+lean,gy-h*.4,x+lean,gy-h*.62);c.moveTo(x+h*.05,gy);c.quadraticCurveTo(x+h*.04+lean,gy-h*.4,x+lean+h*.02,gy-h*.62);c.stroke();
+    c.lineWidth=1.3;const fx=x+lean,fy=gy-h*.78;[[0,0,.3],[-.22,.1,.24],[.22,.1,.24],[-.1,-.16,.22],[.12,-.15,.22]].forEach(([dx,dy,r])=>{c.beginPath();c.arc(fx+dx*h*.85,fy+dy*h*.85,r*h*.72,0,6.283);c.stroke()});
+    c.lineWidth=1;c.beginPath();c.moveTo(fx-h*.08,fy+h*.05);c.lineTo(x-h*.01+lean*.3,gy-h*.4);c.stroke()};
+  tree(W*.09,Math.max(40,s*7.5),s*.2);tree(W*.91,Math.max(34,s*6.2),-s*.2);
+  c.restore();
+}
 function gameDraw(){
   const g=G,c=g.cx,W=g.W,H=g.H;
   c.setTransform(g.dpr,0,0,g.dpr,0,0);c.clearRect(0,0,W,H);
   const bw=gameBow();device.style.setProperty('--gx',bw.x.toFixed(0)+'px');device.style.setProperty('--gy',bw.y.toFixed(0)+'px');device.style.setProperty('--gt',(Math.atan2(g.aim.x-bw.x,-(g.aim.y-bw.y))*57.2958).toFixed(0)+'deg');
   c.save();if(g.shake>0)c.translate((Math.random()-.5)*g.shake*14,(Math.random()-.5)*g.shake*14);
   c.lineCap='round';c.strokeStyle=g.ink;
+  gameScene(c,g);
   /* ground: one hand-ruled line with a few hatch marks */
   c.globalAlpha=.8;c.lineWidth=1.6;c.beginPath();for(let x=0;x<=W;x+=14){const y=g.gy+Math.sin(x*.07+g.seed||0)*.8;x?c.lineTo(x,y):c.moveTo(x,y)}c.stroke();
   c.lineWidth=1;c.globalAlpha=.4;for(let x=8;x<W;x+=22){c.beginPath();c.moveTo(x,g.gy+3);c.lineTo(x-5,g.gy+9);c.stroke()}c.globalAlpha=1;
@@ -1627,7 +1649,10 @@ function gameDraw(){
     c.fillStyle='rgba(0,0,0,.18)';c.fillRect(0,0,W,H);c.fillStyle=g.ink;c.textAlign='center';
     c.font='700 '+Math.round(g.fs*1.5)+'px system-ui,sans-serif';c.fillText('The page is full',W/2,H*.36);
     c.font='500 '+Math.round(g.fs*.95)+'px system-ui,sans-serif';c.fillText('Score '+g.score+(g.newBest?' · new best!':' · Best '+g.best),W/2,H*.36+g.fs*1.8);
-    c.globalAlpha=.7;c.fillText('Tap or press a key to play again',W/2,H*.36+g.fs*3.4);c.globalAlpha=1}
+    const bw=g.fs*9,bh=g.fs*2.5,bx=W/2-bw/2,by=H*.36+g.fs*4.2;g.btn={x:bx,y:by,w:bw,h:bh};
+    c.fillStyle=g.ink;c.beginPath();c.roundRect?c.roundRect(bx,by,bw,bh,bh/2):c.rect(bx,by,bw,bh);c.fill();
+    c.fillStyle='#f2ecdc';c.font='700 '+Math.round(g.fs*1.05)+'px system-ui,sans-serif';c.textBaseline='middle';c.fillText('Play again',W/2,by+bh/2+1);c.textBaseline='alphabetic';
+    c.fillStyle=g.ink;c.globalAlpha=.6;c.font='500 '+Math.round(g.fs*.8)+'px system-ui,sans-serif';c.fillText('or press any key',W/2,by+bh+g.fs*1.3);c.globalAlpha=1}
 }
 function gameHint(){
   const fan=$('fan');if(!fan)return;fan.querySelectorAll('.slug.hint').forEach(e=>e.classList.remove('hint'));
