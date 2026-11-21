@@ -291,7 +291,14 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 .game #gcv{display:block}
 .game .scroll,.game .strike{visibility:hidden}
 .game .count,.game #shareBtn{display:none}
+.gameonly{display:none}
+.game .gameonly{display:grid}
+.game #gameKb{opacity:.95}.game.nokeys #gameKb{opacity:.45}
+.game.nokeys .rail{display:none}
 .game .page{transform:none!important}
+/* in the game the pool of light rises from the bow and arrow (--gx, --gy are set every frame) */
+.device.game .page{background:color-mix(in srgb,var(--paper-dim) 60%,#000)}
+.device.game .light{background:radial-gradient(circle clamp(150px,52vmin,320px) at var(--gx,50%) var(--gy,70%),var(--paper-lit) 0%,var(--paper-lit) 22%,color-mix(in srgb,var(--paper-lit) 60%,transparent) 50%,color-mix(in srgb,var(--paper-lit) 16%,transparent) 78%,transparent 100%)}
 .game .slug.hint{animation:gpulse .6s ease-in-out infinite alternate}
 @keyframes gpulse{to{box-shadow:0 0 0 3px #f0d58a,0 0 16px 5px rgba(240,213,138,.95)}}
 .drill #shareBtn{display:none}
@@ -394,6 +401,7 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
       <span class="clock" id="clock" hidden></span>
       <span class="khint" id="khint" hidden></span>
       <button class="count" id="count" aria-label="Progress toward goal. Switch between characters and words"></button>
+      <button class="hb gameonly" id="gameKb" aria-label="Show or hide the machine keys" title="Machine keys on / off"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M8 14h8"/></svg></button>
       <button class="hb" id="shareBtn" aria-label="Copy your text"><svg class="i" viewBox="0 0 24 24"><path d="M12 15V3M8 7l4-4 4 4M7 11H5v9h14v-9h-2"/></svg></button>
     </div>
     <div class="toast" id="toast" role="status"></div>
@@ -1076,7 +1084,6 @@ const TOOLS=[
   {id:'focus',label:'Focus on the current line',toggle:'focus',fold:1},
   {id:'page',label:'Pages',fold:1},
   {id:'learn',label:'Typing lessons',fold:1},
-  {id:'game',label:'Ink Archer game',fold:1},
   {id:'ink',label:'Ink ribbon and paper',panel:1,fold:1},
   {id:'lamp',label:'Light',panel:1,fold:1},
   {id:'set',label:'Settings',panel:1,fold:1},
@@ -1103,7 +1110,6 @@ tools.addEventListener('click',e=>{
   const b=e.target.closest('.tb');if(!b)return;const id=b.dataset.t,t=TOOLS.find(x=>x.id===id);audio();
   if(id==='chev'){S.collapsed=!S.collapsed;closePanel()}
   else if(id==='keys'){setOsk(true);return}
-  else if(id==='game'){closePanel();G?exitGame():startGame();return}
   else if(id==='page'){if(G)exitGame();closePanel();showPages();return}
   else if(id==='learn'){if(G)exitGame();closePanel();showLearn();return}
   else if(id==='timer'||(t&&t.panel)){openPanel===id?closePanel():showPanel(id);return}
@@ -1399,6 +1405,7 @@ function streak(days){let n=0;const t=new Date();if(!days[dkey(t)])t.setDate(t.g
 function lessonsHtml(){
   const c=getCourse(),B=LN().best,nextL=c.lessons.find(l=>!B[l.id]);
   let h='<div class="rowset">'+(nextL?'<button class="chip sel" data-l="'+nextL.id+'">'+(Object.keys(B).length?'Continue':'Start')+': '+esc(nextL.t[0])+'</button>':'<span class="chip">Every lesson done</span>')+'</div>';
+  h+='<details class="unit" open><summary>🏹 Games<small>Practise by playing</small></summary><div class="rows"><div class="pg"><button class="open" data-game="archer"><div class="t">🏹 Ink Archer</div><div class="m">Shoot the raining words by typing them'+((S.gbest||{})[S.lang]?' · best '+S.gbest[S.lang]:'')+'</div></button></div></div></details>';
   c.units.forEach(u=>{
     const ls=c.lessons.filter(l=>l.unit===u.id);if(!ls.length)return;
     const done=ls.filter(l=>B[l.id]).length;
@@ -1446,6 +1453,7 @@ function showLearn(tab){
 }
 learnEl.addEventListener('click',e=>{
   const l=e.target.closest('[data-l]'),t=e.target.closest('[data-tab]'),r=e.target.closest('[data-reset]');
+  if(e.target.closest('[data-game]')){audio();startGame();return}
   if(l){audio();startDrill(l.dataset.l)}
   else if(t)showLearn(t.dataset.tab);
   else if(r){if(!r.classList.contains('sure')){r.classList.add('sure');r.textContent='Erase all lesson results?';return}S.learn=null;save();showLearn()}
@@ -1464,11 +1472,11 @@ function startGame(){
   G={cv:$('gcv'),W:0,H:0,dpr:1,words:[],arrows:[],bits:[],blots:[],floats:[],wave:0,score:0,lives:5,lock:null,over:false,overT:0,t:0,last:performance.now(),
     shake:0,aim:{x:0,y:0},dr:0,rel:0,pool:gameWords(),best:(S.gbest||{})[S.lang]||0,newBest:false,combo:0,banner:0,raf:0};
   G.cx=G.cv.getContext('2d');
-  device.classList.add('game');shift=0;mode='abc';moreOn=false;ta.value='';buildKb();paintBars();
+  device.classList.add('game');device.classList.toggle('nokeys',!S.osk);shift=0;mode='abc';moreOn=false;ta.value='';buildKb();paintBars();
   gameSize();nextWave();G.raf=requestAnimationFrame(gameTick);focusTa();gameHint();
 }
 function exitGame(){
-  if(!G)return;cancelAnimationFrame(G.raf);G=null;device.classList.remove('game');
+  if(!G)return;cancelAnimationFrame(G.raf);G=null;device.classList.remove('game','nokeys');
   $('fan').querySelectorAll('.slug.hint').forEach(e=>e.classList.remove('hint'));
   ta.value=doc().text;ta.setSelectionRange(ta.value.length,ta.value.length);
   mode='abc';shift=0;buildKb();paintBars();layout();lastN=count();autoShift();focusTa();
@@ -1477,7 +1485,7 @@ function gameRestart(){if(!G)return;const raf=G.raf;cancelAnimationFrame(raf);G=
 function gameSize(){
   const g=G,pg=$('page'),w=pg.clientWidth,h=pg.clientHeight;if(!w||!h)return;
   g.dpr=Math.min(2,window.devicePixelRatio||1);g.W=w;g.H=h;g.cv.width=Math.round(w*g.dpr);g.cv.height=Math.round(h*g.dpr);
-  g.s=gClamp(h/11,11,34);g.gy=h-Math.max(8,g.s*.7);g.ax=w/2;g.sp=h*(.1+.011*g.wave);
+  g.s=gClamp(h/22.4,6,17);g.gy=h-Math.max(8,g.s*.7);g.ax=w/2;g.sp=h*(.1+.011*g.wave);
   g.fs=Math.round(gClamp((S.size||18)*1.3,18,28));g.font=g.fs+'px '+getComputedStyle(ta).fontFamily;
   g.ink=getComputedStyle(device).getPropertyValue('--ink').trim()||'#26211d';
   if(!g.aim.x){g.aim.x=g.ax+g.s*6;g.aim.y=g.gy-g.s*5}
@@ -1573,6 +1581,7 @@ function gameArcher(c){
 function gameDraw(){
   const g=G,c=g.cx,W=g.W,H=g.H;
   c.setTransform(g.dpr,0,0,g.dpr,0,0);c.clearRect(0,0,W,H);
+  const bw=gameBow();device.style.setProperty('--gx',bw.x.toFixed(0)+'px');device.style.setProperty('--gy',bw.y.toFixed(0)+'px');
   c.save();if(g.shake>0)c.translate((Math.random()-.5)*g.shake*14,(Math.random()-.5)*g.shake*14);
   c.lineCap='round';c.strokeStyle=g.ink;
   /* ground: one hand-ruled line with a few hatch marks */
@@ -1601,8 +1610,8 @@ function gameDraw(){
   for(const b of g.bits){c.globalAlpha=Math.max(0,b.a);c.beginPath();c.arc(b.x,b.y,b.r,0,6.283);c.fill()}c.globalAlpha=1;
   for(const f of g.floats){c.globalAlpha=1-f.t;c.fillStyle='#a3321f';c.font='700 '+Math.round(g.fs*.8)+'px system-ui,sans-serif';c.textAlign='center';c.fillText(f.txt,f.x,f.y-f.t*26)}c.globalAlpha=1;
   /* score, lives and the wave banner, kept clear of the back button on the left */
-  c.fillStyle=g.ink;c.textAlign='right';c.font='600 '+Math.round(g.fs*.8)+'px system-ui,sans-serif';c.fillText(g.score+'',W-14,24);
-  c.globalAlpha=.55;c.font='500 '+Math.round(g.fs*.6)+'px system-ui,sans-serif';c.fillText('Wave '+g.wave+(g.best?' · Best '+g.best:''),W-14,24+g.fs*.8);c.globalAlpha=1;
+  c.fillStyle=g.ink;c.textAlign='right';c.font='600 '+Math.round(g.fs*.8)+'px system-ui,sans-serif';c.fillText(g.score+'',W-58,24);
+  c.globalAlpha=.55;c.font='500 '+Math.round(g.fs*.6)+'px system-ui,sans-serif';c.fillText('Wave '+g.wave+(g.best?' · Best '+g.best:''),W-58,24+g.fs*.8);c.globalAlpha=1;
   for(let i=0;i<5;i++){const x=W/2-44+i*22,y=16,full=i<g.lives;c.globalAlpha=full?1:.25;c.fillStyle=g.ink;c.beginPath();c.arc(x,y+3,5,0,6.283);c.moveTo(x-4.4,y+1);c.lineTo(x,y-9);c.lineTo(x+4.4,y+1);c.fill()}c.globalAlpha=1;
   if(g.banner>0&&!g.over){c.globalAlpha=Math.min(1,g.banner*1.4);c.fillStyle=g.ink;c.textAlign='center';c.font='700 '+Math.round(g.fs*1.7)+'px system-ui,sans-serif';c.fillText('Wave '+g.wave,W/2,g.H*.38);c.globalAlpha=1}
   c.restore();
@@ -1630,6 +1639,7 @@ function gameHint(){
   for(const id in M){const L=M[id].findIndex(u=>u&&rest.startsWith(u));if(L>0){lit(L===1?'fn:shift':'fn:alt');return}}
   if(barLayer()>0)lit(barLayer()===1?'fn:shift':'fn:alt');
 }
+$('gameKb').addEventListener('click',()=>{if(!G)return;setOsk(!S.osk);device.classList.toggle('nokeys',!S.osk);toast(S.osk?'Machine keys on':'Machine keys off · use your device keyboard');setTimeout(()=>{if(G){gameSize();focusTa()}},120)});
 $('gcv').addEventListener('click',()=>{if(G&&G.over&&performance.now()-G.overT>700)gameRestart();else focusTa()});
 ta.addEventListener('keydown',e=>{if(G&&(e.key==='Backspace'||e.key==='Escape')){G.lock=null;G.combo=0;e.preventDefault();gameHint()}});
 new ResizeObserver(()=>{if(G)gameSize()}).observe($('page'));
