@@ -298,6 +298,9 @@ function chartUnits(c){
 }
 function renderStats(){
   var o=stats(),box=el("section","acct-stats");
+  var tw=window.__twStats&&window.__twStats(); // the typewriter brings its own numbers
+  if(tw){box.appendChild(el("h3",null,tw.title));var tg=el("div","acct-grid");
+    tw.tiles.forEach(function(x){tg.appendChild(tile(x[0],x[1],x[2],x[3]==null?null:x[3]))});box.appendChild(tg);return box}
   if(!o.lessons&&!o.games.length&&!o.lab.length)return document.createDocumentFragment(); // pages with no course (the typewriter)
   var h=el("h3",null,t("progress")+(o.plat?" · "+(o.plat==="mac"?"Mac":"Windows"):""));box.appendChild(h);
   var g=el("div","acct-grid");

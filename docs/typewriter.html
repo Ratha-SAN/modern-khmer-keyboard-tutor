@@ -137,7 +137,7 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 .lever::before{content:"";position:absolute;left:-6px;top:-3px;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff,#a19c93 60%,#55514c)}
 /* fixed parts, centred on the print point */
 .spool{position:absolute;top:var(--spt,19px);width:24px;height:24px;margin-left:-12px;border-radius:50%;z-index:3;pointer-events:none;
-  left:calc(var(--rx,50%) + var(--sp));transform:rotate(var(--spin,0deg));transition:transform .12s ease-out;
+  left:calc(var(--cx,var(--rx,50%)) + var(--sp));transform:rotate(var(--spin,0deg));transition:transform .12s ease-out;
   background:radial-gradient(circle,#d7d1c6 0 2.5px,#26231f 3px 5px,transparent 5.5px),repeating-conic-gradient(#191715 0 10deg,#2a2724 10deg 20deg);
   box-shadow:0 0 0 2px #3b3834,0 2px 5px rgba(0,0,0,.6)}
 .head{position:absolute;top:calc(var(--py,-40px) + 18px);left:var(--rx,50%);width:0;height:0;z-index:4}
@@ -147,6 +147,7 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 /* the typebar basket: one bar for every key, fanned out in a half ring in front of the platen. Each bar pivots
    on the brass segment halfway along, so when its key is struck it whips up over the segment and lands, face
    first, on the print point where all the bars meet. Built by buildBars() */
+.fixedpaper .head,.fixedpaper .fan{transition:left .09s cubic-bezier(.3,.7,.4,1)}
 .fan{position:absolute;left:var(--rx,50%);top:var(--py,-14px);width:0;height:0;z-index:3;pointer-events:none}
 .fan svg{position:absolute;overflow:visible}
 .tbar{position:absolute;left:0;top:0;width:0;height:0}
@@ -180,18 +181,20 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 
 
 /* tool strip */
-.chassis{position:relative;flex:none;padding:6px 12px 10px;background:var(--chassis)}
-.tools{display:flex;align-items:center;gap:2px;background:var(--well);border-radius:999px;padding:3px 8px;
+.chassis{position:relative;flex:none;padding:6px 8px 10px;background:var(--chassis)}
+.tools{display:flex;align-items:center;gap:0;background:var(--well);border-radius:999px;padding:4px 10px;
   box-shadow:inset 0 2px 4px rgba(0,0,0,.45),0 1px 0 rgba(255,255,255,.18);overflow-x:auto;scrollbar-width:none}
 .tools::-webkit-scrollbar{display:none}
-.tb{flex:1 1 44px;max-width:44px;min-width:28px;height:40px;display:grid;place-items:center;border-radius:10px;color:var(--tool);transition:color .15s,transform .15s}
+.tb{flex:1 1 50px;max-width:50px;min-width:30px;height:44px;display:grid;place-items:center;border-radius:10px;color:var(--tool);transition:color .15s,transform .15s}
 .tb.on{color:var(--tool-on);filter:drop-shadow(0 0 5px rgba(255,236,190,.55))}
 .tb.open{background:rgba(0,0,0,.25);color:var(--tool-on)}
 .tb.chev.on{filter:none}
 .collapsed .tb.chev{transform:rotate(180deg)}
-.tools .gap{flex:1;min-width:6px}
-.tools .div{flex:none;width:1px;height:22px;background:rgba(255,255,255,.16);margin:0 4px}
-.collapsed .tb.fold{display:none}
+.tools{justify-content:center}
+.tools .gap{flex:none;width:0} /* the tools sit centred in the bar, most visibly in landscape */
+.tb svg.i{width:26px;height:26px}
+.tools .div{flex:none;width:1px;height:26px;background:rgba(255,255,255,.16);margin:0 3px}
+.collapsed .fold{display:none}
 
 .panel{position:absolute;left:12px;right:12px;bottom:calc(100% + 22px);z-index:6;background:var(--panel);color:var(--panel-text);
   border:1px solid var(--panel-line);border-radius:18px;padding:14px 16px 16px;box-shadow:0 16px 40px rgba(0,0,0,.55);
@@ -261,7 +264,7 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 .fan .slug{touch-action:none;will-change:transform}
 .lnd .pred{font-size:14px;padding:3px 9px 4px;border-radius:9px}
 @media (orientation:landscape) and (max-height:480px){ /* short screens (a phone on its side, a Telegram mini app): a slimmer tool strip leaves the room to the paper */
-  .chassis{padding:3px 12px 4px}.tb{height:30px}.tools{padding:1px 8px}}
+  .chassis{padding:3px 12px 4px}.tb{height:34px}.tb svg.i{width:23px;height:23px}.tools{padding:1px 9px}}
 
 /* pages */
 .pages{position:absolute;inset:0;z-index:10;background:var(--panel);display:flex;flex-direction:column}
@@ -370,7 +373,7 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 <link rel="stylesheet" href="auth-lite.css?v=20261122">
 <script>window.AUTH_EN=true;window.AUTH_HOST=true</script>
 <script src="firebase-config.js?v=20261122"></script>
-<script src="auth.js?v=20261122"></script>
+<script src="auth.js?v=20261123"></script>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
@@ -468,11 +471,12 @@ const svg=p=>`<svg class="i" viewBox="0 0 24 24">${p}</svg>`;
 const IC={
   acct:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/>',
   chev:'<path d="M9 5l7 7-7 7"/>',
-  sound:'<path d="M7 9V4h10v5"/><rect x="3" y="9" width="18" height="10" rx="2"/><path d="M7 13h.01M11 13h.01M15 13h.01M8 16h8"/>',
+  sound:'<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 010 6M18 6.5a7.5 7.5 0 010 11"/>',
   focus:'<circle cx="12" cy="12" r="3"/><path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3"/>',
   page:'<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/>',
   ink:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="6.8" r="1.1"/><circle cx="7.5" cy="14.6" r="1.1"/><circle cx="16.5" cy="14.6" r="1.1"/>',
   lamp:'<path d="M9 4h6l3 7H6z"/><path d="M12 11v8M8 20h8"/>',
+  look:'<path d="M12 3.5a8.5 8.5 0 100 17c1.3 0 1.8-.9 1.4-1.9-.5-1.1.2-2.1 1.4-2.1H17a3.5 3.5 0 003.5-3.5c0-5.2-3.8-9.5-8.5-9.5z"/><circle cx="7.8" cy="11" r="1.1"/><circle cx="10.5" cy="7.3" r="1.1"/><circle cx="15" cy="7.6" r="1.1"/>',
   set:'<path d="M4 7h9M19 7h1M4 12h2M12 12h8M4 17h11"/><circle cx="16" cy="7" r="2.2"/><circle cx="9" cy="12" r="2.2"/><circle cx="18" cy="17" r="2.2"/>',
   game:'<path d="M7 3c9 4 9 14 0 18"/><path d="M7 3v18M3 12h17M16 8l4 4-4 4"/>',
   bell:'<path d="M6 17v-6a6 6 0 0112 0v6l1.5 2h-15z"/><path d="M10 21.5h4"/>',
@@ -804,7 +808,8 @@ function follow(smooth=true){
      Small moves step like the escapement, a long one back is the carriage return */
   /* the next letter is printed to the right of the caret, so the page waits with the caret half a letter left of
      the print point: the letter's middle is then right under the meeting point of the bars when it is struck */
-  const mid=r.width/2,off=(x-mid)/Math.max(1,mid),tx=Math.round(mid-x-letterW()/2);
+  /* with a fixed page (Settings) the page stays put and the print point travels along the line instead */
+  const mid=r.width/2,off=(x-mid)/Math.max(1,mid),tx=S.fixedPaper?0:Math.round(mid-x-letterW()/2);
   if(tx!==lastTx){const big=Math.abs(tx-lastTx)>r.width*.25,cls=smooth?(big?'ret':'step'):'';
     for(const el of [pageEl,headEl.offsetParent])if(el){el.classList.remove('step','ret');if(cls)el.classList.add(cls)}
     device.style.setProperty('--tx',tx+'px');lastTx=tx}
@@ -813,7 +818,10 @@ function follow(smooth=true){
     if(fanB){const want=Math.max(40,Math.ceil(py+fanB+fanSh*(fanLnd?1.6:2.3)+(fanLnd?4:10)));if(Math.abs(rail.offsetHeight-want)>1){rail.style.height=want+'px';
       if((follow.n=(follow.n||0)+1)<4)requestAnimationFrame(()=>follow(false))} /* the print point moved with the rail: settle it again, a few times at most */
     else follow.n=0}}
-  device.style.setProperty('--rx',(rail?fr.left+fr.width/2-rail.getBoundingClientRect().left:mid)+'px');
+  const rl=rail?rail.getBoundingClientRect().left:0,pr=pageEl.getBoundingClientRect();
+  device.style.setProperty('--rx',(!rail?mid:S.fixedPaper?fr.left+pageEl.offsetLeft+(r.left-pr.left)+x+letterW()/2-rl:fr.left+fr.width/2-rl)+'px');
+  device.style.setProperty('--cx',(rail?fr.left+fr.width/2-rl:mid)+'px'); /* the spools stay in the middle even when the print point travels */
+  device.classList.toggle('fixedpaper',!!S.fixedPaper);
   /* lights live on the page, so they are placed where the print point falls on it */
   device.style.setProperty('--hx',x+'px');caretX=x;
   device.style.setProperty('--sx',x+'px');device.style.setProperty('--tilt',(-off*16).toFixed(1)+'deg');
@@ -1114,23 +1122,24 @@ addEventListener('keydown',e=>{
 });
 
 /* ---------- tool strip ---------- */
-const TOOLS=[
-  {id:'sound',label:'Key sounds',toggle:'sound',fold:1},
-  {id:'focus',label:'Focus on the current line',toggle:'focus',fold:1},
-  {id:'page',label:'Pages',fold:1},
-  {id:'learn',label:'Typing lessons',fold:1},
-  {id:'acct',label:'Account and sign in',fold:1},
-  {id:'ink',label:'Ink ribbon and paper',panel:1,fold:1},
-  {id:'lamp',label:'Light',panel:1,fold:1},
-  {id:'set',label:'Settings',panel:1,fold:1},
-  {id:'bell',label:'Margin bell',toggle:'bell',fold:1}
+const TOOLS=[ /* grouped: writing | practice | look and sound | you; a null is a divider */
+  {id:'page',label:'Pages'},
+  {id:'focus',label:'Focus on the current line',toggle:'focus'},
+  {id:'timer',label:'Writing timer',panel:1},
+  null,
+  {id:'learn',label:'Typing lessons'},
+  null,
+  {id:'look',label:'Ink, paper and light',panel:1},
+  {id:'sound',label:'Sounds: keys and margin bell',panel:1},
+  null,
+  {id:'set',label:'Settings',panel:1},
+  {id:'acct',label:'Account and sign in'}
 ];
 let openPanel=null,timerEnd=0,timerInt;
 function renderTools(){
   tools.innerHTML=`<button class="tb chev${S.collapsed?'':' on'}" data-t="chev" aria-label="${S.collapsed?'Show tools':'Hide tools'}">${svg(IC.chev)}</button>`+
-    TOOLS.map(t=>`<button class="tb fold${(t.toggle&&S[t.toggle])||(t.id==='lamp'&&S.light!=='off')||(t.id==='acct'&&window.Auth&&Auth.user)?' on':''}${openPanel===t.id?' open':''}" data-t="${t.id}" aria-label="${t.label}" title="${t.label}"${t.toggle?` aria-pressed="${!!S[t.toggle]}"`:''}>${svg(IC[t.id])}</button>`).join('')+
-    `<span class="gap"></span>`+(S.osk?'':`<button class="tb" data-t="keys" aria-label="Show on-screen keys" title="Show on-screen keys">${svg(IC.keys)}</button>`)+
-    `<span class="div"></span><button class="tb${timerEnd?' on':''}${openPanel==='timer'?' open':''}" data-t="timer" aria-label="Writing timer" title="Writing timer">${svg(IC.timer)}</button>`;
+    TOOLS.map(t=>!t?'<span class="div fold"></span>':`<button class="tb fold${(t.toggle&&S[t.toggle])||(t.id==='timer'&&timerEnd)||(t.id==='sound'&&(S.sound||S.bell))||(t.id==='acct'&&window.Auth&&Auth.user)?' on':''}${openPanel===t.id?' open':''}" data-t="${t.id}" aria-label="${t.label}" title="${t.label}"${t.toggle?` aria-pressed="${!!S[t.toggle]}"`:''}>${svg(IC[t.id])}</button>`).join('')+
+    `<span class="gap"></span>`+(S.osk?'':`<button class="tb" data-t="keys" aria-label="Show on-screen keys" title="Show on-screen keys">${svg(IC.keys)}</button>`);
   tools.classList.toggle('collapsed',S.collapsed);
 }
 function applyLook(){
@@ -1143,28 +1152,44 @@ function applyLook(){
 const NAMES={sound:'Key sounds',focus:'Focus',lamp:'Lamp',bell:'Margin bell'};
 tools.addEventListener('mousedown',e=>e.preventDefault());
 window.addEventListener('authchange',()=>renderTools());
+window.__twStats=()=>{ /* read by auth.js for the account sheet */
+  const L=LN(),best=Object.values(L.best||{}),c=getCourse(),n=c&&c.lessons?c.lessons.length:0;
+  const secs=Object.values(L.days||{}).reduce((a,b)=>a+b,0),h=L.hist||[];
+  const avgW=h.length?Math.round(h.slice(-20).reduce((a,x)=>a+x.w,0)/Math.min(20,h.length)):0;
+  const avgA=h.length?Math.round(h.slice(-20).reduce((a,x)=>a+x.a,0)/Math.min(20,h.length)):0;
+  const txt=S.docs.map(d=>d.text||''),words=txt.reduce((a,t)=>a+(t.trim().match(/\S+/g)||[]).length,0),chars=txt.reduce((a,t)=>a+t.length,0);
+  const f=v=>v.toLocaleString('en-US'),tm=secs>=3600?Math.floor(secs/3600)+' h '+Math.round(secs%3600/60)+' min':Math.round(secs/60)+' min';
+  return {title:'Typing statistics',tiles:[
+    ['Best speed',best.length?f(Math.max(...best.map(b=>b.w))):'–','words / min'],
+    ['Recent speed',avgW?f(avgW):'–',avgW?'wpm · '+avgA+'% accurate':'last 20 lessons'],
+    ['Lessons done',f(best.length),n?'of '+f(n)+' · ★ '+f(best.reduce((a,b)=>a+(b.s||0),0)):'',n?best.length/n:null],
+    ['Practice time',tm,f(h.length)+' sessions'],
+    ['Words written',f(words),f(chars)+' characters · '+f(S.docs.length)+' pages'],
+    ['Ink Archer best',f(Math.max((S.gbest||{}).km||0,(S.gbest||{}).en||0)),'points']]};
+};
 window.addEventListener('progresssync',()=>{ /* Ink Archer bests from the account */
   let ch=false;const gb=Object.assign({},S.gbest);
   for(const l of ['km','en']){let v=0;try{v=parseInt(localStorage.getItem('bestTwArcher_'+l),10)||0}catch(e){}if(v>(gb[l]||0)){gb[l]=v;ch=true}}
   if(ch){S.gbest=gb;save()}
 });
 tools.addEventListener('click',e=>{
-  const b=e.target.closest('.tb');if(!b)return;const id=b.dataset.t,t=TOOLS.find(x=>x.id===id);audio();
+  const b=e.target.closest('.tb');if(!b)return;const id=b.dataset.t,t=TOOLS.find(x=>x&&x.id===id);audio();
   if(id==='chev'){S.collapsed=!S.collapsed;closePanel()}
   else if(id==='keys'){setOsk(true);return}
   else if(id==='page'){if(G)exitGame();closePanel();showPages();return}
   else if(id==='learn'){if(G)exitGame();closePanel();showLearn();return}
   else if(id==='acct'){closePanel();if(window.Auth&&Auth.open)Auth.open();else toast('Sign-in is not available here');return}
-  else if(id==='timer'||(t&&t.panel)){openPanel===id?closePanel():showPanel(id);return}
+  else if(t&&t.panel){openPanel===id?closePanel():showPanel(id);return}
   else if(t&&t.toggle){S[t.toggle]=!S[t.toggle];applyLook();toast(NAMES[t.toggle]+(S[t.toggle]?' on':' off'));if(t.toggle==='bell'&&S.bell)ding();if(t.toggle==='sound'&&S.sound)play('key')}
   save();renderTools();focusTa();
 });
 function closePanel(){openPanel=null;panel.hidden=true;renderTools()}
 function showPanel(id){
   openPanel=id;panel.hidden=false;
-  if(id==='ink')panel.innerHTML=`<h4>Ink ribbon</h4><div class="rowset">${Object.keys(INKS).map(k=>`<button class="sw${S.ink===k?' sel':''}" style="--c:${INKS[k]}" data-a="ink" data-v="${k}" aria-label="${k} ink"></button>`).join('')}</div>
-    <h4>Paper</h4><div class="rowset">${Object.keys(PAPERS).map(k=>`<button class="sw${S.paper===k?' sel':''}" style="--c:${PAPERS[k][1]}" data-a="paper" data-v="${k}" aria-label="${k} paper"></button>`).join('')}</div>`;
-  else if(id==='lamp')panel.innerHTML=`<h4>Light</h4><div class="rowset">${Object.keys(LIGHTS).map(k=>`<button class="chip${S.light===k?' sel':''}" data-a="light" data-v="${k}">${LIGHTS[k]}</button>`).join('')}</div>`;
+  if(id==='look')panel.innerHTML=`<h4>Ink ribbon</h4><div class="rowset">${Object.keys(INKS).map(k=>`<button class="sw${S.ink===k?' sel':''}" style="--c:${INKS[k]}" data-a="ink" data-v="${k}" aria-label="${k} ink"></button>`).join('')}</div>
+    <h4>Paper</h4><div class="rowset">${Object.keys(PAPERS).map(k=>`<button class="sw${S.paper===k?' sel':''}" style="--c:${PAPERS[k][1]}" data-a="paper" data-v="${k}" aria-label="${k} paper"></button>`).join('')}</div>
+    <h4>Light</h4><div class="rowset">${Object.keys(LIGHTS).map(k=>`<button class="chip${S.light===k?' sel':''}" data-a="light" data-v="${k}">${LIGHTS[k]}</button>`).join('')}</div>`;
+  else if(id==='sound')panel.innerHTML=`<h4>Sounds</h4><div class="rowset">${[['sound','Key sounds'],['bell','Margin bell']].map(([k,l])=>`<button class="chip${S[k]?' sel':''}" data-a="tog" data-v="${k}" aria-pressed="${!!S[k]}">${l}: ${S[k]?'on':'off'}</button>`).join('')}</div>`;
   else if(id==='timer')panel.innerHTML=`<h4>Writing timer</h4><div class="rowset">${[5,10,15,25,45].map(m=>`<button class="chip" data-a="timer" data-v="${m}">${m} min</button>`).join('')}${timerEnd?'<button class="chip sel" data-a="timer" data-v="0">Stop timer</button>':''}</div>`;
   else if(id==='share')panel.innerHTML=`<h4>Take your text with you</h4><div class="rowset"><button class="chip sel" data-a="copy">Copy text</button><button class="chip" data-a="selall">Select all</button></div>`;
   else panel.innerHTML=`<h4>Settings</h4>
@@ -1172,6 +1197,7 @@ function showPanel(id){
     <div class="field"><label for="sFace">Typeface</label><select id="sFace"><option value="type">Typewriter</option><option value="type2">Typewriter, heavy ribbon</option><option value="serif">Serif</option><option value="sans">Sans serif</option></select></div>
     <div class="field"><label for="sGoal">Goal</label><input type="number" id="sGoal" min="1" step="50" value="${S.goal}"><select id="sUnit" aria-label="Goal unit"><option value="chars">characters</option><option value="words">words</option></select></div>
     <div class="field"><label for="sOsk">On-screen keys<small>${coarse?'Turn off to use your device keyboard':'Shows each key as you type; turn off for more page'}</small></label><input type="checkbox" id="sOsk"${S.osk?' checked':''}></div>
+    <div class="field"><label for="sMove">Moving paper<small>The page slides past the print point like a real carriage. Turn off to keep the page still</small></label><input type="checkbox" id="sMove"${S.fixedPaper?'':' checked'}></div>
     <div class="field"><label for="sErase">No erasing<small>Like real paper: delete is disabled</small></label><input type="checkbox" id="sErase"${S.noErase?' checked':''}></div>
     <div class="field"><label for="sCap">Capitalize new sentences<small>On-screen keys only</small></label><input type="checkbox" id="sCap"${S.autoCap?' checked':''}></div>
     <div class="field"><label for="sKeys">Key colour</label><select id="sKeys"><option value="ivory">Ivory</option><option value="black">Black</option></select></div>
@@ -1183,8 +1209,9 @@ function showPanel(id){
 }
 panel.addEventListener('click',e=>{
   const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,v=b.dataset.v;
-  if(a==='ink'||a==='paper'){S[a]=v;applyLook();save();showPanel('ink')}
-  else if(a==='light'){S.light=v;pointing=false;applyLook();follow(false);save();showPanel('lamp');
+  if(a==='ink'||a==='paper'){S[a]=v;applyLook();save();showPanel('look')}
+  else if(a==='tog'){S[v]=!S[v];save();if(v==='bell'&&S.bell)ding();if(v==='sound'&&S.sound)play('key');showPanel('sound')}
+  else if(a==='light'){S.light=v;pointing=false;applyLook();follow(false);save();showPanel('look');
     if(v==='flash')toast(coarse?'Drag a finger over the page to point the flashlight.':'Move the pointer over the page to aim the flashlight.')}
   else if(a==='timer'){startTimer(+v);closePanel();focusTa()}
   else if(a==='copy'){copyText();closePanel()}
@@ -1198,6 +1225,7 @@ panel.addEventListener('input',e=>{
   else if(t.id==='sUnit'){S.unit=t.value;lastN=count()}
   else if(t.id==='sOsk'){S.osk=t.checked;S.oskChosen=true;applyOsk();renderTools();openPanel='set';layout()}
   else if(t.id==='sErase'){S.noErase=t.checked}
+  else if(t.id==='sMove'){S.fixedPaper=!t.checked;follow(false)}
   else if(t.id==='sDev'){dev=t.value;try{localStorage.setItem('twDevice',dev)}catch(e){}
     plat=(dev==='mac'||dev==='ios')?'mac':'windows';
     if(dev==='mac'||dev==='windows'){try{localStorage.setItem('nidaPlat',plat)}catch(e){}} /* shared with the tutor */
