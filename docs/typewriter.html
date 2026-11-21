@@ -137,7 +137,7 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 .lever::before{content:"";position:absolute;left:-6px;top:-3px;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff,#a19c93 60%,#55514c)}
 /* fixed parts, centred on the print point */
 .spool{position:absolute;top:var(--spt,19px);width:24px;height:24px;margin-left:-12px;border-radius:50%;z-index:3;pointer-events:none;
-  left:calc(var(--rx,50%) + var(--sp));transform:rotate(var(--spin,0deg));transition:transform .12s ease-out;
+  left:calc(var(--cx,var(--rx,50%)) + var(--sp));transform:rotate(var(--spin,0deg));transition:transform .12s ease-out;
   background:radial-gradient(circle,#d7d1c6 0 2.5px,#26231f 3px 5px,transparent 5.5px),repeating-conic-gradient(#191715 0 10deg,#2a2724 10deg 20deg);
   box-shadow:0 0 0 2px #3b3834,0 2px 5px rgba(0,0,0,.6)}
 .head{position:absolute;top:calc(var(--py,-40px) + 18px);left:var(--rx,50%);width:0;height:0;z-index:4}
@@ -147,6 +147,7 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 /* the typebar basket: one bar for every key, fanned out in a half ring in front of the platen. Each bar pivots
    on the brass segment halfway along, so when its key is struck it whips up over the segment and lands, face
    first, on the print point where all the bars meet. Built by buildBars() */
+.fixedpaper .head,.fixedpaper .fan{transition:left .09s cubic-bezier(.3,.7,.4,1)}
 .fan{position:absolute;left:var(--rx,50%);top:var(--py,-14px);width:0;height:0;z-index:3;pointer-events:none}
 .fan svg{position:absolute;overflow:visible}
 .tbar{position:absolute;left:0;top:0;width:0;height:0}
@@ -189,7 +190,8 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 .tb.open{background:rgba(0,0,0,.25);color:var(--tool-on)}
 .tb.chev.on{filter:none}
 .collapsed .tb.chev{transform:rotate(180deg)}
-.tools .gap{flex:1;min-width:0}
+.tools{justify-content:center}
+.tools .gap{flex:none;width:0} /* the tools sit centred in the bar, most visibly in landscape */
 .tb svg.i{width:26px;height:26px}
 .tools .div{flex:none;width:1px;height:26px;background:rgba(255,255,255,.16);margin:0 3px}
 .collapsed .fold{display:none}
@@ -371,7 +373,7 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 <link rel="stylesheet" href="auth-lite.css?v=20261122">
 <script>window.AUTH_EN=true;window.AUTH_HOST=true</script>
 <script src="firebase-config.js?v=20261122"></script>
-<script src="auth.js?v=20261122"></script>
+<script src="auth.js?v=20261123"></script>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
@@ -806,7 +808,8 @@ function follow(smooth=true){
      Small moves step like the escapement, a long one back is the carriage return */
   /* the next letter is printed to the right of the caret, so the page waits with the caret half a letter left of
      the print point: the letter's middle is then right under the meeting point of the bars when it is struck */
-  const mid=r.width/2,off=(x-mid)/Math.max(1,mid),tx=Math.round(mid-x-letterW()/2);
+  /* with a fixed page (Settings) the page stays put and the print point travels along the line instead */
+  const mid=r.width/2,off=(x-mid)/Math.max(1,mid),tx=S.fixedPaper?0:Math.round(mid-x-letterW()/2);
   if(tx!==lastTx){const big=Math.abs(tx-lastTx)>r.width*.25,cls=smooth?(big?'ret':'step'):'';
     for(const el of [pageEl,headEl.offsetParent])if(el){el.classList.remove('step','ret');if(cls)el.classList.add(cls)}
     device.style.setProperty('--tx',tx+'px');lastTx=tx}
@@ -815,7 +818,10 @@ function follow(smooth=true){
     if(fanB){const want=Math.max(40,Math.ceil(py+fanB+fanSh*(fanLnd?1.6:2.3)+(fanLnd?4:10)));if(Math.abs(rail.offsetHeight-want)>1){rail.style.height=want+'px';
       if((follow.n=(follow.n||0)+1)<4)requestAnimationFrame(()=>follow(false))} /* the print point moved with the rail: settle it again, a few times at most */
     else follow.n=0}}
-  device.style.setProperty('--rx',(rail?fr.left+fr.width/2-rail.getBoundingClientRect().left:mid)+'px');
+  const rl=rail?rail.getBoundingClientRect().left:0,pr=pageEl.getBoundingClientRect();
+  device.style.setProperty('--rx',(!rail?mid:S.fixedPaper?fr.left+pageEl.offsetLeft+(r.left-pr.left)+x+letterW()/2-rl:fr.left+fr.width/2-rl)+'px');
+  device.style.setProperty('--cx',(rail?fr.left+fr.width/2-rl:mid)+'px'); /* the spools stay in the middle even when the print point travels */
+  device.classList.toggle('fixedpaper',!!S.fixedPaper);
   /* lights live on the page, so they are placed where the print point falls on it */
   device.style.setProperty('--hx',x+'px');caretX=x;
   device.style.setProperty('--sx',x+'px');device.style.setProperty('--tilt',(-off*16).toFixed(1)+'deg');
@@ -1146,6 +1152,21 @@ function applyLook(){
 const NAMES={sound:'Key sounds',focus:'Focus',lamp:'Lamp',bell:'Margin bell'};
 tools.addEventListener('mousedown',e=>e.preventDefault());
 window.addEventListener('authchange',()=>renderTools());
+window.__twStats=()=>{ /* read by auth.js for the account sheet */
+  const L=LN(),best=Object.values(L.best||{}),c=getCourse(),n=c&&c.lessons?c.lessons.length:0;
+  const secs=Object.values(L.days||{}).reduce((a,b)=>a+b,0),h=L.hist||[];
+  const avgW=h.length?Math.round(h.slice(-20).reduce((a,x)=>a+x.w,0)/Math.min(20,h.length)):0;
+  const avgA=h.length?Math.round(h.slice(-20).reduce((a,x)=>a+x.a,0)/Math.min(20,h.length)):0;
+  const txt=S.docs.map(d=>d.text||''),words=txt.reduce((a,t)=>a+(t.trim().match(/\S+/g)||[]).length,0),chars=txt.reduce((a,t)=>a+t.length,0);
+  const f=v=>v.toLocaleString('en-US'),tm=secs>=3600?Math.floor(secs/3600)+' h '+Math.round(secs%3600/60)+' min':Math.round(secs/60)+' min';
+  return {title:'Typing statistics',tiles:[
+    ['Best speed',best.length?f(Math.max(...best.map(b=>b.w))):'–','words / min'],
+    ['Recent speed',avgW?f(avgW):'–',avgW?'wpm · '+avgA+'% accurate':'last 20 lessons'],
+    ['Lessons done',f(best.length),n?'of '+f(n)+' · ★ '+f(best.reduce((a,b)=>a+(b.s||0),0)):'',n?best.length/n:null],
+    ['Practice time',tm,f(h.length)+' sessions'],
+    ['Words written',f(words),f(chars)+' characters · '+f(S.docs.length)+' pages'],
+    ['Ink Archer best',f(Math.max((S.gbest||{}).km||0,(S.gbest||{}).en||0)),'points']]};
+};
 window.addEventListener('progresssync',()=>{ /* Ink Archer bests from the account */
   let ch=false;const gb=Object.assign({},S.gbest);
   for(const l of ['km','en']){let v=0;try{v=parseInt(localStorage.getItem('bestTwArcher_'+l),10)||0}catch(e){}if(v>(gb[l]||0)){gb[l]=v;ch=true}}
@@ -1176,6 +1197,7 @@ function showPanel(id){
     <div class="field"><label for="sFace">Typeface</label><select id="sFace"><option value="type">Typewriter</option><option value="type2">Typewriter, heavy ribbon</option><option value="serif">Serif</option><option value="sans">Sans serif</option></select></div>
     <div class="field"><label for="sGoal">Goal</label><input type="number" id="sGoal" min="1" step="50" value="${S.goal}"><select id="sUnit" aria-label="Goal unit"><option value="chars">characters</option><option value="words">words</option></select></div>
     <div class="field"><label for="sOsk">On-screen keys<small>${coarse?'Turn off to use your device keyboard':'Shows each key as you type; turn off for more page'}</small></label><input type="checkbox" id="sOsk"${S.osk?' checked':''}></div>
+    <div class="field"><label for="sMove">Moving paper<small>The page slides past the print point like a real carriage. Turn off to keep the page still</small></label><input type="checkbox" id="sMove"${S.fixedPaper?'':' checked'}></div>
     <div class="field"><label for="sErase">No erasing<small>Like real paper: delete is disabled</small></label><input type="checkbox" id="sErase"${S.noErase?' checked':''}></div>
     <div class="field"><label for="sCap">Capitalize new sentences<small>On-screen keys only</small></label><input type="checkbox" id="sCap"${S.autoCap?' checked':''}></div>
     <div class="field"><label for="sKeys">Key colour</label><select id="sKeys"><option value="ivory">Ivory</option><option value="black">Black</option></select></div>
@@ -1203,6 +1225,7 @@ panel.addEventListener('input',e=>{
   else if(t.id==='sUnit'){S.unit=t.value;lastN=count()}
   else if(t.id==='sOsk'){S.osk=t.checked;S.oskChosen=true;applyOsk();renderTools();openPanel='set';layout()}
   else if(t.id==='sErase'){S.noErase=t.checked}
+  else if(t.id==='sMove'){S.fixedPaper=!t.checked;follow(false)}
   else if(t.id==='sDev'){dev=t.value;try{localStorage.setItem('twDevice',dev)}catch(e){}
     plat=(dev==='mac'||dev==='ios')?'mac':'windows';
     if(dev==='mac'||dev==='windows'){try{localStorage.setItem('nidaPlat',plat)}catch(e){}} /* shared with the tutor */
