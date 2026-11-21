@@ -1522,7 +1522,7 @@ function spawnWord(){
   for(let k=0;k<12;k++){
     const x=w/2+10+Math.random()*Math.max(1,g.W-w-20);
     if(g.words.every(o=>o.y>g.fs*2.2||Math.abs(o.x-x)>(o.w+w)/2+10)){
-      g.words.push({t,ch:[...t],n:0,x,y:-g.fs,vy:g.sp*(.85+Math.random()*.3),w,hit:false,err:0,shown:0,ox:0,vox:0,oy:0,voy:0,rot:0,vrot:0,stun:0});return true}}
+      g.words.push({t,ch:[...t],n:0,x,y:-g.fs,vy:g.sp*(.85+Math.random()*.3),w,hit:false,err:0,shown:0,ox:0,vox:0,oy:0,voy:0,rot:0,vrot:0,stun:0,vib:0,jx:0,jy:0});return true}}
   return false;
 }
 function gameTarget(){const g=G;if(!g)return null;if(g.lock)return g.lock;let b=null;for(const w of g.words)if(!w.hit&&(!b||w.y>b.y))b=w;return b}
@@ -1563,7 +1563,7 @@ function gameFire(sh){
 function gdust(x,y,n){const g=G;for(let i=0;i<n;i++)g.bits.push({x,y,vx:(Math.random()-.5)*90,vy:-Math.random()*60,r:.7+Math.random()*1.3,a:.8})}
 function gameImpact(a){ /* a true arrow lands in its word: it sticks and wobbles, the word is knocked back, the struck letter pops off */
   const g=G,w=a.w;a.state='stuck';a.ang=Math.atan2(a.vy,a.vx);a.ox=a.x-(w.x+w.ox);a.oy=a.y-(w.y+w.oy);a.life=0;
-  w.voy-=95;w.vox+=a.vx*.05;w.vrot+=(a.vx>0?1:-1)*3.5;w.stun=.8;w.shown+=a.k;
+  w.vib=1;w.voy-=95;w.vox+=a.vx*.05;w.vrot+=(a.vx>0?1:-1)*3.5;w.stun=.8;w.shown+=a.k;
   let ch=w.ch[Math.min(w.shown,w.ch.length)-1];if(ch&&/^\p{M}/u.test(ch))ch='◌'+ch;
   if(ch)g.letters.push({ch,x:a.x,y:a.y-g.fs*.4,vx:-a.vx*.08+(Math.random()-.5)*90,vy:-150-Math.random()*80,r:0,vr:(Math.random()-.5)*10,t:0,life:.9,bounce:1,col:'#a3321f'});
   for(let i=0;i<5;i++)g.bits.push({x:a.x,y:a.y,vx:(Math.random()-.5)*140-a.vx*.04,vy:-Math.random()*100,r:.8+Math.random()*1.4,a:1});
@@ -1593,6 +1593,7 @@ function gameStep(dt){
     if(g.spawned<g.count){g.spawnT-=dt;if(g.spawnT<=0){if(spawnWord()){g.spawned++;g.spawnT=g.interval*(.75+Math.random()*.5)}else g.spawnT=.25}}
     for(const w of g.words){
       w.err=Math.max(0,w.err-dt);w.stun=Math.max(0,w.stun-dt*1.4);
+      w.vib=Math.max(0,w.vib-dt*2.6);w.jx=Math.sin(g.t*95)*w.vib*3.4;w.jy=Math.cos(g.t*113)*w.vib*2.2; /* a struck word buzzes, fast and fading */
       w.voy+=(-90*w.oy-9*w.voy)*dt;w.oy+=w.voy*dt;w.vox+=(-70*w.ox-7*w.vox)*dt;w.ox+=w.vox*dt;w.vrot+=(-120*w.rot-8*w.vrot)*dt;w.rot+=w.vrot*dt;
       if(w.hit)continue;w.y+=w.vy*(1-w.stun*.7)*dt;
       if(w.y>=g.gy-4){w.gone=true;g.lives--;g.combo=0;g.shake=.35;if(g.lock===w)g.lock=null;
@@ -1615,7 +1616,7 @@ function gameStep(dt){
       else if(a.y>=g.gy){a.y=g.gy;a.ang=Math.atan2(a.vy,a.vx);a.state='ground';a.life=0;gdust(a.x,g.gy,a.kind==='miss'?7:4);if(a.kind==='miss')gsound('dirt')}
     }else if(a.state==='stuck'){
       if(!g.words.includes(a.w)){a.state='fall';a.vx=(Math.random()-.5)*40;a.vy=-30;a.ang=Math.atan2(a.vy,a.vx)}
-      else{a.x=a.w.x+a.w.ox+a.ox;a.y=a.w.y+a.w.oy+a.oy}
+      else{a.x=a.w.x+a.w.ox+a.w.jx+a.ox;a.y=a.w.y+a.w.oy+a.w.jy+a.oy}
     }else if(a.state==='fall'){
       a.vy+=GG*dt;a.x+=a.vx*dt;a.y+=a.vy*dt;a.ang+=dt*3;if(a.y>=g.gy){a.y=g.gy;a.state='ground';a.life=0}
     }
@@ -1702,8 +1703,8 @@ function gameDraw(){
   c.font=g.font;c.textBaseline='alphabetic';c.textAlign='left';
   const tg=gameTarget();
   for(const w of g.words){
-    const y=g.fs*.3,x0=-w.w/2,wx=w.x+w.ox,wy=w.y+w.oy-g.fs*.3;
-    c.save();c.translate(wx,wy);c.rotate(w.rot);
+    const y=g.fs*.3,x0=-w.w/2,wx=w.x+w.ox+w.jx,wy=w.y+w.oy+w.jy-g.fs*.3;
+    c.save();c.translate(wx,wy);c.rotate(w.rot+Math.sin(g.t*70)*w.vib*.05);
     c.globalAlpha=.3;c.lineWidth=1;c.strokeStyle=g.ink;for(let k=0;k<3;k++){const rx=x0+(k+.5)*w.w/3,off=(g.t*90+k*17+w.x)%26;c.beginPath();c.moveTo(rx,y-g.fs*1.1-off);c.lineTo(rx,y-g.fs*.95-off+9);c.stroke()}
     c.globalAlpha=w.hit?.7:1;c.fillStyle=w.err>0?'#a3321f':g.ink;c.fillText(w.t,x0,y);
     if(w.shown){const pw=c.measureText(w.ch.slice(0,w.shown).join('')).width;c.save();c.beginPath();c.rect(x0-2,y-g.fs*1.3,pw+2,g.fs*1.9);c.clip();c.fillStyle='#a3321f';c.fillText(w.t,x0,y);c.restore();
