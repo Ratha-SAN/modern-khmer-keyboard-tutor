@@ -149,7 +149,6 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
    on the brass segment halfway along, so when its key is struck it whips up over the segment and lands, face
    first, on the print point where all the bars meet. Built by buildBars() */
 .fixedpaper .head{transition:left .09s cubic-bezier(.3,.7,.4,1)}
-.feed .head,.feed .page,.feed .carriage,.feed .light{transition:none!important} /* Return: the paper just rolls up a line */
 .fixedpaper .fan{left:var(--cx,var(--rx,50%))} /* with a fixed page the keys and typebars stay put; only the guide travels */
 .fan{position:absolute;left:var(--rx,50%);top:var(--py,-14px);width:0;height:0;z-index:3;pointer-events:none}
 .fan svg{position:absolute;overflow:visible}
@@ -826,8 +825,10 @@ function whipEl(e){
      and square to the paper the whole time, including at the hit */
   if(slug._a)slug._a.cancel();
   /* at the paper the head is drawn down to just over the size of the letter it prints, then grows back on the way down */
-  const k=Math.min(1,Math.max(.35,(S.size*1.3)/Math.max(1,slug.offsetHeight))),SC=[1,1,k,k,k,1,1,1];
-  slug._a=slug.animate(K.map(([d,o,ea],i)=>({transform:`rotateX(${-d}deg) rotate(${up}) scale(${SC[i]})`,offset:o,...(ea?{easing:ea}:{})})),{duration:210});
+  slug._a=slug.animate(K.map(([d,o,ea])=>({transform:`rotateX(${-d}deg) rotate(${up})`,offset:o,...(ea?{easing:ea}:{})})),{duration:210});
+  const k=Math.min(1,Math.max(.35,(S.size*1.3)/Math.max(1,slug.offsetHeight)));
+  if(slug._s)slug._s.cancel();
+  slug._s=slug.animate([{scale:1},{scale:1,offset:.26},{scale:k,offset:.3},{scale:k,offset:.42},{scale:1,offset:.52},{scale:1}],{duration:210});
   arm._a=arm.animate([
     {transform:X(0),easing:'ease-out'},
     {transform:X(-6),offset:.06,easing:'cubic-bezier(.75,0,1,.8)'},
@@ -868,7 +869,11 @@ function follow(smooth=true){
   const sh=$('show');if(D)drillPaint(sh);else if(sh.textContent!==v)sh.textContent=v;
   const m=mark.getBoundingClientRect(),r=scroll.getBoundingClientRect();
   const top=Math.max(0,Math.round(m.bottom-r.top+scroll.scrollTop-anchor+3));
-  if(Math.abs(top-scroll.scrollTop)>1)scroll.scrollTo({top,behavior:smooth?'smooth':'auto'});
+  if(Math.abs(top-scroll.scrollTop)>1){
+    if(follow.feed){ /* Return: the whole sheet rolls up one line, lamp light and all, instead of the text sliding inside it */
+      const dy=top-scroll.scrollTop;scroll.scrollTo({top,behavior:'auto'});pageEl=pageEl||$('page');
+      if(pageEl._feed)pageEl._feed.cancel();pageEl._feed=pageEl.animate([{translate:'0 '+dy+'px'},{translate:'0 0'}],{duration:280,easing:'cubic-bezier(.3,.7,.35,1)'})}
+    else scroll.scrollTo({top,behavior:smooth?'smooth':'auto'})}
   const x=Math.min(Math.max(m.left-r.left,12),r.width-12);
   /* the head stays at the print point, the middle of the frame; the page slides so the caret sits under it.
      Small moves step like the escapement, a long one back is the carriage return */
@@ -876,7 +881,7 @@ function follow(smooth=true){
      the print point: the letter's middle is then right under the meeting point of the bars when it is struck */
   /* with a fixed page (Settings) the page stays put and the print point travels along the line instead */
   const mid=r.width/2,off=(x-mid)/Math.max(1,mid),tx=S.fixedPaper?0:Math.round(mid-x-letterW()/2);
-  if(tx!==lastTx){const big=Math.abs(tx-lastTx)>r.width*.25,cls=smooth&&!follow.feed?(big?'ret':'step'):''; /* after Return the page only rolls up: no slide back */
+  if(tx!==lastTx){const big=Math.abs(tx-lastTx)>r.width*.25,cls=smooth?(big?'ret':'step'):'';
     for(const el of [pageEl,headEl.offsetParent])if(el){el.classList.remove('step','ret');if(cls)el.classList.add(cls)}
     device.style.setProperty('--tx',tx+'px');lastTx=tx}
   const rail=headEl.offsetParent,fr=paper.getBoundingClientRect();
@@ -910,7 +915,7 @@ function onChange(kind){
   const n=count();
   if(lastN<S.goal&&n>=S.goal&&kind){play('bell');toast('Goal reached: '+n.toLocaleString('en-US')+' '+(S.unit==='words'?'words':'characters'))}
   lastN=n;pointing=false;
-  if(kind==='return'){follow.feed=true;device.classList.add('feed');requestAnimationFrame(()=>requestAnimationFrame(()=>device.classList.remove('feed')))}
+  follow.feed=kind==='return';
   const frac=follow(true);follow.feed=false;
   if(kind==='key'||kind==='space'||kind==='back')stamp(kind);
   if(kind==='key'&&bellArmed&&frac>.86){bellArmed=false;play('bell')}
