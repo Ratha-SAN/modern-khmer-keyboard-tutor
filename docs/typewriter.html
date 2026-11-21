@@ -656,7 +656,7 @@ function buildBars(){
   const place=(a0,dB,dA,bMax)=>{
     const b0=a0*(lnd?.34:touch?.5:.6),out=[];let ext=0,maxY=0; /* phone rings are a little flatter */
     for(let ri=0;ri<rows.length;ri++){
-      const row=rows[ri],A=a0+ri*dA,B=b0+ri*dB,{smp,len}=arc(A,B),n=row.length,wf=touch&&ri<=rows.length-3?1.2:1,wd=row.map(q=>q[1]*sw*wf+(q[1]-1)*GAP); /* the inner rows' keys are 20% wider on a phone */
+      const row=rows[ri],A=a0+ri*dA,B=b0+ri*dB,{smp,len}=arc(A,B),n=row.length,wd=row.map(q=>q[1]*sw+(q[1]-1)*GAP);
       const tg=s=>{let j=0,lo=0,hi=smp.length-2;while(lo<hi){const m=(lo+hi+1)>>1;if(smp[m][2]<=s)lo=m;else hi=m-1}j=lo;
         const dx=Math.abs(smp[j+1][0]-smp[j][0]),dy=Math.abs(smp[j+1][1]-smp[j][1]),h=Math.hypot(dx,dy)||1;return [dx/h,dy/h]};
       const need=(i,s)=>{const [c,sn]=tg(s);return Math.min(((wd[i]+wd[i+1])/2+GAP)/Math.max(c,1e-3),(sh+GAP)/Math.max(sn,1e-3))};
