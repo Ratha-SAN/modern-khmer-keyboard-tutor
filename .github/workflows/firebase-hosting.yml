@@ -26,3 +26,17 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           projectId: ${{ steps.project.outputs.id }}
           channelId: live
+
+  # Publishes firestore.rules (a separate job, so a rules problem never blocks the site).
+  rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy Firestore rules
+        env:
+          SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          printf '%s' "$SA" > "$RUNNER_TEMP/sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
+          npx --yes firebase-tools@13 deploy --only firestore:rules --project "$(jq -r .project_id "$RUNNER_TEMP/sa.json")" --non-interactive
+          rm -f "$RUNNER_TEMP/sa.json"

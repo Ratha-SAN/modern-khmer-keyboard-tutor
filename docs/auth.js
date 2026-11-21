@@ -23,6 +23,14 @@ var S={
  synced:["បានរក្សាទុកក្នុងគណនី ✓","Saved to your account ✓"],
  syncing:["កំពុងរក្សាទុក…","Saving…"],
  offline:["មិនអាចភ្ជាប់បាន។ វឌ្ឍនភាពនៅតែរក្សាទុកលើឧបករណ៍នេះ។","Can't reach the server. Progress is still saved on this device."],
+ ext:["នឹងបើកក្នុង Safari ឬ Chrome ដើម្បីចូលគណនី Google រួចត្រឡប់មកវិញ។","Google sign-in opens in Safari or Chrome. Finish there, then come back."],
+ extWait:["កំពុងរង់ចាំការចូលគណនីក្នុងកម្មវិធីរុករក…","Waiting for you to finish in your browser…"],
+ extCancel:["បោះបង់","Cancel"],
+ extErr:["ការចូលគណនីមិនបានសម្រេច។ សូមព្យាយាមម្ដងទៀត។","Sign-in didn't finish. Please try again."],
+ extTitle:["ចូលជាមួយ Google","Sign in with Google"],
+ extGo:["បន្តជាមួយ Google","Continue with Google"],
+ extDone:["រួចរាល់ ✓ សូមត្រឡប់ទៅ Telegram វិញ។ អ្នកអាចបិទទំព័រនេះ។","Done ✓ Go back to Telegram. You can close this page."],
+ extBad:["តំណនេះផុតកំណត់ ឬមិនត្រឹមត្រូវ។ សូមចាប់ផ្ដើមម្ដងទៀតពីកម្មវិធី។","This link has expired or isn't valid. Start again from the app."],
  loading:["កំពុងផ្ទុក…","Loading…"],
  privacy:["យើងរក្សាទុកតែអ៊ីមែល ឈ្មោះ និងវឌ្ឍនភាពហាត់វាយរបស់អ្នកប៉ុណ្ណោះ។","We store only your email, name and typing progress."],
  elsewhere:["ការចូលគណនីមាននៅលើគេហទំព័រមេ។","Sign-in is available on the main site."],
@@ -106,6 +114,78 @@ function start(){
     });
   }).catch(function(e){ready=null;showErr(e);throw e});
   return ready;
+}
+
+
+// ---------- Google sign-in in an external browser ----------
+// Google refuses sign-in inside in-app browsers (Telegram, Instagram, Facebook...). There the app opens
+// this same page in Safari/Chrome with ?signin=CODE; that page signs in with Google and leaves the Google
+// ID token in handoff/CODE (CODE is a random secret, the doc lives 5 minutes); the app picks it up, signs in
+// with it and deletes it.
+function inAppBrowser(){
+  var tg=window.Telegram&&window.Telegram.WebApp;
+  if(tg&&tg.initData)return true;
+  if(/tgWebApp/.test(location.hash+location.search))return true;
+  return /FBAN|FBAV|Instagram|Line\/|MicroMessenger|Snapchat|TikTok|; wv\)/i.test(navigator.userAgent);
+}
+function newCode(){var a=new Uint8Array(24);crypto.getRandomValues(a);return Array.prototype.map.call(a,function(x){return("0"+x.toString(16)).slice(-2)}).join("")}
+function openExternal(url){
+  var tg=window.Telegram&&window.Telegram.WebApp;
+  try{if(tg&&tg.openLink){tg.openLink(url,{try_instant_view:false});return}}catch(e){}
+  if(!window.open(url,"_blank"))location.href=url;
+}
+var extCode=null,extUnsub=null,extTimer=null;
+function extStop(){
+  if(extUnsub){try{extUnsub()}catch(e){}extUnsub=null}
+  clearTimeout(extTimer);extTimer=null;
+  document.removeEventListener("visibilitychange",extPoll);window.removeEventListener("focus",extPoll);
+  extCode=null;
+}
+function extTake(snap){
+  if(!extCode||!snap||!snap.exists())return;
+  var d=snap.data(),code=extCode;extStop();
+  var cred=sdk.auth.GoogleAuthProvider.credential(d.idToken,d.accessToken||null);
+  sdk.auth.signInWithCredential(auth,cred)
+    .then(function(){return sdk.fs.deleteDoc(sdk.fs.doc(db,"handoff",code)).catch(function(){})})
+    .catch(function(e){lastErr=t("extErr")+((e&&e.code)?" ("+e.code+")":"");render()});
+}
+function extPoll(){
+  if(!extCode||document.visibilityState==="hidden")return;
+  sdk.fs.getDoc(sdk.fs.doc(db,"handoff",extCode)).then(extTake).catch(function(){});
+}
+function startExternal(){
+  return start().then(function(){
+    extStop();extCode=newCode();
+    var code=extCode;
+    sdk.fs.setDoc(sdk.fs.doc(db,"handoff",code),{waiting:true,created:sdk.fs.serverTimestamp()}).catch(function(){});
+    extUnsub=sdk.fs.onSnapshot(sdk.fs.doc(db,"handoff",code),function(snap){if(snap.exists()&&snap.data().idToken)extTake(snap)},function(){});
+    document.addEventListener("visibilitychange",extPoll);window.addEventListener("focus",extPoll);
+    extTimer=setTimeout(function(){if(extCode){extStop();lastErr=t("extErr");render()}},5*60*1000);
+    state="waiting";render();
+    openExternal(HOME+"?signin="+code);
+  });
+}
+// the page opened in the external browser
+function extPage(code){
+  document.documentElement.classList.add("ext-signin");
+  var box=el("div","ext-box");
+  box.style.cssText="position:fixed;inset:0;z-index:99999;display:grid;place-items:center;padding:24px;background:var(--paper,#f6f1e7);color:var(--ink,#2a2118);font:16px/1.5 system-ui,sans-serif;text-align:center";
+  var inner=el("div");inner.style.cssText="max-width:340px;display:grid;gap:16px";
+  inner.appendChild(el("h1",null,t("extTitle")));inner.style.fontFamily="inherit";
+  var msg=el("p",null,"");var b=el("button","btn primary acct-wide");b.type="button";b.textContent=t("extGo");
+  inner.appendChild(b);inner.appendChild(msg);box.appendChild(inner);document.body.appendChild(box);
+  if(!/^[0-9a-f]{48}$/.test(code)){b.hidden=true;msg.textContent=t("extBad");return}
+  b.onclick=function(){
+    b.disabled=true;msg.textContent=t("loading");
+    findConfig().then(function(c){cfg=c;return start()}).then(function(){
+      return sdk.auth.signInWithPopup(auth,new sdk.auth.GoogleAuthProvider());
+    }).then(function(r){
+      var c=sdk.auth.GoogleAuthProvider.credentialFromResult(r);
+      if(!c||!c.idToken)throw new Error("no-id-token");
+      return sdk.fs.setDoc(sdk.fs.doc(db,"handoff",code),{idToken:c.idToken,accessToken:c.accessToken||null,created:sdk.fs.serverTimestamp()});
+    }).then(function(){b.hidden=true;msg.textContent=t("extDone")})
+    .catch(function(e){b.disabled=false;msg.textContent=t("extErr")+((e&&e.code)?" ("+e.code+")":"")});
+  };
 }
 
 function ref(){return sdk.fs.doc(db,"users",user.uid)}
@@ -289,16 +369,26 @@ function render(){
   }
   body.appendChild(el("p","note",t("why")));
   if(lastErr)body.appendChild(el("p","acct-err",lastErr));
+  if(inAppBrowser())body.appendChild(el("p","note",t("ext")));
+  if(extCode){
+    body.appendChild(el("p","acct-state syncing",t("extWait")));
+    var cb=el("button","btn acct-wide",t("extCancel"));cb.type="button";cb.onclick=function(){extStop();state="idle";render()};
+    body.appendChild(cb);return;
+  }
   var g=el("button","btn primary acct-wide");g.type="button";
   g.innerHTML='<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.2c0-.7-.1-1.3-.2-1.9H12v3.6h5.1a4.4 4.4 0 0 1-1.9 2.9v2.4h3.1c1.7-1.6 2.7-4 2.7-7z" fill="currentColor" stroke="none"/><path d="M12 21.5c2.6 0 4.7-.9 6.3-2.3l-3.1-2.4c-.9.6-1.9.9-3.2.9-2.5 0-4.6-1.7-5.3-3.9H3.5v2.5A9.5 9.5 0 0 0 12 21.5z" fill="currentColor" stroke="none" opacity=".75"/><path d="M6.7 13.8a5.7 5.7 0 0 1 0-3.6V7.7H3.5a9.5 9.5 0 0 0 0 8.6z" fill="currentColor" stroke="none" opacity=".55"/><path d="M12 6.3c1.4 0 2.6.5 3.6 1.4l2.7-2.7A9.5 9.5 0 0 0 3.5 7.7l3.2 2.5C7.4 8 9.5 6.3 12 6.3z" fill="currentColor" stroke="none" opacity=".9"/></svg>';
   g.appendChild(document.createTextNode(t("google")));
-  g.onclick=busy(function(){
-    var p=new sdk.auth.GoogleAuthProvider();
-    return sdk.auth.signInWithPopup(auth,p).catch(function(e){
-      if(/popup-blocked|operation-not-supported|web-storage/.test(e.code||"")){put("authOn","1");return sdk.auth.signInWithRedirect(auth,p)}
-      throw e;
-    });
-  });
+  g.onclick=function(){
+    lastErr="";
+    if(inAppBrowser()){render();startExternal().catch(showErr);return}
+    busy(function(){
+      var p=new sdk.auth.GoogleAuthProvider();
+      return sdk.auth.signInWithPopup(auth,p).catch(function(e){
+        if(/popup-blocked|operation-not-supported|web-storage/.test(e.code||"")){put("authOn","1");return sdk.auth.signInWithRedirect(auth,p)}
+        throw e;
+      });
+    })();
+  };
   body.appendChild(g);
   body.appendChild(el("div","acct-or",t("or")));
   var f=el("form","acct-form");
@@ -327,6 +417,8 @@ window.Auth={
 };
 
 function init(){
+  var m=/[?&]signin=([^&#]*)/.exec(location.search);
+  if(m&&!inAppBrowser()){findConfig().then(function(c){cfg=c;extPage(decodeURIComponent(m[1]))});return}
   build();
   findConfig().then(function(c){
     cfg=c;render();
