@@ -5,7 +5,7 @@
 (function(){
 "use strict";
 var SDK="https://www.gstatic.com/firebasejs/10.12.2/";
-var HOME="https://modernkhmertyping.web.app/";
+var HOME="https://typing.bykhmer.com/";
 var PROG=/^(nida_|rain_|archer_|best)/;
 var S={
  account:["គណនី","Account"],
