@@ -2,7 +2,7 @@
 <html lang="km">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>ម៉ាស៊ីនអង្គុលីលេខ · Typewriter</title>
 <meta name="theme-color" content="#0b0a09">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -19,7 +19,7 @@ img{max-width:100%}
 :root{
   color-scheme:dark;
   --room:#0b0a09; --candle:#f29a2e;
-  --paper-dim:#77736c; --paper-lit:#f4eedd; --paper-flat:#d8d2c3;
+  --paper-dim:#aca69a; --paper-lit:#f4eedd; --paper-flat:#d8d2c3;
   --ink:#26211d; --hud:#f2ecdc; --hud-flat:#4a453f;
   --chassis:#8b8782; --well:#56534f; --tool:#b5b0a4; --tool-on:#f6f1e1;
   --kb:#4d4b49; --key:#8f8c89; --key-fn:#716e6b; --key-space:#a8a5a1; --key-down:#cbc7c1; --key-text:#ffffff;
@@ -47,6 +47,7 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
     box-shadow:0 30px 80px rgba(0,0,0,.7),0 0 0 1px #2a2826}
 }
 
+*{touch-action:manipulation} /* no double-tap zoom anywhere: a quick second tap on a key is a letter */
 /* paper */
 .paper{position:relative;flex:1;min-height:0;overflow:hidden;
   background:radial-gradient(ellipse 70% 60% at 50% 100%,color-mix(in srgb,var(--chassis) 70%,#000),color-mix(in srgb,var(--chassis) 35%,#000) 70%)}
@@ -58,7 +59,7 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 .page.ret{transition:background .4s,transform .42s cubic-bezier(.55,0,.25,1)}
 .light{position:absolute;inset:0;pointer-events:none;transition:opacity .4s;font-size:var(--size,18px);
   /* the pool of light sits just above the line being typed and drifts only part of the way with the carriage (--sx) */
-  background:radial-gradient(ellipse 82% 58% at var(--sx,50%) calc(var(--anchor,80%) - 2.6em),
+  background:radial-gradient(ellipse 110% 85% at var(--sx,50%) calc(var(--anchor,80%) - 2.6em),
     var(--paper-lit) 0%,color-mix(in srgb,var(--paper-lit) 68%,var(--paper-dim)) 30%,color-mix(in srgb,var(--paper-lit) 26%,var(--paper-dim)) 58%,var(--paper-dim) 88%)}
 /* light modes */
 [data-light=flash] .page{background:color-mix(in srgb,var(--paper-dim) 64%,#000)}
@@ -147,7 +148,8 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 /* the typebar basket: one bar for every key, fanned out in a half ring in front of the platen. Each bar pivots
    on the brass segment halfway along, so when its key is struck it whips up over the segment and lands, face
    first, on the print point where all the bars meet. Built by buildBars() */
-.fixedpaper .head,.fixedpaper .fan{transition:left .09s cubic-bezier(.3,.7,.4,1)}
+.fixedpaper .head{transition:left .09s cubic-bezier(.3,.7,.4,1)}
+.fixedpaper .fan{left:var(--cx,var(--rx,50%))} /* with a fixed page the keys and typebars stay put; only the guide travels */
 .fan{position:absolute;left:var(--rx,50%);top:var(--py,-14px);width:0;height:0;z-index:3;pointer-events:none}
 .fan svg{position:absolute;overflow:visible}
 .tbar{position:absolute;left:0;top:0;width:0;height:0}
@@ -278,6 +280,23 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 .pg .m{font-size:12px;color:var(--panel-mute);margin-top:4px}
 .pg .del{flex:none;min-width:48px;padding:0 12px;color:var(--panel-mute);border-left:1px solid var(--panel-line);font-size:13px;font-weight:600}
 .pg .del.sure{color:#ff9d8a}
+#pageList .pg .open{display:flex;align-items:center;gap:12px}
+.pg .tx{flex:1;min-width:0;display:block}.pg .t,.pg .m{display:block}
+.pg .act{flex:none;width:52px;display:grid;place-items:center;color:var(--panel-mute);border-left:1px solid var(--panel-line)}
+.pg .ck{flex:none;width:22px;height:22px;border-radius:7px;border:2px solid var(--panel-mute);display:grid;place-items:center}
+.pg.on{border-color:var(--head)}.pg.on .ck{background:var(--head);border-color:var(--head)}
+.pg.on .ck::after{content:"";width:10px;height:5px;margin-top:-3px;border:solid #221f1c;border-width:0 0 2.5px 2.5px;transform:rotate(-45deg)}
+.pgbar{flex:none;display:flex;flex-direction:column;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--panel-line);background:var(--panel)}
+.pgrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.pgn{flex:1 1 auto;min-width:64px;color:var(--panel-mute);font-size:13px}
+.pgrow.fmt .pgn{flex-basis:100%}
+.pgrow [data-b=del]{margin-left:auto}
+.chip[disabled]{opacity:.4}
+.szv{min-width:58px;align-self:center;text-align:center;font-variant-numeric:tabular-nums}
+.chip.danger{color:#ff9d8a}.chip.danger.sure{background:#7a2a20;color:#fff;border-color:#7a2a20}
+.pages header .chip{flex:none;padding:0 12px}
+.pages h2{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:420px){.pages header{gap:6px;padding-inline:8px}.pages header .tutor .lt{display:none}.pages h2{font-size:18px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 /* ---------- typing lessons ---------- */
 .device.drill textarea.txt{caret-color:transparent}
@@ -310,13 +329,50 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 .device.game[data-light=flash] .light{background:radial-gradient(circle farthest-corner at var(--gx,50%) var(--gy,70%),var(--paper-lit) 0%,var(--paper-lit) 18%,color-mix(in srgb,var(--paper-lit) 70%,transparent) 48%,color-mix(in srgb,var(--paper-lit) 38%,transparent) 100%)}
 .device.game[data-light=beam] .light{background:conic-gradient(from calc(-62deg + var(--gt,0deg)) at var(--gx,50%) var(--gy,70%),color-mix(in srgb,var(--paper-lit) 34%,transparent) 0deg,color-mix(in srgb,var(--paper-lit) 62%,transparent) 16deg,var(--paper-lit) 34deg,var(--paper-lit) 90deg,color-mix(in srgb,var(--paper-lit) 62%,transparent) 108deg,color-mix(in srgb,var(--paper-lit) 34%,transparent) 124deg,color-mix(in srgb,var(--paper-lit) 34%,transparent) 360deg)}
 .device.game[data-light=candle] .light{background:radial-gradient(ellipse 140% 110% at var(--gx,50%) var(--gy,70%),color-mix(in srgb,var(--paper-lit) 70%,#ffc27a) 0%,color-mix(in srgb,var(--paper-lit) 52%,#ffa64d) 30%,color-mix(in srgb,var(--paper-lit) 34%,#e8852b) 62%,color-mix(in srgb,#b85f1c 40%,transparent) 100%)}
-.game .slug.hint{animation:gpulse .6s ease-in-out infinite alternate}
+.game .slug.hint,.drill .slug.hint{animation:gpulse .6s ease-in-out infinite alternate}
 @keyframes gpulse{to{box-shadow:0 0 0 3px #f0d58a,0 0 16px 5px rgba(240,213,138,.95)}}
 .drill #shareBtn{display:none}
 .khint{font:500 13px var(--ui);background:rgba(22,20,18,.7);border-radius:10px;padding:6px 10px;white-space:nowrap}
 .k.hint{background:color-mix(in srgb,var(--accent) 55%,var(--key));box-shadow:0 0 0 2px var(--accent) inset}
 .pages .tabs{display:flex;gap:6px}
-.unit{border:0}
+.unit{border:0;margin-top:4px}
+/* learn: a hero card for the next lesson, the game, then each unit with its progress */
+.lhero{display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:20px;margin-bottom:4px;
+  background:linear-gradient(150deg,#3a332a,#2a2622 60%);border:1px solid rgba(240,213,138,.22)}
+.lgo{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;padding:2px 64px 2px 0;color:inherit}
+.lgo .lk{font:600 11.5px var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--head)}
+.lgo .lt{font:400 24px/1.3 var(--face),"Noto Sans Khmer";text-wrap:balance}
+.lgo .ls{font-size:13px;color:var(--panel-mute)}
+.lplay{position:absolute;right:0;top:50%;width:52px;height:52px;margin-top:-26px;border-radius:50%;display:grid;place-items:center;
+  background:var(--head);color:#221f1c;font-size:18px;padding-left:3px;box-shadow:0 4px 14px rgba(240,213,138,.25)}
+.lsum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.lsum div{display:flex;flex-direction:column;padding:8px 10px;border-radius:12px;background:rgba(0,0,0,.22)}
+.lsum b{font:700 17px var(--ui);font-variant-numeric:tabular-nums}.lsum span{font-size:11.5px;color:var(--panel-mute)}
+.lbar{display:block;height:5px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}
+.lbar>i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#d9a441,var(--head))}
+.lgame{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;margin:8px 0 6px;border-radius:16px;color:inherit;
+  background:linear-gradient(120deg,#23303a,#2a2724);border:1px solid rgba(140,190,220,.22)}
+.lgi{flex:none;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:22px;background:rgba(0,0,0,.25)}
+.lgt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.lgt b{font:600 16px var(--ui)}.lgt span{font-size:12.5px;color:var(--panel-mute)}
+.lgb{flex:none;display:flex;flex-direction:column;align-items:flex-end;font-size:11px;color:var(--panel-mute)}.lgb b{font:700 17px var(--ui);color:var(--panel-text)}
+.unit summary .ui{flex:none;width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:19px;background:#35322f}
+.unit summary .ut{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;padding:8px 0}
+.unit summary .ut b{font:500 16px var(--face),"Noto Sans Khmer";white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.unit summary .ut small{font-size:12px;color:var(--panel-mute);font-weight:400}
+.unit summary .ut .lbar{height:3px;margin-top:3px}
+.unit summary .uc{flex:none;min-width:40px;text-align:right}
+.unit summary::after{content:"";flex:none;width:8px;height:8px;margin:0 6px 0 4px;border:solid var(--panel-mute);border-width:0 2px 2px 0;transform:rotate(45deg);transition:transform .2s}
+.unit[open] summary::after{transform:rotate(-135deg)}
+.unit.full .ui{background:#2f4a36}
+.lrow,.lgame{box-sizing:border-box}
+.lrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:10px 12px;border-radius:14px;border:1px solid var(--panel-line);background:#2e2b29;color:inherit}
+.lrow .ln{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font:600 13px var(--ui);background:#3a3633;color:var(--panel-mute)}
+.lrow.ok .ln{background:#3c6b48;color:#e8f5ea}
+.lrow.next{border-color:var(--head);background:#36302a}.lrow.next .ln{background:var(--head);color:#221f1c}
+.lrow .lx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.lrow .t{font:400 16.5px/1.35 var(--face),"Noto Sans Khmer"}
+.lrow .m{font-size:12px;color:var(--panel-mute)}
+.lrow .st{flex:none;padding:0;letter-spacing:1px;font-size:14px;color:var(--accent)}
 .unit summary{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 4px;cursor:pointer;list-style:none;font:600 15px var(--ui)}
 .unit summary::-webkit-details-marker{display:none}
 .unit summary small{flex:1;color:var(--panel-mute);font-weight:400;font-size:12.5px}
@@ -440,10 +496,12 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
     <header>
       <button class="hb" id="pagesClose" aria-label="Back to the page"><svg class="i" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>
       <h2>Pages</h2>
-      <a class="chip tutor" href="./">ហាត់វាយ · Tutor</a>
+      <a class="chip tutor" href="./">ហាត់វាយ<span class="lt">&nbsp;· Tutor</span></a>
+      <button class="chip" id="pgSelect">Select</button>
       <button class="chip" id="newPage">New page</button>
     </header>
     <div class="list" id="pageList"></div>
+    <div class="pgbar" id="pgBar" hidden></div>
   </div>
 
   <div class="pages" id="learn" hidden>
@@ -488,6 +546,7 @@ const IC={
   emoji:'<circle cx="12" cy="12" r="8.5"/><path d="M8.5 14c1 1.6 6 1.6 7 0M9 9.5h.01M15 9.5h.01"/>',
   mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0012 0M12 17v4"/>',
   enter:'<path d="M20 5v8H6M10 9l-4 4 4 4"/>',
+  copy:'<rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5V5a1.5 1.5 0 00-1.5-1.5H5A1.5 1.5 0 003.5 5v9A1.5 1.5 0 005 15.5h3.5"/>',
   learn:'<path d="M2.5 9L12 4.5 21.5 9 12 13.5z"/><path d="M6.5 11.2V16c3 2.4 8 2.4 11 0v-4.8M21.5 9v5.5"/>'
 };
 
@@ -495,9 +554,10 @@ const IC={
 const LS='lamplight.v1';
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 function defaults(){const id=uid();return{docs:[{id,text:'',t:Date.now()}],cur:id,goal:3000,unit:'chars',sound:true,bell:true,lamp:true,focus:false,
-  noErase:false,autoCap:true,pred:true,keys:'ivory',osk:true,size:coarse?18:20,lang:'km',face:'type',faceV:3,ink:'black',paper:'ivory',collapsed:false}}
+  noErase:false,autoCap:true,pred:true,keys:'ivory',osk:true,size:coarse?22:24,lang:'km',face:'type',faceV:3,ink:'black',paper:'ivory',collapsed:false}}
 let S=defaults();
 try{const j=JSON.parse(localStorage.getItem(LS));if(j&&Array.isArray(j.docs)&&j.docs.length){if(j.faceV!==3){j.face='type';j.faceV=3}S=Object.assign(S,j)}}catch(e){}
+if(S.sizeV!==2){if(S.size===18||S.size===20)S.size+=4;S.sizeV=2} /* the old default type size grows with the new default */
 const LIGHTS={spot:'Spotlight',flash:'Flashlight',beam:'Projector beam',candle:'Candle',room:'Room light',off:'Lights off'};
 if(!LIGHTS[S.light])S.light=S.lamp===false?'room':'spot';
 let saveT;const save=()=>{S.sv=Date.now();clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}cloudSave()},300)};
@@ -512,7 +572,7 @@ function freshPage(){const c=doc();if(c&&c.text){const n={id:uid(),text:'',t:Dat
   S.docs=S.docs.filter(d=>d.text||d.id===S.cur)}
 freshPage();
 const INKS={black:'#26211d',blue:'#1f3a6e',red:'#8e2420',green:'#23523a',sepia:'#5a3d22'};
-const PAPERS={ivory:['#77736c','#f4eedd','#d8d2c3'],grey:['#6c6d70','#e7e7e3','#c9c9c6'],kraft:['#7a6a52','#eedbb6','#cfbb96']};
+const PAPERS={ivory:['#aca69a','#f7f2e3','#e2dccd'],grey:['#a4a5a7','#eeeeea','#d6d6d3'],kraft:['#ab9878','#f2e1bf','#d9c6a2']}; /* dim = the paper away from the lamp, kept light enough to read */
 const KHF='"Noto Serif Khmer Local","Khmer MN","Khmer Sangam MN","Leelawadee UI","Khmer UI","Khmer OS"';
 const FACES={type:'"Special Elite","Kantumruy Pro","Noto Sans Khmer",'+KHF+',"Courier New",Courier,monospace',
   type2:'"Special Elite","Battambang","Noto Serif Khmer",'+KHF+',"Courier New",Courier,monospace',
@@ -761,7 +821,9 @@ function whipEl(e){
   /* the arm swings over; its head turns the other way as it goes, like a parallel linkage, so it stays upright
      and square to the paper the whole time, including at the hit */
   if(slug._a)slug._a.cancel();
-  slug._a=slug.animate(K.map(([d,o,ea])=>({transform:`rotateX(${-d}deg) rotate(${up})`,offset:o,...(ea?{easing:ea}:{})})),{duration:210});
+  /* at the paper the head is drawn down to just over the size of the letter it prints, then grows back on the way down */
+  const k=Math.min(1,Math.max(.35,(S.size*1.3)/Math.max(1,slug.offsetHeight))),SC=[1,1,k,k,k,1,1,1];
+  slug._a=slug.animate(K.map(([d,o,ea],i)=>({transform:`rotateX(${-d}deg) rotate(${up}) scale(${SC[i]})`,offset:o,...(ea?{easing:ea}:{})})),{duration:210});
   arm._a=arm.animate([
     {transform:X(0),easing:'ease-out'},
     {transform:X(-6),offset:.06,easing:'cubic-bezier(.75,0,1,.8)'},
@@ -1052,7 +1114,8 @@ function renderPreds(){
   const el=$('preds');if(!el)return;el.classList.toggle('lnd',coarse&&innerWidth>innerHeight||isPhone()&&innerWidth>innerHeight);
   const fan=$('fan');if(fan)fan.querySelectorAll('.slug.hint').forEach(e=>e.classList.remove('hint'));
   if(G){el.innerHTML='';predMap={};gameHint();return}
-  if(!S.pred||!fanW||!headPos||D||(isPhone()&&mode==='123')){el.innerHTML='';predMap={};return}
+  if(D){el.innerHTML='';predMap={};drillHint();return}
+  if(!S.pred||!fanW||!headPos||(isPhone()&&mode==='123')){el.innerHTML='';predMap={};return}
   const {prefix,words}=predictList();sgPrefix=prefix;
   const used={},chips=[],max=coarse||innerWidth<700?3:4;predMap={};
   for(const w of words){if(chips.length>=max)break;const rest=w.slice(prefix.length);if(!rest||w===prefix)continue;const nc=[...rest][0].toLowerCase();
@@ -1152,6 +1215,7 @@ function applyLook(){
 const NAMES={sound:'Key sounds',focus:'Focus',lamp:'Lamp',bell:'Margin bell'};
 tools.addEventListener('mousedown',e=>e.preventDefault());
 window.addEventListener('authchange',()=>renderTools());
+['gesturestart','gesturechange'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false})); /* Safari pinch zoom */
 window.__twStats=()=>{ /* read by auth.js for the account sheet */
   const L=LN(),best=Object.values(L.best||{}),c=getCourse(),n=c&&c.lessons?c.lessons.length:0;
   const secs=Object.values(L.days||{}).reduce((a,b)=>a+b,0),h=L.hist||[];
@@ -1188,12 +1252,14 @@ function showPanel(id){
   openPanel=id;panel.hidden=false;
   if(id==='look')panel.innerHTML=`<h4>Ink ribbon</h4><div class="rowset">${Object.keys(INKS).map(k=>`<button class="sw${S.ink===k?' sel':''}" style="--c:${INKS[k]}" data-a="ink" data-v="${k}" aria-label="${k} ink"></button>`).join('')}</div>
     <h4>Paper</h4><div class="rowset">${Object.keys(PAPERS).map(k=>`<button class="sw${S.paper===k?' sel':''}" style="--c:${PAPERS[k][1]}" data-a="paper" data-v="${k}" aria-label="${k} paper"></button>`).join('')}</div>
+    <h4>Type size</h4><div class="rowset"><button class="chip" data-a="size" data-v="-2" aria-label="Smaller type">A−</button><span class="szv">${S.size} px</span><button class="chip" data-a="size" data-v="2" aria-label="Bigger type">A+</button></div>
     <h4>Light</h4><div class="rowset">${Object.keys(LIGHTS).map(k=>`<button class="chip${S.light===k?' sel':''}" data-a="light" data-v="${k}">${LIGHTS[k]}</button>`).join('')}</div>`;
   else if(id==='sound')panel.innerHTML=`<h4>Sounds</h4><div class="rowset">${[['sound','Key sounds'],['bell','Margin bell']].map(([k,l])=>`<button class="chip${S[k]?' sel':''}" data-a="tog" data-v="${k}" aria-pressed="${!!S[k]}">${l}: ${S[k]?'on':'off'}</button>`).join('')}</div>`;
   else if(id==='timer')panel.innerHTML=`<h4>Writing timer</h4><div class="rowset">${[5,10,15,25,45].map(m=>`<button class="chip" data-a="timer" data-v="${m}">${m} min</button>`).join('')}${timerEnd?'<button class="chip sel" data-a="timer" data-v="0">Stop timer</button>':''}</div>`;
-  else if(id==='share')panel.innerHTML=`<h4>Take your text with you</h4><div class="rowset"><button class="chip sel" data-a="copy">Copy text</button><button class="chip" data-a="selall">Select all</button></div>`;
+  else if(id==='share')panel.innerHTML=`<h4>Take your text with you</h4><div class="rowset"><button class="chip sel" data-a="copy">Copy text</button><button class="chip" data-a="selall">Select all</button></div>
+    <h4>Download this page</h4><div class="rowset">${FMTS.map(([k,l])=>`<button class="chip" data-a="dl" data-v="${k}">${l}</button>`).join('')}</div>`;
   else panel.innerHTML=`<h4>Settings</h4>
-    <div class="field"><label for="sSize">Type size</label><input type="range" id="sSize" min="14" max="28" step="1" value="${S.size}"></div>
+    <div class="field"><label for="sSize">Type size</label><input type="range" id="sSize" min="14" max="40" step="1" value="${S.size}"></div>
     <div class="field"><label for="sFace">Typeface</label><select id="sFace"><option value="type">Typewriter</option><option value="type2">Typewriter, heavy ribbon</option><option value="serif">Serif</option><option value="sans">Sans serif</option></select></div>
     <div class="field"><label for="sGoal">Goal</label><input type="number" id="sGoal" min="1" step="50" value="${S.goal}"><select id="sUnit" aria-label="Goal unit"><option value="chars">characters</option><option value="words">words</option></select></div>
     <div class="field"><label for="sOsk">On-screen keys<small>${coarse?'Turn off to use your device keyboard':'Shows each key as you type; turn off for more page'}</small></label><input type="checkbox" id="sOsk"${S.osk?' checked':''}></div>
@@ -1216,6 +1282,8 @@ panel.addEventListener('click',e=>{
   else if(a==='timer'){startTimer(+v);closePanel();focusTa()}
   else if(a==='copy'){copyText();closePanel()}
   else if(a==='selall'){closePanel();ta.focus();ta.select()}
+  else if(a==='dl'){exportDocs([doc()],v)}
+  else if(a==='size'){S.size=Math.max(14,Math.min(40,S.size+ +v));applyLook();layout();save();showPanel('look')}
 });
 panel.addEventListener('input',e=>{
   const t=e.target;
@@ -1257,27 +1325,140 @@ async function copyText(){
 $('shareBtn').addEventListener('click',()=>openPanel==='share'?closePanel():showPanel('share'));
 countEl.addEventListener('click',()=>{if(D)return;S.unit=S.unit==='words'?'chars':'words';save();lastN=count();toast('Counting '+(S.unit==='words'?'words':'characters'))});
 
+/* ---------- copy and download ---------- */
+const escH=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const escX=s=>escH(s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'');
+const joinDocs=ds=>ds.map(d=>d.text).join('\n\n\n');
+const fname=ds=>((ds.length===1?title(ds[0]):ds.length+' pages').replace(/[\\/:*?"<>|.]+/g,' ').replace(/\s+/g,' ').trim().slice(0,40))||'page';
+async function copyStr(t,msg){
+  if(!t){toast('Nothing to copy: the page is empty.');return}
+  try{await navigator.clipboard.writeText(t);toast(msg)}
+  catch(e){const x=document.createElement('textarea');x.value=t;x.setAttribute('readonly','');x.style.cssText='position:fixed;left:-9999px;top:0';document.body.appendChild(x);x.select();
+    let ok=false;try{ok=document.execCommand('copy')}catch(_){}x.remove();toast(ok?msg:'This browser would not copy. Open the page and use Select all.')}
+}
+function saveBlob(blob,name){
+  /* phones get the share sheet (Save to Files, Drive, Telegram…); computers get a normal download */
+  let f=null;try{f=new File([blob],name,{type:blob.type})}catch(e){}
+  if(coarse&&f&&navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:name}).catch(e=>{if(e&&e.name!=='AbortError')dl()});return}
+  dl();
+  function dl(){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.rel='noopener';document.body.appendChild(a);a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},5000);toast('Downloading '+name)}
+}
+function exportDocs(ds,fmt){
+  if(!ds.length||!ds.some(d=>d.text.trim())){toast('Nothing to save: the page is empty.');return}
+  const n=fname(ds);
+  if(fmt==='txt')saveBlob(new Blob(['﻿'+joinDocs(ds).replace(/\r?\n/g,'\r\n')],{type:'text/plain;charset=utf-8'}),n+'.txt');
+  else if(fmt==='md')saveBlob(new Blob([ds.map(d=>'# '+title(d)+'\n\n'+d.text).join('\n\n---\n\n')],{type:'text/markdown;charset=utf-8'}),n+'.md');
+  else if(fmt==='html')saveBlob(new Blob(['<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+escH(n)+'</title><style>body{max-width:42em;margin:2em auto;padding:0 1em;font:18px/1.75 "Courier New","Khmer UI","Noto Sans Khmer","Khmer Sangam MN",serif;color:#26211d}div{white-space:pre-wrap}hr{margin:2.5em 0}</style></head><body>'+ds.map(d=>'<div>'+escH(d.text)+'</div>').join('<hr>')+'</body></html>'],{type:'text/html;charset=utf-8'}),n+'.html');
+  else if(fmt==='docx')saveBlob(docxBlob(ds),n+'.docx');
+  else if(fmt==='pdf')saveBlob(pdfBlob(ds),n+'.pdf');
+}
+/* .docx: a Word file is a zip of three small XML files; Khmer runs use Khmer UI (Windows) and fall back on Mac */
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(b){let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=CRC[(c^b[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0}
+function zipStore(files){
+  const enc=new TextEncoder(),parts=[],cd=[];let off=0;
+  for(const [fn,s] of files){const nm=enc.encode(fn),data=enc.encode(s),crc=crc32(data);
+    const h=new DataView(new ArrayBuffer(30));h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(12,0x21,true);
+    h.setUint32(14,crc,true);h.setUint32(18,data.length,true);h.setUint32(22,data.length,true);h.setUint16(26,nm.length,true);parts.push(h,nm,data);
+    const c=new DataView(new ArrayBuffer(46));c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);c.setUint16(14,0x21,true);
+    c.setUint32(16,crc,true);c.setUint32(20,data.length,true);c.setUint32(24,data.length,true);c.setUint16(28,nm.length,true);c.setUint32(42,off,true);cd.push(c,nm);
+    off+=30+nm.length+data.length}
+  const cdLen=cd.reduce((a,x)=>a+x.byteLength,0),e=new DataView(new ArrayBuffer(22));
+  e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cdLen,true);e.setUint32(16,off,true);
+  return [...parts,...cd,e];
+}
+function docxBlob(ds){
+  const rpr='<w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New" w:cs="Khmer UI"/><w:sz w:val="24"/><w:szCs w:val="28"/></w:rPr>';
+  const para=t=>'<w:p><w:r>'+rpr+'<w:t xml:space="preserve">'+escX(t.replace(/\t/g,'    '))+'</w:t></w:r></w:p>';
+  const body=ds.map((d,i)=>(i?'<w:p><w:r><w:br w:type="page"/></w:r></w:p>':'')+d.text.split('\n').map(para).join('')).join('');
+  const X='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+  return new Blob(zipStore([
+    ['[Content_Types].xml',X+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>'],
+    ['_rels/.rels',X+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>'],
+    ['word/document.xml',X+'<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'+body+'<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>']
+  ]),{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+}
+/* PDF: the browser draws each A4 sheet on a canvas (so Khmer is shaped correctly) and the sheets go in as pictures */
+function pdfBlob(ds){
+  const W=1240,H=1754,M=120,fs=32,lh=Math.round(fs*1.7),cv=document.createElement('canvas');cv.width=W;cv.height=H;
+  const c=cv.getContext('2d');c.font=fs+'px '+(FACES[S.face]||FACES.type);
+  const SG=window.Intl&&Intl.Segmenter,ws=SG?new Intl.Segmenter('km',{granularity:'word'}):null,gs=SG?new Intl.Segmenter('km',{granularity:'grapheme'}):null;
+  const words=s=>ws?[...ws.segment(s)].map(x=>x.segment):s.split(/(\s+)/),graphs=s=>gs?[...gs.segment(s)].map(x=>x.segment):[...s],fitW=s=>c.measureText(s).width;
+  const wrap=(p,max)=>{const out=[];let line='';
+    for(const w of words(p)){if(fitW(line+w)<=max){line+=w;continue}
+      if(line.trim())out.push(line);line=w.replace(/^\s+/,'');
+      if(fitW(line)>max){let l2='';for(const g of graphs(line)){if(l2&&fitW(l2+g)>max){out.push(l2);l2=g}else l2+=g}line=l2}}
+    out.push(line);return out};
+  const imgs=[],ink=INKS[S.ink]||INKS.black;let y=0;
+  const sheet=()=>{c.fillStyle='#ffffff';c.fillRect(0,0,W,H);c.fillStyle=ink;y=M+fs};
+  for(const d of ds){sheet();
+    for(const p of d.text.split('\n'))for(const l of wrap(p.replace(/\t/g,'    '),W-2*M)){if(y>H-M){imgs.push(cv.toDataURL('image/jpeg',.88));sheet()}c.fillText(l,M,y);y+=lh}
+    imgs.push(cv.toDataURL('image/jpeg',.88))}
+  const enc=new TextEncoder(),chunks=[],offs=[];let len=0;
+  const put=x=>{const b=typeof x==='string'?enc.encode(x):x;chunks.push(b);len+=b.length};
+  const n=imgs.length,PW=595.28,PH=841.89,cs='q '+PW+' 0 0 '+PH+' 0 0 cm /Im0 Do Q';
+  put('%PDF-1.4\n');offs[1]=len;put('1 0 obj\n<</Type/Catalog/Pages 2 0 R>>\nendobj\n');
+  offs[2]=len;put('2 0 obj\n<</Type/Pages/Count '+n+'/Kids['+imgs.map((_,i)=>(3+i*3)+' 0 R').join(' ')+']>>\nendobj\n');
+  imgs.forEach((u,i)=>{const p=3+i*3,bin=atob(u.slice(u.indexOf(',')+1)),img=new Uint8Array(bin.length);for(let k=0;k<bin.length;k++)img[k]=bin.charCodeAt(k);
+    offs[p]=len;put(p+' 0 obj\n<</Type/Page/Parent 2 0 R/MediaBox[0 0 '+PW+' '+PH+']/Resources<</XObject<</Im0 '+(p+2)+' 0 R>>>>/Contents '+(p+1)+' 0 R>>\nendobj\n');
+    offs[p+1]=len;put((p+1)+' 0 obj\n<</Length '+cs.length+'>>\nstream\n'+cs+'\nendstream\nendobj\n');
+    offs[p+2]=len;put((p+2)+' 0 obj\n<</Type/XObject/Subtype/Image/Width '+W+'/Height '+H+'/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length '+img.length+'>>\nstream\n');put(img);put('\nendstream\nendobj\n')});
+  const total=3+n*3,xref=len;let x='xref\n0 '+total+'\n0000000000 65535 f \n';for(let i=1;i<total;i++)x+=String(offs[i]).padStart(10,'0')+' 00000 n \n';
+  put(x+'trailer\n<</Size '+total+'/Root 1 0 R>>\nstartxref\n'+xref+'\n%%EOF\n');
+  return new Blob(chunks,{type:'application/pdf'});
+}
+const FMTS=[['txt','Text (.txt)'],['docx','Word (.docx)'],['pdf','PDF'],['md','Markdown (.md)'],['html','Web page (.html)']];
+
 /* ---------- pages ---------- */
 const title=d=>((d.text.match(/\S.*/)||[''])[0].slice(0,48))||'Untitled page';
+let pgSel=null,pgFmt=false,pgSure=false; /* pgSel: the ids ticked while selecting */
+const pgBar=$('pgBar'),pgDocs=()=>S.docs.filter(d=>pgSel.has(d.id)).sort((a,b)=>a.t-b.t);
 function showPages(){
-  pageList.innerHTML=S.docs.slice().sort((a,b)=>b.t-a.t).map(d=>{const w=(d.text.trim().match(/\S+/g)||[]).length;
-    return `<div class="pg${d.id===S.cur?' cur':''}"><button class="open" data-id="${d.id}"><div class="t"></div><div class="m">${new Date(d.t).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})} · ${w.toLocaleString('en-US')} ${w===1?'word':'words'}</div></button><button class="del" data-del="${d.id}" aria-label="Delete page">Delete</button></div>`}).join('');
-  [...pageList.querySelectorAll('.pg')].forEach(el=>{const d=S.docs.find(x=>x.id===el.firstChild.dataset.id);el.querySelector('.t').textContent=title(d)});
+  pageList.innerHTML=S.docs.slice().sort((a,b)=>b.t-a.t).map(d=>{const w=(d.text.trim().match(/\S+/g)||[]).length,on=pgSel&&pgSel.has(d.id);
+    return `<div class="pg${d.id===S.cur?' cur':''}${on?' on':''}"><button class="open" data-id="${d.id}"${pgSel?` role="checkbox" aria-checked="${!!on}"`:''}>${pgSel?'<span class="ck" aria-hidden="true"></span>':''}<span class="tx"><span class="t"></span><span class="m">${new Date(d.t).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})} · ${w.toLocaleString('en-US')} ${w===1?'word':'words'}</span></span></button>`+
+      (pgSel?'':`<button class="act" data-copy="${d.id}" aria-label="Copy this page's text" title="Copy text">${svg(IC.copy)}</button><button class="del" data-del="${d.id}" aria-label="Delete page">Delete</button>`)+`</div>`}).join('');
+  [...pageList.querySelectorAll('.open')].forEach(el=>{el.querySelector('.t').textContent=title(S.docs.find(x=>x.id===el.dataset.id))});
+  $('pgSelect').textContent=pgSel?'Done':'Select';pages.querySelector('h2').textContent=pgSel?pgSel.size+' selected':'Pages';$('newPage').hidden=!!pgSel;pages.classList.toggle('selecting',!!pgSel);
+  pgBar.hidden=!pgSel;if(pgSel)renderPgBar();
   pages.hidden=false;
 }
-function openDoc(id){S.cur=id;save();const d=doc();ta.value=d.text;ta.setSelectionRange(d.text.length,d.text.length);lastN=count();pages.hidden=true;
+function renderPgBar(){
+  const n=pgSel.size,all=n===S.docs.length,off=n?'':' disabled';
+  pgBar.innerHTML=(pgFmt?`<div class="pgrow fmt"><span class="pgn">Download as</span>${FMTS.map(([k,l])=>`<button class="chip" data-fmt="${k}"${off}>${l}</button>`).join('')}</div>`:'')+
+    `<div class="pgrow"><button class="chip" data-b="all">${all?'Clear':'Select all'}</button>`+
+    `<button class="chip" data-b="copy"${off}>Copy</button><button class="chip${pgFmt?' sel':''}" data-b="save"${off}>Download</button><button class="chip danger${pgSure?' sure':''}" data-b="del"${off}>${pgSure?'Delete '+n+'?':'Delete'}</button></div>`;
+}
+function delDocs(ids){
+  S.docs=S.docs.filter(d=>!ids.includes(d.id));if(!S.docs.length)S.docs=[{id:uid(),text:'',t:Date.now()}];
+  if(!S.docs.some(d=>d.id===S.cur)){S.cur=S.docs[0].id;const d=doc();ta.value=d.text;lastN=count();layout()}
+  save();
+}
+function openDoc(id){S.cur=id;save();const d=doc();ta.value=d.text;ta.setSelectionRange(d.text.length,d.text.length);lastN=count();pages.hidden=true;pgSel=null;
   shift=0;autoShift();layout();suggest();focusTa()}
 pageList.addEventListener('click',e=>{
+  const o=e.target.closest('[data-id]');
+  if(pgSel){if(o){pgSel.has(o.dataset.id)?pgSel.delete(o.dataset.id):pgSel.add(o.dataset.id);pgSure=false;showPages()}return}
+  const cp=e.target.closest('[data-copy]');if(cp){const d=S.docs.find(x=>x.id===cp.dataset.copy);copyStr(d&&d.text,'Copied the page');return}
   const del=e.target.closest('[data-del]');
   if(del){if(!del.classList.contains('sure')){del.classList.add('sure');del.textContent='Delete?';return}
-    S.docs=S.docs.filter(d=>d.id!==del.dataset.del);if(!S.docs.length)S.docs=[{id:uid(),text:'',t:Date.now()}];
-    if(!S.docs.some(d=>d.id===S.cur)){S.cur=S.docs[0].id;const d=doc();ta.value=d.text;lastN=count();layout()}
-    save();showPages();return}
-  const o=e.target.closest('[data-id]');if(o)openDoc(o.dataset.id);
+    delDocs([del.dataset.del]);showPages();return}
+  if(o)openDoc(o.dataset.id);
 });
+pgBar.addEventListener('click',e=>{
+  const f=e.target.closest('[data-fmt]');if(f){exportDocs(pgDocs(),f.dataset.fmt);return}
+  const b=e.target.closest('[data-b]');if(!b||b.disabled)return;const k=b.dataset.b;
+  if(k!=='del')pgSure=false;
+  if(k==='all'){pgSel=pgSel.size===S.docs.length?new Set():new Set(S.docs.map(d=>d.id));showPages();return}
+  else if(k==='copy'){const ds=pgDocs();copyStr(joinDocs(ds),'Copied '+ds.length+(ds.length===1?' page':' pages'));return}
+  else if(k==='save')pgFmt=!pgFmt;
+  else if(k==='del'){if(!pgSure){pgSure=true}else{const n=pgSel.size;delDocs([...pgSel]);pgSel=new Set();pgSure=false;toast('Deleted '+n+(n===1?' page':' pages'))}showPages();return}
+  renderPgBar();
+});
+$('pgSelect').addEventListener('click',()=>{pgSel=pgSel?null:new Set();pgFmt=false;pgSure=false;showPages()});
 $('newPage').addEventListener('click',()=>{const cur=doc();if(cur.text){const d={id:uid(),text:'',t:Date.now()};S.docs.push(d);openDoc(d.id)}else openDoc(cur.id);play('return')});
 $('backBtn').addEventListener('click',()=>D?exitDrill(true):G?exitGame():showPages());
-$('pagesClose').addEventListener('click',()=>{pages.hidden=true;focusTa()});
+$('pagesClose').addEventListener('click',()=>{pages.hidden=true;pgSel=null;focusTa()});
 
 /* ---------- boot ---------- */
 let fitRaf=0,fitH=0;
@@ -1387,8 +1568,10 @@ function drillPaint(sh){
 function drillSkip(){const t=D.target;while(D.n<t.length&&!typable(t[D.n]))D.n++;while(D.ci+1<D.st.length&&D.st[D.ci+1]<=D.n)D.ci++}
 function drillHint(){
   kb.querySelectorAll('.k.hint').forEach(k=>k.classList.remove('hint'));khint.hidden=true;
+  {const fan=$('fan');if(fan)fan.querySelectorAll('.slug.hint').forEach(e=>e.classList.remove('hint'))}
   if(!D||D.done||D.n>=D.target.length)return;
   const rest=D.target.slice(D.n,D.n+3),km=D.les.lang==='km';
+  fanHint(D.target.slice(D.n));
   if(!coarse&&km&&course.where[rest[0]]){const w=course.where[rest[0]];
     const nm={Semicolon:';',Quote:"'",Comma:',',Period:'.',Slash:'/',BracketLeft:'[',BracketRight:']',Backslash:'\\',Minus:'-',Equal:'=',Backquote:'`',Space:'Space'};
     khint.textContent=(w.layer===1?'Shift + ':w.layer===2?(plat==='mac'?'Option + ':'AltGr + '):'')+(nm[w.code]||w.code.replace(/^(Key|Digit)/,''));khint.hidden=false}
@@ -1474,14 +1657,21 @@ resultEl.addEventListener('click',e=>{const b=e.target.closest('[data-r]');if(!b
 function streak(days){let n=0;const t=new Date();if(!days[dkey(t)])t.setDate(t.getDate()-1);
   while(days[dkey(t)]){n++;t.setDate(t.getDate()-1)}return n}
 function lessonsHtml(){
-  const c=getCourse(),B=LN().best,nextL=c.lessons.find(l=>!B[l.id]);
-  let h='<div class="rowset">'+(nextL?'<button class="chip sel" data-l="'+nextL.id+'">'+(Object.keys(B).length?'Continue':'Start')+': '+esc(nextL.t[0])+'</button>':'<span class="chip">Every lesson done</span>')+'</div>';
-  h+='<details class="unit" open><summary>🏹 Games<small>Practise by playing</small></summary><div class="rows"><div class="pg"><button class="open" data-game="archer"><div class="t">🏹 Ink Archer</div><div class="m">Shoot the raining words by typing them'+((S.gbest||{})[S.lang]?' · best '+S.gbest[S.lang]:'')+'</div></button></div></div></details>';
+  const c=getCourse(),B=LN().best,nextL=c.lessons.find(l=>!B[l.id]),nDone=c.lessons.filter(l=>B[l.id]).length,N=c.lessons.length;
+  const pct=N?Math.round(nDone/N*100):0,stars=c.lessons.reduce((a,l)=>a+(B[l.id]?B[l.id].s:0),0);
+  let h='<div class="lhero">'+(nextL?
+    '<button class="lgo" data-l="'+nextL.id+'"><span class="lk">'+(nDone?'Continue':'Start here')+' · lesson '+(c.lessons.indexOf(nextL)+1)+' of '+N+'</span>'+
+      '<span class="lt">'+esc((nextL.icon?nextL.icon+' ':'')+nextL.t[0])+'</span><span class="ls">'+esc(nextL.t[1])+'</span><span class="lplay" aria-hidden="true">▶</span></button>':
+    '<div class="lgo done"><span class="lk">Course complete</span><span class="lt">Every lesson done 🎉</span><span class="ls">Replay any lesson to beat your best speed</span></div>')+
+    '<div class="lsum"><div><b>'+pct+'%</b><span>course</span></div><div><b>'+nDone+'</b><span>of '+N+' lessons</span></div><div><b>★ '+stars+'</b><span>of '+N*3+'</span></div></div>'+
+    '<i class="lbar"><i style="width:'+pct+'%"></i></i></div>';
+  h+='<button class="lgame" data-game="archer"><span class="lgi" aria-hidden="true">🏹</span><span class="lgt"><b>Ink Archer</b><span>Shoot the raining words by typing them</span></span>'+((S.gbest||{})[S.lang]?'<span class="lgb"><b>'+S.gbest[S.lang]+'</b>best</span>':'')+'</button>';
+  let n=0;
   c.units.forEach(u=>{
     const ls=c.lessons.filter(l=>l.unit===u.id);if(!ls.length)return;
     const done=ls.filter(l=>B[l.id]).length;
-    h+='<details class="unit"'+(nextL&&nextL.unit===u.id?' open':'')+'><summary>'+u.icon+' '+esc(u.t[0])+'<small>'+esc(u.t[1])+'</small><span>'+done+' / '+ls.length+'</span></summary><div class="rows">'+
-      ls.map(l=>{const b=B[l.id];return '<div class="pg"><button class="open" data-l="'+l.id+'"><div class="t">'+esc((l.icon?l.icon+' ':'')+l.t[0])+'</div><div class="m">'+esc(l.t[1])+(b?' · best '+b.w+' wpm · '+b.a+'%':'')+'</div></button><span class="st">'+starsHtml(b?b.s:0)+'</span></div>'}).join('')+'</div></details>';
+    h+='<details class="unit'+(done===ls.length?' full':'')+'"'+(nextL&&nextL.unit===u.id?' open':'')+'><summary><span class="ui" aria-hidden="true">'+u.icon+'</span><span class="ut"><b>'+esc(u.t[0])+'</b><small>'+esc(u.t[1])+'</small><i class="lbar"><i style="width:'+Math.round(done/ls.length*100)+'%"></i></i></span><span class="uc">'+done+'/'+ls.length+'</span></summary><div class="rows">'+
+      ls.map(l=>{const b=B[l.id];n++;return '<button class="lrow'+(b?' ok':'')+(nextL&&nextL.id===l.id?' next':'')+'" data-l="'+l.id+'"><span class="ln">'+(b?'✓':n)+'</span><span class="lx"><span class="t">'+esc((l.icon?l.icon+' ':'')+l.t[0])+'</span><span class="m">'+esc(l.t[1])+(b?' · '+b.w+' wpm · '+b.a+'%':'')+'</span></span><span class="st">'+starsHtml(b?b.s:0)+'</span></button>'}).join('')+'</div></details>';
   });
   return h;
 }
@@ -2056,7 +2246,14 @@ function gameDraw(){
 function gameHint(){
   const fan=$('fan');if(!fan)return;fan.querySelectorAll('.slug.hint').forEach(e=>e.classList.remove('hint'));
   const g=G;if(!g||g.over)return;const w=gameTarget();if(!w||w.n>=w.ch.length)return;
-  const rest=w.ch.slice(w.n).join(''),lit=id=>{const e=barEl[id];if(e)e.firstElementChild.firstElementChild.classList.add('hint')};
+  fanHint(w.ch.slice(w.n).join(''));
+}
+/* light the typewriter key that types the start of rest, or the shift / number key that leads to it */
+function fanHint(rest){
+  const fan=$('fan');if(!fan||!rest)return;fan.querySelectorAll('.slug.hint').forEach(e=>e.classList.remove('hint'));
+  const lit=id=>{const e=barEl[id];if(e)e.firstElementChild.firstElementChild.classList.add('hint')};
+  if(rest[0]===' '){lit('fn:space');return}
+  if(rest[0]==='\n'){lit('fn:enter');return}
   let best=null;
   for(const id in barEl){if(id.startsWith('fn:'))continue;const u=headChar(id);if(u&&rest.startsWith(u)&&(!best||u.length>best.u.length))best={id,u}}
   if(best){lit(best.id);return}
