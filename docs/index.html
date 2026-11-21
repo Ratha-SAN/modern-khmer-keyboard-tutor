@@ -2,6 +2,9 @@
 <html lang="km">
 <head>
 <meta charset="utf-8">
+<script>/* Telegram opens a Mini App at the bot's URL with #tgWebAppData=... in the address. The Mini App is the typewriter page, so a launch that lands on the tutor home goes straight there. */
+if(/tgWebApp/.test(location.hash+location.search))location.replace("typewriter.html"+location.search+location.hash);
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>កម្មវិធីហាត់វាយអក្សរខ្មែរទំនើប</title>
 <meta name="description" content="Learn to type Khmer on the standard NiDA keyboard for Windows and Mac: short lessons and arcade games.">
