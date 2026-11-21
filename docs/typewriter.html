@@ -292,6 +292,9 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 .game .scroll,.game .strike{visibility:hidden}
 .game .count,.game #shareBtn{display:none}
 .game .page{transform:none!important}
+/* in the game the pool of light rises from the bow and arrow (--gx, --gy are set every frame) */
+.device.game .page{background:color-mix(in srgb,var(--paper-dim) 60%,#000)}
+.device.game .light{background:radial-gradient(circle clamp(150px,52vmin,320px) at var(--gx,50%) var(--gy,70%),var(--paper-lit) 0%,var(--paper-lit) 22%,color-mix(in srgb,var(--paper-lit) 60%,transparent) 50%,color-mix(in srgb,var(--paper-lit) 16%,transparent) 78%,transparent 100%)}
 .game .slug.hint{animation:gpulse .6s ease-in-out infinite alternate}
 @keyframes gpulse{to{box-shadow:0 0 0 3px #f0d58a,0 0 16px 5px rgba(240,213,138,.95)}}
 .drill #shareBtn{display:none}
@@ -1477,7 +1480,7 @@ function gameRestart(){if(!G)return;const raf=G.raf;cancelAnimationFrame(raf);G=
 function gameSize(){
   const g=G,pg=$('page'),w=pg.clientWidth,h=pg.clientHeight;if(!w||!h)return;
   g.dpr=Math.min(2,window.devicePixelRatio||1);g.W=w;g.H=h;g.cv.width=Math.round(w*g.dpr);g.cv.height=Math.round(h*g.dpr);
-  g.s=gClamp(h/11,11,34);g.gy=h-Math.max(8,g.s*.7);g.ax=w/2;g.sp=h*(.1+.011*g.wave);
+  g.s=gClamp(h/15.7,8,24);g.gy=h-Math.max(8,g.s*.7);g.ax=w/2;g.sp=h*(.1+.011*g.wave);
   g.fs=Math.round(gClamp((S.size||18)*1.3,18,28));g.font=g.fs+'px '+getComputedStyle(ta).fontFamily;
   g.ink=getComputedStyle(device).getPropertyValue('--ink').trim()||'#26211d';
   if(!g.aim.x){g.aim.x=g.ax+g.s*6;g.aim.y=g.gy-g.s*5}
@@ -1573,6 +1576,7 @@ function gameArcher(c){
 function gameDraw(){
   const g=G,c=g.cx,W=g.W,H=g.H;
   c.setTransform(g.dpr,0,0,g.dpr,0,0);c.clearRect(0,0,W,H);
+  const bw=gameBow();device.style.setProperty('--gx',bw.x.toFixed(0)+'px');device.style.setProperty('--gy',bw.y.toFixed(0)+'px');
   c.save();if(g.shake>0)c.translate((Math.random()-.5)*g.shake*14,(Math.random()-.5)*g.shake*14);
   c.lineCap='round';c.strokeStyle=g.ink;
   /* ground: one hand-ruled line with a few hatch marks */
