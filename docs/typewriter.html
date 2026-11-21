@@ -180,18 +180,19 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 
 
 /* tool strip */
-.chassis{position:relative;flex:none;padding:6px 12px 10px;background:var(--chassis)}
-.tools{display:flex;align-items:center;gap:2px;background:var(--well);border-radius:999px;padding:3px 8px;
+.chassis{position:relative;flex:none;padding:6px 8px 10px;background:var(--chassis)}
+.tools{display:flex;align-items:center;gap:0;background:var(--well);border-radius:999px;padding:4px 10px;
   box-shadow:inset 0 2px 4px rgba(0,0,0,.45),0 1px 0 rgba(255,255,255,.18);overflow-x:auto;scrollbar-width:none}
 .tools::-webkit-scrollbar{display:none}
-.tb{flex:1 1 44px;max-width:44px;min-width:28px;height:40px;display:grid;place-items:center;border-radius:10px;color:var(--tool);transition:color .15s,transform .15s}
+.tb{flex:1 1 50px;max-width:50px;min-width:30px;height:44px;display:grid;place-items:center;border-radius:10px;color:var(--tool);transition:color .15s,transform .15s}
 .tb.on{color:var(--tool-on);filter:drop-shadow(0 0 5px rgba(255,236,190,.55))}
 .tb.open{background:rgba(0,0,0,.25);color:var(--tool-on)}
 .tb.chev.on{filter:none}
 .collapsed .tb.chev{transform:rotate(180deg)}
-.tools .gap{flex:1;min-width:6px}
-.tools .div{flex:none;width:1px;height:22px;background:rgba(255,255,255,.16);margin:0 4px}
-.collapsed .tb.fold{display:none}
+.tools .gap{flex:1;min-width:0}
+.tb svg.i{width:26px;height:26px}
+.tools .div{flex:none;width:1px;height:26px;background:rgba(255,255,255,.16);margin:0 3px}
+.collapsed .fold{display:none}
 
 .panel{position:absolute;left:12px;right:12px;bottom:calc(100% + 22px);z-index:6;background:var(--panel);color:var(--panel-text);
   border:1px solid var(--panel-line);border-radius:18px;padding:14px 16px 16px;box-shadow:0 16px 40px rgba(0,0,0,.55);
@@ -261,7 +262,7 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 .fan .slug{touch-action:none;will-change:transform}
 .lnd .pred{font-size:14px;padding:3px 9px 4px;border-radius:9px}
 @media (orientation:landscape) and (max-height:480px){ /* short screens (a phone on its side, a Telegram mini app): a slimmer tool strip leaves the room to the paper */
-  .chassis{padding:3px 12px 4px}.tb{height:30px}.tools{padding:1px 8px}}
+  .chassis{padding:3px 12px 4px}.tb{height:34px}.tb svg.i{width:23px;height:23px}.tools{padding:1px 9px}}
 
 /* pages */
 .pages{position:absolute;inset:0;z-index:10;background:var(--panel);display:flex;flex-direction:column}
@@ -468,11 +469,12 @@ const svg=p=>`<svg class="i" viewBox="0 0 24 24">${p}</svg>`;
 const IC={
   acct:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/>',
   chev:'<path d="M9 5l7 7-7 7"/>',
-  sound:'<path d="M7 9V4h10v5"/><rect x="3" y="9" width="18" height="10" rx="2"/><path d="M7 13h.01M11 13h.01M15 13h.01M8 16h8"/>',
+  sound:'<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 010 6M18 6.5a7.5 7.5 0 010 11"/>',
   focus:'<circle cx="12" cy="12" r="3"/><path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3"/>',
   page:'<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/>',
   ink:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="6.8" r="1.1"/><circle cx="7.5" cy="14.6" r="1.1"/><circle cx="16.5" cy="14.6" r="1.1"/>',
   lamp:'<path d="M9 4h6l3 7H6z"/><path d="M12 11v8M8 20h8"/>',
+  look:'<path d="M12 3.5a8.5 8.5 0 100 17c1.3 0 1.8-.9 1.4-1.9-.5-1.1.2-2.1 1.4-2.1H17a3.5 3.5 0 003.5-3.5c0-5.2-3.8-9.5-8.5-9.5z"/><circle cx="7.8" cy="11" r="1.1"/><circle cx="10.5" cy="7.3" r="1.1"/><circle cx="15" cy="7.6" r="1.1"/>',
   set:'<path d="M4 7h9M19 7h1M4 12h2M12 12h8M4 17h11"/><circle cx="16" cy="7" r="2.2"/><circle cx="9" cy="12" r="2.2"/><circle cx="18" cy="17" r="2.2"/>',
   game:'<path d="M7 3c9 4 9 14 0 18"/><path d="M7 3v18M3 12h17M16 8l4 4-4 4"/>',
   bell:'<path d="M6 17v-6a6 6 0 0112 0v6l1.5 2h-15z"/><path d="M10 21.5h4"/>',
@@ -1114,23 +1116,24 @@ addEventListener('keydown',e=>{
 });
 
 /* ---------- tool strip ---------- */
-const TOOLS=[
-  {id:'sound',label:'Key sounds',toggle:'sound',fold:1},
-  {id:'focus',label:'Focus on the current line',toggle:'focus',fold:1},
-  {id:'page',label:'Pages',fold:1},
-  {id:'learn',label:'Typing lessons',fold:1},
-  {id:'acct',label:'Account and sign in',fold:1},
-  {id:'ink',label:'Ink ribbon and paper',panel:1,fold:1},
-  {id:'lamp',label:'Light',panel:1,fold:1},
-  {id:'set',label:'Settings',panel:1,fold:1},
-  {id:'bell',label:'Margin bell',toggle:'bell',fold:1}
+const TOOLS=[ /* grouped: writing | practice | look and sound | you; a null is a divider */
+  {id:'page',label:'Pages'},
+  {id:'focus',label:'Focus on the current line',toggle:'focus'},
+  {id:'timer',label:'Writing timer',panel:1},
+  null,
+  {id:'learn',label:'Typing lessons'},
+  null,
+  {id:'look',label:'Ink, paper and light',panel:1},
+  {id:'sound',label:'Sounds: keys and margin bell',panel:1},
+  null,
+  {id:'set',label:'Settings',panel:1},
+  {id:'acct',label:'Account and sign in'}
 ];
 let openPanel=null,timerEnd=0,timerInt;
 function renderTools(){
   tools.innerHTML=`<button class="tb chev${S.collapsed?'':' on'}" data-t="chev" aria-label="${S.collapsed?'Show tools':'Hide tools'}">${svg(IC.chev)}</button>`+
-    TOOLS.map(t=>`<button class="tb fold${(t.toggle&&S[t.toggle])||(t.id==='lamp'&&S.light!=='off')||(t.id==='acct'&&window.Auth&&Auth.user)?' on':''}${openPanel===t.id?' open':''}" data-t="${t.id}" aria-label="${t.label}" title="${t.label}"${t.toggle?` aria-pressed="${!!S[t.toggle]}"`:''}>${svg(IC[t.id])}</button>`).join('')+
-    `<span class="gap"></span>`+(S.osk?'':`<button class="tb" data-t="keys" aria-label="Show on-screen keys" title="Show on-screen keys">${svg(IC.keys)}</button>`)+
-    `<span class="div"></span><button class="tb${timerEnd?' on':''}${openPanel==='timer'?' open':''}" data-t="timer" aria-label="Writing timer" title="Writing timer">${svg(IC.timer)}</button>`;
+    TOOLS.map(t=>!t?'<span class="div fold"></span>':`<button class="tb fold${(t.toggle&&S[t.toggle])||(t.id==='timer'&&timerEnd)||(t.id==='sound'&&(S.sound||S.bell))||(t.id==='acct'&&window.Auth&&Auth.user)?' on':''}${openPanel===t.id?' open':''}" data-t="${t.id}" aria-label="${t.label}" title="${t.label}"${t.toggle?` aria-pressed="${!!S[t.toggle]}"`:''}>${svg(IC[t.id])}</button>`).join('')+
+    `<span class="gap"></span>`+(S.osk?'':`<button class="tb" data-t="keys" aria-label="Show on-screen keys" title="Show on-screen keys">${svg(IC.keys)}</button>`);
   tools.classList.toggle('collapsed',S.collapsed);
 }
 function applyLook(){
@@ -1149,22 +1152,23 @@ window.addEventListener('progresssync',()=>{ /* Ink Archer bests from the accoun
   if(ch){S.gbest=gb;save()}
 });
 tools.addEventListener('click',e=>{
-  const b=e.target.closest('.tb');if(!b)return;const id=b.dataset.t,t=TOOLS.find(x=>x.id===id);audio();
+  const b=e.target.closest('.tb');if(!b)return;const id=b.dataset.t,t=TOOLS.find(x=>x&&x.id===id);audio();
   if(id==='chev'){S.collapsed=!S.collapsed;closePanel()}
   else if(id==='keys'){setOsk(true);return}
   else if(id==='page'){if(G)exitGame();closePanel();showPages();return}
   else if(id==='learn'){if(G)exitGame();closePanel();showLearn();return}
   else if(id==='acct'){closePanel();if(window.Auth&&Auth.open)Auth.open();else toast('Sign-in is not available here');return}
-  else if(id==='timer'||(t&&t.panel)){openPanel===id?closePanel():showPanel(id);return}
+  else if(t&&t.panel){openPanel===id?closePanel():showPanel(id);return}
   else if(t&&t.toggle){S[t.toggle]=!S[t.toggle];applyLook();toast(NAMES[t.toggle]+(S[t.toggle]?' on':' off'));if(t.toggle==='bell'&&S.bell)ding();if(t.toggle==='sound'&&S.sound)play('key')}
   save();renderTools();focusTa();
 });
 function closePanel(){openPanel=null;panel.hidden=true;renderTools()}
 function showPanel(id){
   openPanel=id;panel.hidden=false;
-  if(id==='ink')panel.innerHTML=`<h4>Ink ribbon</h4><div class="rowset">${Object.keys(INKS).map(k=>`<button class="sw${S.ink===k?' sel':''}" style="--c:${INKS[k]}" data-a="ink" data-v="${k}" aria-label="${k} ink"></button>`).join('')}</div>
-    <h4>Paper</h4><div class="rowset">${Object.keys(PAPERS).map(k=>`<button class="sw${S.paper===k?' sel':''}" style="--c:${PAPERS[k][1]}" data-a="paper" data-v="${k}" aria-label="${k} paper"></button>`).join('')}</div>`;
-  else if(id==='lamp')panel.innerHTML=`<h4>Light</h4><div class="rowset">${Object.keys(LIGHTS).map(k=>`<button class="chip${S.light===k?' sel':''}" data-a="light" data-v="${k}">${LIGHTS[k]}</button>`).join('')}</div>`;
+  if(id==='look')panel.innerHTML=`<h4>Ink ribbon</h4><div class="rowset">${Object.keys(INKS).map(k=>`<button class="sw${S.ink===k?' sel':''}" style="--c:${INKS[k]}" data-a="ink" data-v="${k}" aria-label="${k} ink"></button>`).join('')}</div>
+    <h4>Paper</h4><div class="rowset">${Object.keys(PAPERS).map(k=>`<button class="sw${S.paper===k?' sel':''}" style="--c:${PAPERS[k][1]}" data-a="paper" data-v="${k}" aria-label="${k} paper"></button>`).join('')}</div>
+    <h4>Light</h4><div class="rowset">${Object.keys(LIGHTS).map(k=>`<button class="chip${S.light===k?' sel':''}" data-a="light" data-v="${k}">${LIGHTS[k]}</button>`).join('')}</div>`;
+  else if(id==='sound')panel.innerHTML=`<h4>Sounds</h4><div class="rowset">${[['sound','Key sounds'],['bell','Margin bell']].map(([k,l])=>`<button class="chip${S[k]?' sel':''}" data-a="tog" data-v="${k}" aria-pressed="${!!S[k]}">${l}: ${S[k]?'on':'off'}</button>`).join('')}</div>`;
   else if(id==='timer')panel.innerHTML=`<h4>Writing timer</h4><div class="rowset">${[5,10,15,25,45].map(m=>`<button class="chip" data-a="timer" data-v="${m}">${m} min</button>`).join('')}${timerEnd?'<button class="chip sel" data-a="timer" data-v="0">Stop timer</button>':''}</div>`;
   else if(id==='share')panel.innerHTML=`<h4>Take your text with you</h4><div class="rowset"><button class="chip sel" data-a="copy">Copy text</button><button class="chip" data-a="selall">Select all</button></div>`;
   else panel.innerHTML=`<h4>Settings</h4>
@@ -1183,8 +1187,9 @@ function showPanel(id){
 }
 panel.addEventListener('click',e=>{
   const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,v=b.dataset.v;
-  if(a==='ink'||a==='paper'){S[a]=v;applyLook();save();showPanel('ink')}
-  else if(a==='light'){S.light=v;pointing=false;applyLook();follow(false);save();showPanel('lamp');
+  if(a==='ink'||a==='paper'){S[a]=v;applyLook();save();showPanel('look')}
+  else if(a==='tog'){S[v]=!S[v];save();if(v==='bell'&&S.bell)ding();if(v==='sound'&&S.sound)play('key');showPanel('sound')}
+  else if(a==='light'){S.light=v;pointing=false;applyLook();follow(false);save();showPanel('look');
     if(v==='flash')toast(coarse?'Drag a finger over the page to point the flashlight.':'Move the pointer over the page to aim the flashlight.')}
   else if(a==='timer'){startTimer(+v);closePanel();focusTa()}
   else if(a==='copy'){copyText();closePanel()}
