@@ -149,6 +149,7 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
    on the brass segment halfway along, so when its key is struck it whips up over the segment and lands, face
    first, on the print point where all the bars meet. Built by buildBars() */
 .fixedpaper .head{transition:left .09s cubic-bezier(.3,.7,.4,1)}
+.feed .head,.feed .page,.feed .carriage,.feed .light{transition:none!important} /* Return: the paper just rolls up a line */
 .fixedpaper .fan{left:var(--cx,var(--rx,50%))} /* with a fixed page the keys and typebars stay put; only the guide travels */
 .fan{position:absolute;left:var(--rx,50%);top:var(--py,-14px);width:0;height:0;z-index:3;pointer-events:none}
 .fan svg{position:absolute;overflow:visible}
@@ -872,7 +873,7 @@ function follow(smooth=true){
      the print point: the letter's middle is then right under the meeting point of the bars when it is struck */
   /* with a fixed page (Settings) the page stays put and the print point travels along the line instead */
   const mid=r.width/2,off=(x-mid)/Math.max(1,mid),tx=S.fixedPaper?0:Math.round(mid-x-letterW()/2);
-  if(tx!==lastTx){const big=Math.abs(tx-lastTx)>r.width*.25,cls=smooth?(big?'ret':'step'):'';
+  if(tx!==lastTx){const big=Math.abs(tx-lastTx)>r.width*.25,cls=smooth&&!follow.feed?(big?'ret':'step'):''; /* after Return the page only rolls up: no slide back */
     for(const el of [pageEl,headEl.offsetParent])if(el){el.classList.remove('step','ret');if(cls)el.classList.add(cls)}
     device.style.setProperty('--tx',tx+'px');lastTx=tx}
   const rail=headEl.offsetParent,fr=paper.getBoundingClientRect();
@@ -906,7 +907,8 @@ function onChange(kind){
   const n=count();
   if(lastN<S.goal&&n>=S.goal&&kind){play('bell');toast('Goal reached: '+n.toLocaleString('en-US')+' '+(S.unit==='words'?'words':'characters'))}
   lastN=n;pointing=false;
-  const frac=follow(true);
+  if(kind==='return'){follow.feed=true;device.classList.add('feed');requestAnimationFrame(()=>requestAnimationFrame(()=>device.classList.remove('feed')))}
+  const frac=follow(true);follow.feed=false;
   if(kind==='key'||kind==='space'||kind==='back')stamp(kind);
   if(kind==='key'&&bellArmed&&frac>.86){bellArmed=false;play('bell')}
   play(kind);autoShift();suggest();
