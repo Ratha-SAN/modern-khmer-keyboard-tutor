@@ -188,7 +188,7 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 .tools{display:flex;align-items:center;gap:0;background:var(--well);border-radius:999px;padding:4px 10px;
   box-shadow:inset 0 2px 4px rgba(0,0,0,.45),0 1px 0 rgba(255,255,255,.18);overflow-x:auto;scrollbar-width:none}
 .tools::-webkit-scrollbar{display:none}
-.tb{flex:1 1 50px;max-width:50px;min-width:30px;height:44px;display:grid;place-items:center;border-radius:10px;color:var(--tool);transition:color .15s,transform .15s}
+.tb{flex:1 1 50px;max-width:50px;min-width:28px;height:44px;display:grid;place-items:center;border-radius:10px;color:var(--tool);transition:color .15s,transform .15s}
 .tb.on{color:var(--tool-on);filter:drop-shadow(0 0 5px rgba(255,236,190,.55))}
 .tb.open{background:rgba(0,0,0,.25);color:var(--tool-on)}
 .tb.chev.on{filter:none}
@@ -550,6 +550,7 @@ const IC={
   mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0012 0M12 17v4"/>',
   enter:'<path d="M20 5v8H6M10 9l-4 4 4 4"/>',
   copy:'<rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5V5a1.5 1.5 0 00-1.5-1.5H5A1.5 1.5 0 003.5 5v9A1.5 1.5 0 005 15.5h3.5"/>',
+  tutor:'<rect x="2.5" y="4" width="19" height="12.5" rx="1.8"/><path d="M8 20h8M12 16.5V20M6.5 8.5h.01M9.5 8.5h.01M12.5 8.5h.01M15.5 8.5h.01M8 12.5h8"/>',
   learn:'<path d="M2.5 9L12 4.5 21.5 9 12 13.5z"/><path d="M6.5 11.2V16c3 2.4 8 2.4 11 0v-4.8M21.5 9v5.5"/>'
 };
 
@@ -1195,6 +1196,7 @@ const TOOLS=[ /* grouped: writing | practice | look and sound | you; a null is a
   {id:'timer',label:'Writing timer',panel:1},
   null,
   {id:'learn',label:'Typing lessons'},
+  {id:'tutor',label:'Keyboard tutor (ហាត់វាយ)'},
   null,
   {id:'look',label:'Ink, paper and light',panel:1},
   {id:'sound',label:'Sounds: keys and margin bell',panel:1},
@@ -1245,6 +1247,7 @@ tools.addEventListener('click',e=>{
   if(id==='chev'){S.collapsed=!S.collapsed;closePanel()}
   else if(id==='keys'){setOsk(true);return}
   else if(id==='page'){if(G)exitGame();closePanel();showPages();return}
+  else if(id==='tutor'){if(G)exitGame();closePanel();location.href='./';return}
   else if(id==='learn'){if(G)exitGame();closePanel();showLearn();return}
   else if(id==='acct'){closePanel();if(window.Auth&&Auth.open)Auth.open();else toast('Sign-in is not available here');return}
   else if(t&&t.panel){openPanel===id?closePanel():showPanel(id);return}
@@ -2340,7 +2343,9 @@ function tgBoot(){
     });
   });
 }
-if(/tgWebApp/.test(location.hash+location.search)){
+/* the Mini App keeps its Telegram link after visiting the tutor and coming back, so remember it for this session */
+let inTg=/tgWebApp/.test(location.hash+location.search);try{if(inTg)sessionStorage.setItem('twTg','1');else inTg=sessionStorage.getItem('twTg')==='1'}catch(e){}
+if(inTg){
   const sc=document.createElement('script');sc.src='https://telegram.org/js/telegram-web-app.js';sc.onload=tgBoot;document.head.appendChild(sc);
 }
 })();

@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <script>/* Telegram opens a Mini App at the bot's URL with #tgWebAppData=... in the address. The Mini App is the typewriter page, so a launch that lands on the tutor home goes straight there. */
 if(/tgWebApp/.test(location.hash+location.search))location.replace("typewriter.html"+location.search+location.hash);
+/* opened from the typewriter inside the Telegram Mini App: Telegram's back button returns to the typewriter */
+try{if(sessionStorage.getItem("twTg")==="1")document.addEventListener("DOMContentLoaded",function(){
+  var sc=document.createElement("script");sc.src="https://telegram.org/js/telegram-web-app.js";
+  sc.onload=function(){var tg=window.Telegram&&Telegram.WebApp;if(!tg)return;tg.ready();tg.expand();
+    if(tg.isVersionAtLeast&&tg.isVersionAtLeast("6.1")){tg.BackButton.show();tg.BackButton.onClick(function(){
+      var b=document.getElementById("backBtn");if(document.body.classList.contains("playing")&&b){b.click();return}location.href="typewriter.html"})}};
+  document.head.appendChild(sc)})}catch(e){}
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>កម្មវិធីហាត់វាយអក្សរខ្មែរទំនើប</title>
