@@ -540,6 +540,9 @@ function gsound(k){
   else if(k==='weak'){tone(300,150,.14,.09,'triangle');noise(.16,900,.8,.16)}
   else if(k==='hit'){tone(150,55,.11,.5,'sine');noise(.05,1500,2,.4)}
   else if(k==='break'){noise(.22,1800,.6,.5);tone(220,90,.18,.22,'square');noise(.12,700,1,.4,.08)}
+  else if(k==='pop'){tone(520,300,.06,.16,'triangle');noise(.05,2200,1.5,.25)}
+  else if(k==='boom'){tone(130,40,.28,.6,'sine');noise(.2,1500,.7,.5);noise(.16,600,1,.4,.07)}
+  else if(k==='blast'){tone(90,28,.5,.75,'sine');noise(.3,1300,.6,.6);tone(200,60,.3,.3,'square',.03);noise(.35,500,.8,.45,.1)}
   else if(k==='dirt')noise(.07,350,1,.35)
 }
 
@@ -1491,7 +1494,7 @@ function startGame(){
   if(G)return;if(D)exitDrill(false);
   closePanel();learnEl.hidden=true;pages.hidden=true;resultEl.hidden=true;
   G={cv:$('gcv'),W:0,H:0,dpr:1,words:[],arrows:[],bits:[],blots:[],floats:[],wave:0,score:0,lives:5,lock:null,over:false,overT:0,t:0,last:performance.now(),
-    shake:0,aim:{x:0,y:0},dr:0,rel:0,pool:gameWords(),best:(S.gbest||{})[S.lang]||0,newBest:false,combo:0,banner:0,raf:0,shots:[],letters:[],rec:0,recv:0,pull:0,lastShot:0};
+    shake:0,aim:{x:0,y:0},dr:0,rel:0,pool:gameWords(),best:(S.gbest||{})[S.lang]||0,newBest:false,combo:0,banner:0,raf:0,shots:[],letters:[],rings:[],flash:0,rec:0,recv:0,pull:0,lastShot:0};
   G.cx=G.cv.getContext('2d');
   device.classList.add('game');device.classList.toggle('nokeys',!S.osk);shift=0;mode='abc';moreOn=false;ta.value='';buildKb();paintBars();
   gameSize();nextWave();G.raf=requestAnimationFrame(gameTick);focusTa();gameHint();
@@ -1567,15 +1570,21 @@ function gameImpact(a){ /* a true arrow lands in its word: it sticks and wobbles
   let ch=w.ch[Math.min(w.shown,w.ch.length)-1];if(ch&&/^\p{M}/u.test(ch))ch='◌'+ch;
   if(ch)g.letters.push({ch,x:a.x,y:a.y-g.fs*.4,vx:-a.vx*.08+(Math.random()-.5)*90,vy:-150-Math.random()*80,r:0,vr:(Math.random()-.5)*10,t:0,life:.9,bounce:1,col:'#a3321f'});
   for(let i=0;i<5;i++)g.bits.push({x:a.x,y:a.y,vx:(Math.random()-.5)*140-a.vx*.04,vy:-Math.random()*100,r:.8+Math.random()*1.4,a:1});
-  g.shake=Math.max(g.shake,.06);gsound(a.last?'break':'hit');
+  g.shake=Math.max(g.shake,.06);gsound(a.last?['pop','break','boom','blast'][gTier(w)]:'hit');
   if(a.last)gameBurst(w);
 }
-function gameBurst(w){ /* the last arrow: the word breaks into its letters, which tumble, bounce on the ground and fade */
-  const g=G,c=g.cx;g.words=g.words.filter(x=>x!==w);c.font=g.font;const x0=w.x+w.ox-w.w/2;
+const gTier=w=>{const n=w.ch.length;return n<=2?0:n<=4?1:n<=6?2:3}; /* how big the word was: a tick, a shatter, a burst or a blast */
+function gameBurst(w){ /* the last arrow: the word breaks into its letters, and the longer the word, the bigger the break */
+  const g=G,c=g.cx,T=gTier(w),P=[.6,1,1.5,2.1][T];g.words=g.words.filter(x=>x!==w);c.font=g.font;const x0=w.x+w.ox-w.w/2,cy=w.y+w.oy-g.fs*.3;
   w.ch.forEach((ch,i)=>{const px=x0+c.measureText(w.ch.slice(0,i).join('')).width,cw=c.measureText(ch).width,cx=px+cw/2;
-    g.letters.push({ch:/^\p{M}/u.test(ch)?'◌'+ch:ch,x:cx,y:w.y+w.oy,vx:(cx-(w.x+w.ox))*3+(Math.random()-.5)*80,vy:-120-Math.random()*140,r:0,vr:(Math.random()-.5)*12,t:0,life:1.6,bounce:3,col:g.ink})});
-  for(let i=0;i<16;i++){const an=Math.random()*6.283,v=40+Math.random()*120;g.bits.push({x:w.x+(Math.random()-.5)*w.w*.6,y:w.y,vx:Math.cos(an)*v,vy:Math.sin(an)*v-60,r:1+Math.random()*2.2,a:1})}
-  g.blots.push({x:w.x,y:w.y,r:w.w*.35,a:.55});g.floats.push({x:w.x,y:w.y-g.fs,t:0,txt:'+'+(w.ch.length*15)});g.shake=Math.max(g.shake,.1);gameHint();
+    g.letters.push({ch:/^\p{M}/u.test(ch)?'◌'+ch:ch,x:cx,y:w.y+w.oy,vx:((cx-(w.x+w.ox))*3+(Math.random()-.5)*80)*P,vy:(-120-Math.random()*140)*P,r:0,vr:(Math.random()-.5)*12*P,t:0,life:[1.1,1.6,1.9,2.4][T],bounce:[1,3,4,5][T],col:g.ink})});
+  const nb=[8,16,28,46][T];
+  for(let i=0;i<nb;i++){const an=Math.random()*6.283,v=(40+Math.random()*120)*P;g.bits.push({x:w.x+(Math.random()-.5)*w.w*.6,y:w.y,vx:Math.cos(an)*v,vy:Math.sin(an)*v-60*P,r:(1+Math.random()*2.2)*(T>2?1.4:1),a:1})}
+  if(T>=2){g.rings.push({x:w.x+w.ox,y:cy,t:0,max:w.w*(T===2?.8:1.2)+g.s*3,rays:T===2?9:16,delay:0});
+    if(T===3)g.rings.push({x:w.x+w.ox,y:cy,t:0,max:w.w*.7+g.s*2,rays:0,delay:.1})}
+  g.blots.push({x:w.x,y:w.y,r:w.w*[.25,.35,.5,.7][T],a:.55});
+  g.floats.push({x:w.x,y:w.y-g.fs,t:0,txt:'+'+(w.ch.length*15),big:T});
+  g.shake=Math.max(g.shake,[.04,.1,.2,.34][T]);if(T===3)g.flash=.3;gameHint();
 }
 function gameBow(){ /* where the arrow leaves the bow, in page pixels */
   const g=G,s=g.s,dir=g.aim.x<g.ax?-1:1,tx=Math.abs(g.aim.x-g.ax),ty=g.aim.y-g.gy,th=gClamp(Math.atan2(ty+2.9*s,Math.max(tx,.35*s)),-1.45,.25);
@@ -1588,7 +1597,7 @@ function gameOver(){
 }
 function gameStep(dt){
   const g=G;
-  g.shake=Math.max(0,g.shake-dt);g.rel=Math.max(0,g.rel-dt);g.banner=Math.max(0,g.banner-dt);
+  g.shake=Math.max(0,g.shake-dt);g.flash=Math.max(0,g.flash-dt*1.8);g.rel=Math.max(0,g.rel-dt);g.banner=Math.max(0,g.banner-dt);
   if(!g.over){
     if(g.spawned<g.count){g.spawnT-=dt;if(g.spawnT<=0){if(spawnWord()){g.spawned++;g.spawnT=g.interval*(.75+Math.random()*.5)}else g.spawnT=.25}}
     for(const w of g.words){
@@ -1626,6 +1635,7 @@ function gameStep(dt){
   for(const l of g.letters){l.t+=dt;l.vy+=640*dt;l.x+=l.vx*dt;l.y+=l.vy*dt;l.r+=l.vr*dt;
     if(l.y>=g.gy-2){l.y=g.gy-2;if(l.bounce>0&&Math.abs(l.vy)>40){l.vy*=-.4;l.vx*=.7;l.vr*=.6;l.bounce--;gdust(l.x,g.gy,2)}else{l.vy=0;l.vx*=.8;l.vr*=.8}}}
   g.letters=g.letters.filter(l=>l.t<l.life);
+  for(const r of g.rings){if(r.delay>0)r.delay-=dt;else r.t+=dt}g.rings=g.rings.filter(r=>r.t<.5);
   for(const b of g.bits){b.vy+=320*dt;b.x+=b.vx*dt;b.y+=b.vy*dt;b.a-=dt*.9}g.bits=g.bits.filter(b=>b.a>0);
   for(const b of g.blots)b.a-=dt*.22;g.blots=g.blots.filter(b=>b.a>0);
   for(const f of g.floats)f.t+=dt;g.floats=g.floats.filter(f=>f.t<1);
@@ -1727,14 +1737,20 @@ function gameDraw(){
     c.beginPath();c.moveTo(x,y);c.lineTo(x-ux*6-uy*3.2,y-uy*6+ux*3.2);c.lineTo(x-ux*6+uy*3.2,y-uy*6-ux*3.2);c.closePath();c.fill();
     c.lineWidth=1;for(const d of[-1,1]){c.beginPath();c.moveTo(x-ux*len,y-uy*len);c.lineTo(x-ux*(len-7)-uy*3.5*d,y-uy*(len-7)+ux*3.5*d);c.stroke()}
     c.globalAlpha=1}
+  /* shockwave rings with rays, for the bigger breaks */
+  for(const r of g.rings){if(r.delay>0)continue;const p=r.t/.5,e=1-Math.pow(1-p,3),rr=r.max*e;c.globalAlpha=(1-p)*.7;c.strokeStyle=g.ink;c.lineWidth=(1-p)*3+.6;
+    c.beginPath();c.arc(r.x,r.y,rr,0,6.283);c.stroke();
+    for(let k=0;k<r.rays;k++){const an=k/r.rays*6.283+.2;c.beginPath();c.moveTo(r.x+Math.cos(an)*rr*.55,r.y+Math.sin(an)*rr*.55);c.lineTo(r.x+Math.cos(an)*rr*1.05,r.y+Math.sin(an)*rr*1.05);c.stroke()}}
+  c.globalAlpha=1;
   for(const b of g.bits){c.globalAlpha=Math.max(0,b.a);c.beginPath();c.arc(b.x,b.y,b.r,0,6.283);c.fill()}c.globalAlpha=1;
-  for(const f of g.floats){c.globalAlpha=1-f.t;c.fillStyle='#a3321f';c.font='700 '+Math.round(g.fs*.8)+'px system-ui,sans-serif';c.textAlign='center';c.fillText(f.txt,f.x,f.y-f.t*26)}c.globalAlpha=1;
+  for(const f of g.floats){c.globalAlpha=1-f.t;c.fillStyle='#a3321f';c.font='700 '+Math.round(g.fs*(.8+(f.big||0)*.22))+'px system-ui,sans-serif';c.textAlign='center';c.fillText(f.txt,f.x,f.y-f.t*26)}c.globalAlpha=1;
   /* score, lives and the wave banner, kept clear of the back button on the left */
   c.fillStyle=g.ink;c.textAlign='right';c.font='600 '+Math.round(g.fs*.8)+'px system-ui,sans-serif';c.fillText(g.score+'',W-58,24);
   c.globalAlpha=.55;c.font='500 '+Math.round(g.fs*.6)+'px system-ui,sans-serif';c.fillText('Wave '+g.wave+(g.best?' · Best '+g.best:''),W-58,24+g.fs*.8);c.globalAlpha=1;
   for(let i=0;i<5;i++){const x=W/2-44+i*22,y=16,full=i<g.lives;c.globalAlpha=full?1:.25;c.fillStyle=g.ink;c.beginPath();c.arc(x,y+3,5,0,6.283);c.moveTo(x-4.4,y+1);c.lineTo(x,y-9);c.lineTo(x+4.4,y+1);c.fill()}c.globalAlpha=1;
   if(g.banner>0&&!g.over){c.globalAlpha=Math.min(1,g.banner*1.4);c.fillStyle=g.ink;c.textAlign='center';c.font='700 '+Math.round(g.fs*1.7)+'px system-ui,sans-serif';c.fillText('Wave '+g.wave,W/2,g.H*.38);c.globalAlpha=1}
   c.restore();
+  if(g.flash>0){c.fillStyle='rgba(20,12,4,'+(g.flash*.5).toFixed(3)+')';c.fillRect(0,0,W,H)}
   if(g.over){
     c.fillStyle='rgba(0,0,0,.18)';c.fillRect(0,0,W,H);c.fillStyle=g.ink;c.textAlign='center';
     c.font='700 '+Math.round(g.fs*1.5)+'px system-ui,sans-serif';c.fillText('The page is full',W/2,H*.36);
