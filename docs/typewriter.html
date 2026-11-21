@@ -286,7 +286,14 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 .cu{color:color-mix(in srgb,var(--ink) var(--c,34%),transparent);box-shadow:0 2px 0 #8e2420}
 .cu.err{color:#c0281e;box-shadow:0 2px 0 #c0281e}
 .prog{position:absolute;left:0;top:0;z-index:3;height:3px;width:calc(var(--pg,0)*100%);background:var(--accent);transition:width .15s}
-.drill .sg-row{visibility:hidden}
+.drill .sg-row,.game .sg-row{visibility:hidden}
+#gcv{position:absolute;inset:0;width:100%;height:100%;z-index:2;display:none}
+.game #gcv{display:block}
+.game .scroll,.game .strike{visibility:hidden}
+.game .count,.game #shareBtn{display:none}
+.game .page{transform:none!important}
+.game .slug.hint{animation:gpulse .6s ease-in-out infinite alternate}
+@keyframes gpulse{to{box-shadow:0 0 0 3px #f0d58a,0 0 16px 5px rgba(240,213,138,.95)}}
 .drill #shareBtn{display:none}
 .khint{font:500 13px var(--ui);background:rgba(22,20,18,.7);border-radius:10px;padding:6px 10px;white-space:nowrap}
 .k.hint{background:color-mix(in srgb,var(--accent) 55%,var(--key));box-shadow:0 0 0 2px var(--accent) inset}
@@ -370,6 +377,7 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
     <div class="light"></div>
     <div class="strike" id="strike"></div>
     <div class="prog" id="prog" hidden></div>
+    <canvas id="gcv" aria-label="Ink Archer game"></canvas>
     <div class="scroll" id="scroll">
       <div class="sheet" id="sheet">
         <div class="grow">
@@ -445,6 +453,7 @@ const IC={
   ink:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="6.8" r="1.1"/><circle cx="7.5" cy="14.6" r="1.1"/><circle cx="16.5" cy="14.6" r="1.1"/>',
   lamp:'<path d="M9 4h6l3 7H6z"/><path d="M12 11v8M8 20h8"/>',
   set:'<path d="M4 7h9M19 7h1M4 12h2M12 12h8M4 17h11"/><circle cx="16" cy="7" r="2.2"/><circle cx="9" cy="12" r="2.2"/><circle cx="18" cy="17" r="2.2"/>',
+  game:'<path d="M7 3c9 4 9 14 0 18"/><path d="M7 3v18M3 12h17M16 8l4 4-4 4"/>',
   bell:'<path d="M6 17v-6a6 6 0 0112 0v6l1.5 2h-15z"/><path d="M10 21.5h4"/>',
   timer:'<circle cx="12" cy="13.5" r="7"/><path d="M12 13.5V9.5M10 3h4M12 3v3.5"/>',
   keys:'<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M8 14h8"/>',
@@ -468,7 +477,7 @@ const LIGHTS={spot:'Spotlight',flash:'Flashlight',beam:'Projector beam',candle:'
 if(!LIGHTS[S.light])S.light=S.lamp===false?'room':'spot';
 let saveT;const save=()=>{S.sv=Date.now();clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}cloudSave()},300)};
 let cloudSave=()=>{},haptic=()=>{};
-let D=null; /* the typing lesson in progress, if any */
+let D=null,G=null; /* G: the Ink Archer game in progress, if any */ /* the typing lesson in progress, if any */
 const doc=()=>S.docs.find(d=>d.id===S.cur)||S.docs[0];
 /* a computer with a real keyboard starts without the phone keys, until someone turns them on themselves */
 if(!coarse&&!S.oskChosen)S.osk=true;
@@ -779,6 +788,7 @@ function count(){
 let lastN=0;
 function onChange(kind){
   if(D){drillInput();return}
+  if(G){gameInput();return}
   const d=doc();d.text=ta.value;d.t=Date.now();save();
   const n=count();
   if(lastN<S.goal&&n>=S.goal&&kind){play('bell');toast('Goal reached: '+n.toLocaleString('en-US')+' '+(S.unit==='words'?'words':'characters'))}
@@ -828,11 +838,12 @@ function buildKb(){
   kb.classList.toggle('shift',shift>0);kb.classList.toggle('caps',shift===2);suggest();paintBars();
 }
 function paintShift(){if(S.lang==='km'&&mode==='abc'){buildKb();return}kb.classList.toggle('shift',shift>0);kb.classList.toggle('caps',shift===2);paintBars()}
-function autoShift(){if(D||shift===2||!S.autoCap||S.lang==='km')return;const pre=ta.value.slice(Math.max(0,ta.selectionStart-4),ta.selectionStart);
+function autoShift(){if(D||G||shift===2||!S.autoCap||S.lang==='km')return;const pre=ta.value.slice(Math.max(0,ta.selectionStart-4),ta.selectionStart);
   shift=(ta.selectionStart===0||/(^|[.!?]\s+|\n)$/.test(pre))?1:0;paintShift()}
 function insert(str,kind){lastIn=str;ta.setRangeText(str,ta.selectionStart,ta.selectionEnd,'end');onChange(kind||(str==='\n'?'return':str===' '?'space':'key'))}
 function backspace(){
   if(D)return;
+  if(G){G.lock=null;G.combo=0;gameHint();return}
   if(S.noErase){toast('No erasing is on. Keep going.');return}
   let s=ta.selectionStart,e=ta.selectionEnd;
   if(s===e){if(!s)return;const c=ta.value.charCodeAt(s-1);s-=(c>=0xDC00&&c<=0xDFFF&&s>1)?2:1;if(ta.value.charCodeAt(s)===0xFE0F&&s>0)s-=1}
@@ -847,7 +858,7 @@ function press(b){
     case '123':mode='123';buildKb();break;
     case 'abc':case 'abc2':mode='abc';buildKb();break;
     case 'emoji':mode='emoji';buildKb();break;
-    case 'globe':S.lang=S.lang==='km'?'en':'km';shift=0;mode='abc';save();buildKb();autoShift();toast(S.lang==='km'?'ខ្មែរ':'English');break;
+    case 'globe':S.lang=S.lang==='km'?'en':'km';shift=0;mode='abc';save();buildKb();autoShift();toast(S.lang==='km'?'ខ្មែរ':'English');if(G)gameRestart();break;
     case 'mic':dictate();break;
     case 'enter':insert('\n');break;
     case 'space':insert(' ');break;
@@ -989,6 +1000,7 @@ function predictList(){
 function renderPreds(){
   const el=$('preds');if(!el)return;el.classList.toggle('lnd',coarse&&innerWidth>innerHeight||isPhone()&&innerWidth>innerHeight);
   const fan=$('fan');if(fan)fan.querySelectorAll('.slug.hint').forEach(e=>e.classList.remove('hint'));
+  if(G){el.innerHTML='';predMap={};gameHint();return}
   if(!S.pred||!fanW||!headPos||D||(isPhone()&&mode==='123')){el.innerHTML='';predMap={};return}
   const {prefix,words}=predictList();sgPrefix=prefix;
   const used={},chips=[],max=coarse||innerWidth<700?3:4;predMap={};
@@ -1064,6 +1076,7 @@ const TOOLS=[
   {id:'focus',label:'Focus on the current line',toggle:'focus',fold:1},
   {id:'page',label:'Pages',fold:1},
   {id:'learn',label:'Typing lessons',fold:1},
+  {id:'game',label:'Ink Archer game',fold:1},
   {id:'ink',label:'Ink ribbon and paper',panel:1,fold:1},
   {id:'lamp',label:'Light',panel:1,fold:1},
   {id:'set',label:'Settings',panel:1,fold:1},
@@ -1090,8 +1103,9 @@ tools.addEventListener('click',e=>{
   const b=e.target.closest('.tb');if(!b)return;const id=b.dataset.t,t=TOOLS.find(x=>x.id===id);audio();
   if(id==='chev'){S.collapsed=!S.collapsed;closePanel()}
   else if(id==='keys'){setOsk(true);return}
-  else if(id==='page'){closePanel();showPages();return}
-  else if(id==='learn'){closePanel();showLearn();return}
+  else if(id==='game'){closePanel();G?exitGame():startGame();return}
+  else if(id==='page'){if(G)exitGame();closePanel();showPages();return}
+  else if(id==='learn'){if(G)exitGame();closePanel();showLearn();return}
   else if(id==='timer'||(t&&t.panel)){openPanel===id?closePanel():showPanel(id);return}
   else if(t&&t.toggle){S[t.toggle]=!S[t.toggle];applyLook();toast(NAMES[t.toggle]+(S[t.toggle]?' on':' off'));if(t.toggle==='bell'&&S.bell)ding();if(t.toggle==='sound'&&S.sound)play('key')}
   save();renderTools();focusTa();
@@ -1185,7 +1199,7 @@ pageList.addEventListener('click',e=>{
   const o=e.target.closest('[data-id]');if(o)openDoc(o.dataset.id);
 });
 $('newPage').addEventListener('click',()=>{const cur=doc();if(cur.text){const d={id:uid(),text:'',t:Date.now()};S.docs.push(d);openDoc(d.id)}else openDoc(cur.id);play('return')});
-$('backBtn').addEventListener('click',()=>D?exitDrill(true):showPages());
+$('backBtn').addEventListener('click',()=>D?exitDrill(true):G?exitGame():showPages());
 $('pagesClose').addEventListener('click',()=>{pages.hidden=true;focusTa()});
 
 /* ---------- boot ---------- */
@@ -1437,6 +1451,188 @@ learnEl.addEventListener('click',e=>{
   else if(r){if(!r.classList.contains('sure')){r.classList.add('sure');r.textContent='Erase all lesson results?';return}S.learn=null;save();showLearn()}
 });
 $('learnClose').addEventListener('click',()=>{learnEl.hidden=true;if(D)exitDrill(false);else focusTa()});
+
+/* ---------- Ink Archer: a typing game played on the page ----------
+   The paper stays still. Words rain down in waves; typing a word draws the stick-figure archer's bow, and the last
+   letter looses the arrow. The key that types the next letter glows on the machine. */
+const EN_GW='ink page type key word bell paper letter ribbon shoot arrow bow string rain storm cloud river forest mountain village garden bridge lantern candle window morning evening silver golden quiet gentle swift stone feather whisper thunder meadow harbor journey castle shadow ember willow moon star night light dream sleep water fire wind leaf rose snow sand wave hill road gate tower story song smile heart brave'.split(' ');
+const gameWords=()=>S.lang==='km'?KMW.filter(w=>[...w].every(c=>typable(c))):EN_GW;
+const gClamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function startGame(){
+  if(G)return;if(D)exitDrill(false);
+  closePanel();learnEl.hidden=true;pages.hidden=true;resultEl.hidden=true;
+  G={cv:$('gcv'),W:0,H:0,dpr:1,words:[],arrows:[],bits:[],blots:[],floats:[],wave:0,score:0,lives:5,lock:null,over:false,overT:0,t:0,last:performance.now(),
+    shake:0,aim:{x:0,y:0},dr:0,rel:0,pool:gameWords(),best:(S.gbest||{})[S.lang]||0,newBest:false,combo:0,banner:0,raf:0};
+  G.cx=G.cv.getContext('2d');
+  device.classList.add('game');shift=0;mode='abc';moreOn=false;ta.value='';buildKb();paintBars();
+  gameSize();nextWave();G.raf=requestAnimationFrame(gameTick);focusTa();gameHint();
+}
+function exitGame(){
+  if(!G)return;cancelAnimationFrame(G.raf);G=null;device.classList.remove('game');
+  $('fan').querySelectorAll('.slug.hint').forEach(e=>e.classList.remove('hint'));
+  ta.value=doc().text;ta.setSelectionRange(ta.value.length,ta.value.length);
+  mode='abc';shift=0;buildKb();paintBars();layout();lastN=count();autoShift();focusTa();
+}
+function gameRestart(){if(!G)return;const raf=G.raf;cancelAnimationFrame(raf);G=null;startGame()}
+function gameSize(){
+  const g=G,pg=$('page'),w=pg.clientWidth,h=pg.clientHeight;if(!w||!h)return;
+  g.dpr=Math.min(2,window.devicePixelRatio||1);g.W=w;g.H=h;g.cv.width=Math.round(w*g.dpr);g.cv.height=Math.round(h*g.dpr);
+  g.s=gClamp(h/11,11,34);g.gy=h-Math.max(8,g.s*.7);g.ax=w/2;g.sp=h*(.1+.011*g.wave);
+  g.fs=Math.round(gClamp((S.size||18)*1.3,18,28));g.font=g.fs+'px '+getComputedStyle(ta).fontFamily;
+  g.ink=getComputedStyle(device).getPropertyValue('--ink').trim()||'#26211d';
+  if(!g.aim.x){g.aim.x=g.ax+g.s*6;g.aim.y=g.gy-g.s*5}
+}
+function nextWave(){
+  const g=G;g.wave++;g.count=Math.min(4+g.wave*2,20);g.spawned=0;g.interval=Math.max(.8,1.9-.09*g.wave);g.spawnT=1.5;g.banner=1.8;
+  g.sp=g.H*(.1+.011*g.wave);g.maxLen=Math.min(3+g.wave,9);
+}
+function spawnWord(){
+  const g=G,cx=g.cx;cx.font=g.font;
+  const lim=g.maxLen,pool=g.pool.filter(w=>[...w].length<=lim&&!g.words.some(x=>x.t===w));
+  const t=(pool.length?pool:g.pool)[Math.floor(Math.random()*(pool.length||g.pool.length))],w=Math.ceil(cx.measureText(t).width);
+  for(let k=0;k<12;k++){
+    const x=w/2+10+Math.random()*Math.max(1,g.W-w-20);
+    if(g.words.every(o=>o.y>g.fs*2.2||Math.abs(o.x-x)>(o.w+w)/2+10)){
+      g.words.push({t,ch:[...t],n:0,x,y:-g.fs,vy:g.sp*(.85+Math.random()*.3),w,hit:false,err:0});return true}}
+  return false;
+}
+function gameTarget(){const g=G;if(!g)return null;if(g.lock)return g.lock;let b=null;for(const w of g.words)if(!w.hit&&(!b||w.y>b.y))b=w;return b}
+function gameInput(){
+  const g=G,s=ta.value.replace(/[\n\t ]/g,'');ta.value='';ta.setSelectionRange(0,0);
+  if(g.over){if(performance.now()-g.overT>700)gameRestart();return}
+  if(!s)return;
+  let w=g.lock;
+  if(!w){let b=null;for(const x of g.words)if(!x.hit&&x.t.startsWith(s)&&(!b||x.y>b.y))b=x;if(b)w=g.lock=b}
+  if(w&&w.ch.slice(w.n).join('').startsWith(s)){
+    const k=[...s].length;w.n+=k;g.score+=10*k;g.combo++;play('key');
+    if(w.n>=w.ch.length)gameShoot(w)}
+  else{g.combo=0;g.shake=.18;if(w)w.err=.3;if(S.sound)noise(.07,170,1.2,.75);haptic('heavy')}
+  gameHint();
+}
+function gameShoot(w){
+  const g=G,p=gameBow();w.hit=true;g.lock=null;g.rel=.3;
+  g.arrows.push({w,t:0,dur:.24,sx:p.x,sy:p.y,ex:w.x,ey:w.y-g.fs*.3});
+  const bonus=w.ch.length*5+Math.min(g.combo,30);g.score+=bonus;play('space');haptic('light');
+}
+function gameBow(){ /* where the arrow leaves the bow, in page pixels */
+  const g=G,s=g.s,dir=g.aim.x<g.ax?-1:1,tx=Math.abs(g.aim.x-g.ax),ty=g.aim.y-g.gy,th=gClamp(Math.atan2(ty+2.9*s,Math.max(tx,.35*s)),-1.45,.25);
+  const l=1.5*s,hx=Math.cos(th)*l,hy=-2.9*s+Math.sin(th)*l;return{x:g.ax+dir*(hx+Math.cos(th)*s*.9),y:g.gy+hy+Math.sin(th)*s*.9}
+}
+function gameOver(){
+  const g=G;g.over=true;g.overT=performance.now();g.lock=null;
+  if(g.score>g.best){g.newBest=true;g.best=g.score;S.gbest=Object.assign({},S.gbest,{[S.lang]:g.score});save()}
+  play('bell');gameHint();
+}
+function gameStep(dt){
+  const g=G;
+  g.shake=Math.max(0,g.shake-dt);g.rel=Math.max(0,g.rel-dt);g.banner=Math.max(0,g.banner-dt);
+  if(!g.over){
+    if(g.spawned<g.count){g.spawnT-=dt;if(g.spawnT<=0){if(spawnWord()){g.spawned++;g.spawnT=g.interval*(.75+Math.random()*.5)}else g.spawnT=.25}}
+    for(const w of g.words){
+      w.err=Math.max(0,w.err-dt);if(w.hit)continue;w.y+=w.vy*dt;
+      if(w.y>=g.gy-4){w.gone=true;g.lives--;g.combo=0;g.shake=.35;if(g.lock===w)g.lock=null;
+        g.blots.push({x:w.x,y:g.gy,r:w.w*.45,a:.8});haptic('heavy');if(S.sound)noise(.12,120,1,.8);
+        if(g.lives<=0){gameOver();break}gameHint()}}
+    g.words=g.words.filter(w=>!w.gone);
+    if(g.spawned>=g.count&&!g.words.length&&!g.arrows.length&&!g.over){g.score+=g.wave*20;g.floats.push({x:g.W/2,y:g.H*.35,t:0,txt:'+'+g.wave*20});nextWave();gameHint()}
+  }
+  for(const a of g.arrows){a.t+=dt;if(a.t>=a.dur&&!a.done){a.done=true;const w=a.w;g.words=g.words.filter(x=>x!==w);
+    for(let i=0;i<16;i++){const an=Math.random()*6.283,v=40+Math.random()*120;g.bits.push({x:w.x+(Math.random()-.5)*w.w*.6,y:w.y,vx:Math.cos(an)*v,vy:Math.sin(an)*v-60,r:1+Math.random()*2.2,a:1})}
+    g.blots.push({x:w.x,y:w.y,r:w.w*.35,a:.55});g.floats.push({x:w.x,y:w.y-g.fs,t:0,txt:'+'+(w.ch.length*15)});gameHint()}}
+  g.arrows=g.arrows.filter(a=>!a.done);
+  for(const b of g.bits){b.vy+=320*dt;b.x+=b.vx*dt;b.y+=b.vy*dt;b.a-=dt*.9}g.bits=g.bits.filter(b=>b.a>0);
+  for(const b of g.blots)b.a-=dt*.22;g.blots=g.blots.filter(b=>b.a>0);
+  for(const f of g.floats)f.t+=dt;g.floats=g.floats.filter(f=>f.t<1);
+  const t=gameTarget(),k=Math.min(1,dt*9);
+  const gx=t?t.x:g.ax+g.s*6,gy=t?t.y:g.gy-g.s*5; /* at rest the bow points forward and up */g.aim.x+=(gx-g.aim.x)*k;g.aim.y+=(gy-g.aim.y)*k;
+  const want=g.lock?g.lock.n/g.lock.ch.length:0;g.dr+=(want-g.dr)*Math.min(1,dt*14);
+}
+function gameTick(now){
+  if(!G)return;const g=G,dt=Math.min(.05,(now-g.last)/1000);g.last=now;g.t+=dt;
+  if(g.cv.width!==Math.round($('page').clientWidth*g.dpr)||g.cv.height!==Math.round($('page').clientHeight*g.dpr))gameSize();
+  if(g.W){gameStep(dt);gameDraw()}
+  g.raf=requestAnimationFrame(gameTick);
+}
+function gameArcher(c){
+  const g=G,s=g.s,dir=g.aim.x<g.ax?-1:1,tx=Math.abs(g.aim.x-g.ax),ty=g.aim.y-g.gy,th=gClamp(Math.atan2(ty+2.9*s,Math.max(tx,.35*s)),-1.45,.25);
+  c.save();c.translate(g.ax,g.gy);c.scale(dir,1);c.lineWidth=Math.max(1.6,s*.13);c.lineCap='round';c.lineJoin='round';c.strokeStyle=g.ink;c.fillStyle=g.ink;
+  const L=(a,b,d,e)=>{c.beginPath();c.moveTo(a,b);c.lineTo(d,e);c.stroke()};
+  L(-.5*s,0,0,-1.6*s);L(.5*s,0,0,-1.6*s);L(0,-1.6*s,0,-2.9*s); /* legs, torso */
+  c.beginPath();c.arc(.05*s,-3.5*s,.42*s,0,6.283);c.stroke();
+  const fx=Math.cos(th),fy=Math.sin(th),px=-fy,py=fx,l=1.5*s,hx=fx*l,hy=-2.9*s+fy*l,bulge=.4*s;
+  const mx=hx-fx*bulge,my=hy-fy*bulge,e1=[mx+px*1.25*s,my+py*1.25*s],e2=[mx-px*1.25*s,my-py*1.25*s];
+  const pull=g.rel>0?-.15*Math.sin(g.rel*40):g.dr;
+  const nx=mx-fx*pull*1.05*s,ny=my-fy*pull*1.05*s;
+  c.lineWidth=Math.max(2,s*.17);c.beginPath();c.moveTo(e1[0],e1[1]);c.quadraticCurveTo(hx+fx*bulge,hy+fy*bulge,e2[0],e2[1]);c.stroke(); /* bow */
+  c.lineWidth=Math.max(1,s*.06);c.beginPath();c.moveTo(e1[0],e1[1]);c.lineTo(nx,ny);c.lineTo(e2[0],e2[1]);c.stroke(); /* string */
+  c.lineWidth=Math.max(1.6,s*.13);L(0,-2.9*s,hx,hy);L(0,-2.9*s,nx,ny); /* arms */
+  if(g.dr>.03&&g.rel<=0){const ax=nx+fx*1.8*s,ay=ny+fy*1.8*s;L(nx,ny,ax,ay);
+    c.beginPath();c.moveTo(ax,ay);c.lineTo(ax-fx*.35*s+px*.2*s,ay-fy*.35*s+py*.2*s);c.lineTo(ax-fx*.35*s-px*.2*s,ay-fy*.35*s-py*.2*s);c.closePath();c.fill()}
+  c.restore();
+}
+function gameDraw(){
+  const g=G,c=g.cx,W=g.W,H=g.H;
+  c.setTransform(g.dpr,0,0,g.dpr,0,0);c.clearRect(0,0,W,H);
+  c.save();if(g.shake>0)c.translate((Math.random()-.5)*g.shake*14,(Math.random()-.5)*g.shake*14);
+  c.lineCap='round';c.strokeStyle=g.ink;
+  /* ground: one hand-ruled line with a few hatch marks */
+  c.globalAlpha=.8;c.lineWidth=1.6;c.beginPath();for(let x=0;x<=W;x+=14){const y=g.gy+Math.sin(x*.07+g.seed||0)*.8;x?c.lineTo(x,y):c.moveTo(x,y)}c.stroke();
+  c.lineWidth=1;c.globalAlpha=.4;for(let x=8;x<W;x+=22){c.beginPath();c.moveTo(x,g.gy+3);c.lineTo(x-5,g.gy+9);c.stroke()}c.globalAlpha=1;
+  for(const b of g.blots){c.globalAlpha=Math.max(0,b.a)*.7;c.fillStyle=g.ink;c.beginPath();c.ellipse(b.x,b.y,b.r,b.r*.28,0,0,6.283);c.fill()}c.globalAlpha=1;
+  gameArcher(c);
+  /* the words in the rain */
+  c.font=g.font;c.textBaseline='alphabetic';c.textAlign='left';
+  const tg=gameTarget();
+  for(const w of g.words){
+    const x0=w.x-w.w/2,y=w.y;
+    c.globalAlpha=.3;c.lineWidth=1;c.strokeStyle=g.ink;for(let k=0;k<3;k++){const rx=x0+(k+.5)*w.w/3,off=(g.t*90+k*17+w.x)%26;c.beginPath();c.moveTo(rx,y-g.fs*1.1-off);c.lineTo(rx,y-g.fs*.95-off+9);c.stroke()}
+    c.globalAlpha=w.hit?.55:1;c.fillStyle=w.err>0?'#a3321f':g.ink;c.fillText(w.t,x0,y);
+    if(w.n){const pw=c.measureText(w.ch.slice(0,w.n).join('')).width;c.save();c.beginPath();c.rect(x0-2,y-g.fs*1.3,pw+2,g.fs*1.9);c.clip();c.fillStyle='#a3321f';c.fillText(w.t,x0,y);c.restore();
+      c.strokeStyle='#a3321f';c.lineWidth=1.2;c.beginPath();c.moveTo(x0,y+3);c.lineTo(x0+pw,y+3);c.stroke()}
+    if(w===tg&&!w.hit){c.strokeStyle='#a3321f';c.lineWidth=1.3;c.globalAlpha=.85;c.beginPath();c.ellipse(w.x,y-g.fs*.32,w.w/2+9,g.fs*.85,-.02,0,6.283);c.stroke()}
+    c.globalAlpha=1}
+  /* arrows in flight */
+  c.strokeStyle=g.ink;c.fillStyle=g.ink;
+  for(const a of g.arrows){const p=Math.min(1,a.t/a.dur),e=p*p*(3-2*p),x=a.sx+(a.ex-a.sx)*p,y=a.sy+(a.ey-a.sy)*p-Math.sin(p*3.14159)*g.s*.8,
+      ang=Math.atan2(a.ey-a.sy-Math.cos(p*3.14159)*g.s*2.5,a.ex-a.sx),len=g.s*2.2,ux=Math.cos(ang),uy=Math.sin(ang);
+    c.lineWidth=Math.max(1.4,g.s*.1);c.beginPath();c.moveTo(x-ux*len,y-uy*len);c.lineTo(x,y);c.stroke();
+    c.beginPath();c.moveTo(x,y);c.lineTo(x-ux*6-uy*3.2,y-uy*6+ux*3.2);c.lineTo(x-ux*6+uy*3.2,y-uy*6-ux*3.2);c.closePath();c.fill();
+    c.lineWidth=1;for(const d of[-1,1]){c.beginPath();c.moveTo(x-ux*len,y-uy*len);c.lineTo(x-ux*(len-7)-uy*3.5*d,y-uy*(len-7)+ux*3.5*d);c.stroke()}}
+  for(const b of g.bits){c.globalAlpha=Math.max(0,b.a);c.beginPath();c.arc(b.x,b.y,b.r,0,6.283);c.fill()}c.globalAlpha=1;
+  for(const f of g.floats){c.globalAlpha=1-f.t;c.fillStyle='#a3321f';c.font='700 '+Math.round(g.fs*.8)+'px system-ui,sans-serif';c.textAlign='center';c.fillText(f.txt,f.x,f.y-f.t*26)}c.globalAlpha=1;
+  /* score, lives and the wave banner, kept clear of the back button on the left */
+  c.fillStyle=g.ink;c.textAlign='right';c.font='600 '+Math.round(g.fs*.8)+'px system-ui,sans-serif';c.fillText(g.score+'',W-14,24);
+  c.globalAlpha=.55;c.font='500 '+Math.round(g.fs*.6)+'px system-ui,sans-serif';c.fillText('Wave '+g.wave+(g.best?' · Best '+g.best:''),W-14,24+g.fs*.8);c.globalAlpha=1;
+  for(let i=0;i<5;i++){const x=W/2-44+i*22,y=16,full=i<g.lives;c.globalAlpha=full?1:.25;c.fillStyle=g.ink;c.beginPath();c.arc(x,y+3,5,0,6.283);c.moveTo(x-4.4,y+1);c.lineTo(x,y-9);c.lineTo(x+4.4,y+1);c.fill()}c.globalAlpha=1;
+  if(g.banner>0&&!g.over){c.globalAlpha=Math.min(1,g.banner*1.4);c.fillStyle=g.ink;c.textAlign='center';c.font='700 '+Math.round(g.fs*1.7)+'px system-ui,sans-serif';c.fillText('Wave '+g.wave,W/2,g.H*.38);c.globalAlpha=1}
+  c.restore();
+  if(g.over){
+    c.fillStyle='rgba(0,0,0,.18)';c.fillRect(0,0,W,H);c.fillStyle=g.ink;c.textAlign='center';
+    c.font='700 '+Math.round(g.fs*1.5)+'px system-ui,sans-serif';c.fillText('The page is full',W/2,H*.36);
+    c.font='500 '+Math.round(g.fs*.95)+'px system-ui,sans-serif';c.fillText('Score '+g.score+(g.newBest?' · new best!':' · Best '+g.best),W/2,H*.36+g.fs*1.8);
+    c.globalAlpha=.7;c.fillText('Tap or press a key to play again',W/2,H*.36+g.fs*3.4);c.globalAlpha=1}
+}
+function gameHint(){
+  const fan=$('fan');if(!fan)return;fan.querySelectorAll('.slug.hint').forEach(e=>e.classList.remove('hint'));
+  const g=G;if(!g||g.over)return;const w=gameTarget();if(!w||w.n>=w.ch.length)return;
+  const rest=w.ch.slice(w.n).join(''),lit=id=>{const e=barEl[id];if(e)e.firstElementChild.firstElementChild.classList.add('hint')};
+  let best=null;
+  for(const id in barEl){if(id.startsWith('fn:'))continue;const u=headChar(id);if(u&&rest.startsWith(u)&&(!best||u.length>best.u.length))best={id,u}}
+  if(best){lit(best.id);return}
+  /* the letter is on another layer: light the key that gets there */
+  const has=L=>L.some(r=>r.some(k=>k&&rest.startsWith(k)));
+  if(isPhone()){const km=S.lang==='km',P=km?kmL():{base:ENP.base,shift:[],num:ENP.num};
+    if(mode==='123'){lit('fn:num');return}
+    if(has(P.num)){lit('fn:num');return}
+    if(km&&has(P.shift)&&barLayer()!==1){lit('fn:shift');return}
+    if(barLayer()===1)lit('fn:shift');return}
+  const M=barMap();
+  for(const id in M){const L=M[id].findIndex(u=>u&&rest.startsWith(u));if(L>0){lit(L===1?'fn:shift':'fn:alt');return}}
+  if(barLayer()>0)lit(barLayer()===1?'fn:shift':'fn:alt');
+}
+$('gcv').addEventListener('click',()=>{if(G&&G.over&&performance.now()-G.overT>700)gameRestart();else focusTa()});
+ta.addEventListener('keydown',e=>{if(G&&(e.key==='Backspace'||e.key==='Escape')){G.lock=null;G.combo=0;e.preventDefault();gameHint()}});
+new ResizeObserver(()=>{if(G)gameSize()}).observe($('page'));
 
 /* ---------- Telegram Mini App ----------
    Telegram opens the page with #tgWebAppData=… in the URL. Only then is Telegram's script loaded:
