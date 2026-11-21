@@ -149,6 +149,7 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
    on the brass segment halfway along, so when its key is struck it whips up over the segment and lands, face
    first, on the print point where all the bars meet. Built by buildBars() */
 .fixedpaper .head{transition:left .09s cubic-bezier(.3,.7,.4,1)}
+.feed .head,.feed .page,.feed .carriage,.feed .light{transition:none!important} /* Return: the paper just rolls up a line */
 .fixedpaper .fan{left:var(--cx,var(--rx,50%))} /* with a fixed page the keys and typebars stay put; only the guide travels */
 .fan{position:absolute;left:var(--rx,50%);top:var(--py,-14px);width:0;height:0;z-index:3;pointer-events:none}
 .fan svg{position:absolute;overflow:visible}
@@ -313,7 +314,7 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 #gcv{position:absolute;inset:0;width:100%;height:100%;z-index:2;display:none}
 .game #gcv{display:block}
 .game .scroll,.game .strike{visibility:hidden}
-.game .count,.game #shareBtn{display:none}
+.game .count,.game #shareBtn,.game .clip,.drill .clip{display:none}
 .gameonly{display:none}
 .game .gameonly{display:grid}
 .game #gameKb{opacity:.95}.game.nokeys #gameKb{opacity:.45}
@@ -473,6 +474,8 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
       <span class="khint" id="khint" hidden></span>
       <button class="count" id="count" aria-label="Progress toward goal. Switch between characters and words"></button>
       <button class="hb gameonly" id="gameKb" aria-label="Show or hide the machine keys" title="Machine keys on / off"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M8 14h8"/></svg></button>
+      <button class="hb clip" id="copyBtn" aria-label="Copy the text on this page" title="Copy text"><svg class="i" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5V5a1.5 1.5 0 00-1.5-1.5H5A1.5 1.5 0 003.5 5v9A1.5 1.5 0 005 15.5h3.5"/></svg></button>
+      <button class="hb clip" id="pasteBtn" aria-label="Paste text onto the page" title="Paste"><svg class="i" viewBox="0 0 24 24"><rect x="5" y="4.5" width="14" height="16.5" rx="2"/><path d="M9 4.5V3.5h6v1M9 11h6M9 15h4"/></svg></button>
       <button class="hb" id="shareBtn" aria-label="Copy your text"><svg class="i" viewBox="0 0 24 24"><path d="M12 15V3M8 7l4-4 4 4M7 11H5v9h14v-9h-2"/></svg></button>
     </div>
     <div class="toast" id="toast" role="status"></div>
@@ -872,7 +875,7 @@ function follow(smooth=true){
      the print point: the letter's middle is then right under the meeting point of the bars when it is struck */
   /* with a fixed page (Settings) the page stays put and the print point travels along the line instead */
   const mid=r.width/2,off=(x-mid)/Math.max(1,mid),tx=S.fixedPaper?0:Math.round(mid-x-letterW()/2);
-  if(tx!==lastTx){const big=Math.abs(tx-lastTx)>r.width*.25,cls=smooth?(big?'ret':'step'):'';
+  if(tx!==lastTx){const big=Math.abs(tx-lastTx)>r.width*.25,cls=smooth&&!follow.feed?(big?'ret':'step'):''; /* after Return the page only rolls up: no slide back */
     for(const el of [pageEl,headEl.offsetParent])if(el){el.classList.remove('step','ret');if(cls)el.classList.add(cls)}
     device.style.setProperty('--tx',tx+'px');lastTx=tx}
   const rail=headEl.offsetParent,fr=paper.getBoundingClientRect();
@@ -906,7 +909,8 @@ function onChange(kind){
   const n=count();
   if(lastN<S.goal&&n>=S.goal&&kind){play('bell');toast('Goal reached: '+n.toLocaleString('en-US')+' '+(S.unit==='words'?'words':'characters'))}
   lastN=n;pointing=false;
-  const frac=follow(true);
+  if(kind==='return'){follow.feed=true;device.classList.add('feed');requestAnimationFrame(()=>requestAnimationFrame(()=>device.classList.remove('feed')))}
+  const frac=follow(true);follow.feed=false;
   if(kind==='key'||kind==='space'||kind==='back')stamp(kind);
   if(kind==='key'&&bellArmed&&frac>.86){bellArmed=false;play('bell')}
   play(kind);autoShift();suggest();
@@ -1322,6 +1326,11 @@ async function copyText(){
   catch(e){ta.focus();ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(_){}
     toast(ok?'Copied the whole page':'Text selected. Use your copy shortcut.')}
 }
+$('copyBtn').addEventListener('click',()=>{copyStr(ta.value,'Copied the page');focusTa()});
+$('pasteBtn').addEventListener('click',async()=>{
+  let t='';try{t=await navigator.clipboard.readText()}catch(e){toast('This browser will not paste from a button. Press and hold on the page, then Paste.');focusTa();return}
+  if(!t){toast('The clipboard is empty.');focusTa();return}
+  focusTa();insert(t.replace(/\r\n?/g,'\n'),'paste');toast('Pasted')});
 $('shareBtn').addEventListener('click',()=>openPanel==='share'?closePanel():showPanel('share'));
 countEl.addEventListener('click',()=>{if(D)return;S.unit=S.unit==='words'?'chars':'words';save();lastN=count();toast('Counting '+(S.unit==='words'?'words':'characters'))});
 
@@ -1417,7 +1426,7 @@ const pgBar=$('pgBar'),pgDocs=()=>S.docs.filter(d=>pgSel.has(d.id)).sort((a,b)=>
 function showPages(){
   pageList.innerHTML=S.docs.slice().sort((a,b)=>b.t-a.t).map(d=>{const w=(d.text.trim().match(/\S+/g)||[]).length,on=pgSel&&pgSel.has(d.id);
     return `<div class="pg${d.id===S.cur?' cur':''}${on?' on':''}"><button class="open" data-id="${d.id}"${pgSel?` role="checkbox" aria-checked="${!!on}"`:''}>${pgSel?'<span class="ck" aria-hidden="true"></span>':''}<span class="tx"><span class="t"></span><span class="m">${new Date(d.t).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})} · ${w.toLocaleString('en-US')} ${w===1?'word':'words'}</span></span></button>`+
-      (pgSel?'':`<button class="act" data-copy="${d.id}" aria-label="Copy this page's text" title="Copy text">${svg(IC.copy)}</button><button class="del" data-del="${d.id}" aria-label="Delete page">Delete</button>`)+`</div>`}).join('');
+      `</div>`}).join('');
   [...pageList.querySelectorAll('.open')].forEach(el=>{el.querySelector('.t').textContent=title(S.docs.find(x=>x.id===el.dataset.id))});
   $('pgSelect').textContent=pgSel?'Done':'Select';pages.querySelector('h2').textContent=pgSel?pgSel.size+' selected':'Pages';$('newPage').hidden=!!pgSel;pages.classList.toggle('selecting',!!pgSel);
   pgBar.hidden=!pgSel;if(pgSel)renderPgBar();
