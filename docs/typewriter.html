@@ -296,9 +296,17 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 .game #gameKb{opacity:.95}.game.nokeys #gameKb{opacity:.45}
 .game.nokeys .rail{display:none}
 .game .page{transform:none!important}
-/* in the game the pool of light rises from the bow and arrow (--gx, --gy are set every frame) */
-.device.game .page{background:color-mix(in srgb,var(--paper-dim) 60%,#000)}
-.device.game .light{background:radial-gradient(circle clamp(150px,52vmin,320px) at var(--gx,50%) var(--gy,70%),var(--paper-lit) 0%,var(--paper-lit) 22%,color-mix(in srgb,var(--paper-lit) 60%,transparent) 50%,color-mix(in srgb,var(--paper-lit) 16%,transparent) 78%,transparent 100%)}
+/* in the game every light option is centred on the bow and arrow (--gx, --gy and the aim --gt are set every frame); room and lights off stay as they are */
+.device.game[data-light=spot] .page{background:color-mix(in srgb,var(--paper-dim) 60%,#000)}
+.device.game[data-light=spot] .light{background:radial-gradient(circle clamp(150px,52vmin,320px) at var(--gx,50%) var(--gy,70%),var(--paper-lit) 0%,var(--paper-lit) 22%,color-mix(in srgb,var(--paper-lit) 60%,transparent) 50%,color-mix(in srgb,var(--paper-lit) 16%,transparent) 78%,transparent 100%)}
+/* the dark modes are dimmed less here, so the raining words stay readable outside the light */
+.device.game[data-light=flash] .page,.device.game[data-light=beam] .page{background:color-mix(in srgb,var(--paper-dim) 88%,#000)}
+.device.game[data-light=candle] .page{background:color-mix(in srgb,var(--paper-dim) 70%,#170a02)}
+.device.game[data-light=off] .page{background:color-mix(in srgb,var(--paper-dim) 94%,#000)}
+.device.game[data-light=flash] .light{background:radial-gradient(circle clamp(90px,26vmin,170px) at var(--gx,50%) var(--gy,70%),var(--paper-lit) 0%,var(--paper-lit) 26%,color-mix(in srgb,var(--paper-lit) 62%,transparent) 52%,color-mix(in srgb,var(--paper-lit) 18%,transparent) 78%,transparent 100%)}
+.device.game[data-light=beam] .light{background:conic-gradient(from calc(-62deg + var(--gt,0deg)) at var(--gx,50%) var(--gy,70%),transparent 0deg,color-mix(in srgb,var(--paper-lit) 50%,transparent) 16deg,var(--paper-lit) 34deg,var(--paper-lit) 90deg,color-mix(in srgb,var(--paper-lit) 50%,transparent) 108deg,transparent 124deg,transparent 360deg);
+  -webkit-mask-image:radial-gradient(circle at var(--gx,50%) var(--gy,70%),#000 0,#000 45%,rgba(0,0,0,.55) 72%,transparent 100%);mask-image:radial-gradient(circle at var(--gx,50%) var(--gy,70%),#000 0,#000 45%,rgba(0,0,0,.55) 72%,transparent 100%)}
+.device.game[data-light=candle] .light{background:radial-gradient(ellipse 100% 80% at var(--gx,50%) var(--gy,70%),color-mix(in srgb,var(--paper-lit) 70%,#ffc27a) 0%,color-mix(in srgb,var(--paper-lit) 52%,#ffa64d) 20%,color-mix(in srgb,var(--paper-lit) 30%,#e8852b) 44%,color-mix(in srgb,#b85f1c 34%,transparent) 70%,transparent 96%)}
 .game .slug.hint{animation:gpulse .6s ease-in-out infinite alternate}
 @keyframes gpulse{to{box-shadow:0 0 0 3px #f0d58a,0 0 16px 5px rgba(240,213,138,.95)}}
 .drill #shareBtn{display:none}
@@ -1581,7 +1589,7 @@ function gameArcher(c){
 function gameDraw(){
   const g=G,c=g.cx,W=g.W,H=g.H;
   c.setTransform(g.dpr,0,0,g.dpr,0,0);c.clearRect(0,0,W,H);
-  const bw=gameBow();device.style.setProperty('--gx',bw.x.toFixed(0)+'px');device.style.setProperty('--gy',bw.y.toFixed(0)+'px');
+  const bw=gameBow();device.style.setProperty('--gx',bw.x.toFixed(0)+'px');device.style.setProperty('--gy',bw.y.toFixed(0)+'px');device.style.setProperty('--gt',(Math.atan2(g.aim.x-bw.x,-(g.aim.y-bw.y))*57.2958).toFixed(0)+'deg');
   c.save();if(g.shake>0)c.translate((Math.random()-.5)*g.shake*14,(Math.random()-.5)*g.shake*14);
   c.lineCap='round';c.strokeStyle=g.ink;
   /* ground: one hand-ruled line with a few hatch marks */
