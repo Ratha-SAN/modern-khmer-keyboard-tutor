@@ -62,7 +62,7 @@ var S={
  acc:["ត្រឹមត្រូវ","accuracy"],
  unitGraph:["ផ្កាយតាមជំពូក","Stars by unit"]
 };
-function L(){return document.documentElement.lang==="en"?1:0}
+function L(){return window.AUTH_EN||document.documentElement.lang==="en"?1:0}
 function t(k){return (S[k]||[k,k])[L()]}
 function get(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function put(k,v){try{_set.call(localStorage,k,v)}catch(e){}}
@@ -298,6 +298,7 @@ function chartUnits(c){
 }
 function renderStats(){
   var o=stats(),box=el("section","acct-stats");
+  if(!o.lessons&&!o.games.length&&!o.lab.length)return document.createDocumentFragment(); // pages with no course (the typewriter)
   var h=el("h3",null,t("progress")+(o.plat?" · "+(o.plat==="mac"?"Mac":"Windows"):""));box.appendChild(h);
   var g=el("div","acct-grid");
   if(o.lessons){
@@ -322,30 +323,33 @@ function renderStats(){
 // ---------- UI ----------
 var ICON='<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>';
 var CLOSE='<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
-var btn,dlg,body;
+var btn,dlg,body,openSheet=function(){};
 function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
 
 function build(){
   var bar=document.querySelector(".nav .wrap"),lb=document.getElementById("langBtn");
-  if(!bar)return;
-  btn=el("button","ibtn acct");btn.type="button";btn.id="acctBtn";btn.innerHTML=ICON;
-  bar.insertBefore(btn,lb||null);
+  if(bar){btn=el("button","ibtn acct");btn.type="button";btn.id="acctBtn";btn.innerHTML=ICON;bar.insertBefore(btn,lb||null)}
+  else if(!window.AUTH_HOST)return;
   dlg=el("dialog","sheet");dlg.id="acctSheet";dlg.setAttribute("aria-labelledby","acctTitle");
   dlg.innerHTML='<header><h2 id="acctTitle"></h2><button class="ibtn" type="button" data-close>'+CLOSE+'</button></header><div class="body acct-body"></div>';
   document.body.appendChild(dlg);body=dlg.querySelector(".body");
   dlg.addEventListener("click",function(e){if(e.target===dlg)dlg.close()});
   dlg.querySelector("[data-close]").onclick=function(){dlg.close()};
-  btn.onclick=function(){lastErr="";render();if(dlg.showModal)dlg.showModal();else dlg.setAttribute("open","");if(cfg)start().catch(function(){})};
+  openSheet=function(){lastErr="";render();if(dlg.showModal)dlg.showModal();else dlg.setAttribute("open","");if(cfg)start().catch(function(){})};
+  if(btn)btn.onclick=openSheet;
   new MutationObserver(render).observe(document.documentElement,{attributes:true,attributeFilter:["lang"]});
   render();
 }
 
 function render(){
-  if(!btn)return;
+  if(!dlg)return;
   var signed=!!user,nm=signed?(user.displayName||user.email||""):"";
-  btn.classList.toggle("on",signed);
-  btn.innerHTML=signed?'<span class="acct-ini">'+(nm.trim().charAt(0).toUpperCase()||"✓")+"</span>":ICON;
-  btn.setAttribute("aria-label",signed?t("account")+": "+nm:t("signIn"));btn.title=btn.getAttribute("aria-label");
+  if(btn){
+    btn.classList.toggle("on",signed);
+    btn.innerHTML=signed?'<span class="acct-ini">'+(nm.trim().charAt(0).toUpperCase()||"✓")+"</span>":ICON;
+    btn.setAttribute("aria-label",signed?t("account")+": "+nm:t("signIn"));btn.title=btn.getAttribute("aria-label");
+  }
+  try{window.dispatchEvent(new Event("authchange"))}catch(e){}
   dlg.querySelector("#acctTitle").textContent=signed?t("account"):t("signIn");
   dlg.querySelector("[data-close]").setAttribute("aria-label",L()?"Close":"បិទ");
   body.textContent="";
@@ -412,6 +416,7 @@ function render(){
 
 window.Auth={
   get user(){return user},
+  open:function(){openSheet()},
   state:function(){return{configured:!!cfg,signed:!!user,sync:state,error:lastErr}},
   _merge:pull,_push:push
 };

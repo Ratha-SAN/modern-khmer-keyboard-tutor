@@ -1,0 +1,80 @@
+/* Account sheet for pages that don't load ui.css (the typewriter). Rules are copied from ui.css and scoped to #acctSheet. */
+#acctSheet{--panel:#fff;--raise:#f2f1ed;--ink:#16181d;--muted:#6b7079;--line:#e7e5df;--accent:#b3262e;--accent-ink:#fff;--accent-soft:#fbeaea;--shadow-lg:0 2px 6px rgba(22,20,16,.06),0 28px 56px -28px rgba(22,20,16,.38);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.45}
+#acctSheet *{box-sizing:border-box}
+#acctSheet button,#acctSheet input{font:inherit;color:var(--ink)}
+@keyframes sheetIn{from{opacity:0;transform:translateY(12px)}}
+#acctSheet button{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:8px 16px;cursor:pointer}
+#acctSheet button:disabled{opacity:.45;cursor:default}
+#acctSheet .linkbtn{border:0;background:none;color:var(--accent);padding:6px;text-decoration:underline}
+#acctSheet button,#acctSheet select,#acctSheet textarea{font:inherit;color:var(--ink)}
+#acctSheet button,#acctSheet a,#acctSheet select{-webkit-tap-highlight-color:transparent}
+#acctSheet svg.i{width:20px;height:20px;flex:none;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#acctSheet .ibtn{display:inline-grid;place-items:center;width:38px;height:38px;border-radius:999px;border:0;background:rgba(255,255,255,.95);color:var(--ink);box-shadow:0 1px 3px rgba(22,20,16,.14);cursor:pointer;padding:0;text-decoration:none;flex:none}
+#acctSheet .ibtn:hover{background:#ecebe7}
+#acctSheet .btn,#acctSheet button.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;padding:12px 22px;font-weight:600;border:1px solid var(--line);background:var(--panel);color:var(--ink);text-decoration:none;cursor:pointer;transition:transform .12s,box-shadow .15s,background .15s}
+#acctSheet .btn.primary,#acctSheet button.primary{background:var(--accent);border-color:transparent;color:var(--accent-ink);box-shadow:0 6px 16px -8px rgba(179,38,46,.7)}
+#acctSheet .btn:hover{transform:translateY(-1px)}
+#acctSheet .btn:active{transform:none}
+#acctSheet button{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:8px 16px;cursor:pointer;transition:background .15s,border-color .15s}
+#acctSheet button:hover{border-color:#cfccc4}
+#acctSheet button:disabled{opacity:.45;cursor:default}
+#acctSheet button.primary{font-weight:600}
+#acctSheet button.ghost{border-color:transparent;background:transparent}
+#acctSheet .note{color:var(--muted);font-size:.85rem}
+dialog#acctSheet{border:0;padding:0;border-radius:26px;width:min(680px,calc(100% - 32px));max-height:min(86vh,860px);background:var(--panel);color:var(--ink);box-shadow:var(--shadow-lg);overflow:hidden}
+dialog#acctSheet[open]{display:flex;flex-direction:column;animation:sheetIn .2s ease-out}
+dialog#acctSheet::backdrop{background:rgba(22,20,16,.32);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+#acctSheet header{display:flex;align-items:center;gap:10px;padding:18px 20px 8px}
+#acctSheet header h2{margin:0;font-size:1.2rem;font-weight:600;margin-right:auto}
+#acctSheet .body{padding:4px 20px 24px;overflow:auto}
+#acctSheet .body h3{font-size:.95rem;font-weight:600;margin:20px 0 8px}
+#acctSheet .body h3:first-child{margin-top:4px}
+#acctSheet .ibtn.acct.on{background:var(--accent);color:#fff}
+#acctSheet .acct-ini{display:grid;place-items:center;width:100%;height:100%;font-weight:700;font-size:.95rem}
+#acctSheet .acct-ini.big{width:44px;height:44px;border-radius:999px;background:var(--accent);color:#fff;font-size:1.2rem;flex:none}
+#acctSheet .acct-body{display:flex;flex-direction:column;gap:12px;max-width:420px;width:100%;margin:0 auto}
+#acctSheet .acct-wide{width:100%}
+#acctSheet .acct-or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.85rem}
+#acctSheet .acct-or::before,#acctSheet .acct-or::after{content:"";flex:1;height:1px;background:var(--line)}
+#acctSheet .acct-form{display:flex;flex-direction:column;gap:10px}
+#acctSheet .acct-form label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--muted)}
+#acctSheet .acct-form input{font:inherit;font-size:1rem;color:var(--ink);padding:11px 14px;border:1px solid var(--line);border-radius:14px;background:var(--raise);min-width:0}
+#acctSheet .acct-form input:focus{outline:2px solid var(--accent);outline-offset:0;background:var(--panel)}
+#acctSheet .acct-row{display:flex;gap:8px}.acct-row .btn{flex:1;padding:12px 10px}
+#acctSheet .acct-form .linkbtn{align-self:center}
+#acctSheet .acct-err{margin:0;padding:10px 14px;border-radius:14px;background:var(--accent-soft);color:var(--accent);font-size:.9rem}
+#acctSheet .acct-card{display:flex;align-items:center;gap:12px;padding:14px;border-radius:18px;background:var(--raise)}
+#acctSheet .acct-card .note{margin:2px 0 0;word-break:break-all}
+#acctSheet .acct-state{margin:0;font-size:.9rem;color:#1f7a45}.acct-state.offline{color:var(--accent)}.acct-state.syncing{color:var(--muted)}
+#acctSheet .acct-body>.note{margin:0}
+#acctSheet .acct-stats h3{font-size:.85rem;font-weight:600;color:var(--muted);margin:6px 0 8px;text-transform:none}
+#acctSheet .acct-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#acctSheet .acct-tile{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:16px;background:var(--raise);min-width:0}
+#acctSheet .acct-tl{font-size:.78rem;color:var(--muted)}
+#acctSheet .acct-tile b{font-size:1.35rem;font-weight:700;line-height:1.2}
+#acctSheet .acct-sub{font-size:.78rem;color:var(--muted)}
+#acctSheet .acct-bar{display:block;height:5px;border-radius:9px;background:var(--line);margin-top:6px;overflow:hidden}
+#acctSheet .acct-bar i{display:block;height:100%;border-radius:9px;background:#e0a91b}
+#acctSheet .acct-games{list-style:none;margin:0;padding:0;border-radius:16px;background:var(--raise)}
+#acctSheet .acct-games li{display:flex;justify-content:space-between;gap:10px;padding:10px 14px;font-size:.92rem}
+#acctSheet .acct-games li+li{border-top:1px solid var(--line)}
+#acctSheet .acct-chart{margin-top:6px}
+#acctSheet .acct-plot{position:relative;background:var(--raise);border-radius:16px;padding:8px 6px 2px}
+#acctSheet .acct-plot svg{display:block;width:100%;height:auto;touch-action:pan-y}
+#acctSheet .acct-plot .g{stroke:var(--line);stroke-width:1}
+#acctSheet .acct-plot .ax{fill:var(--muted);font-size:9.5px}
+#acctSheet .acct-plot .ln{fill:none;stroke:var(--accent);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+#acctSheet .acct-plot .area{fill:var(--accent);opacity:.08}
+#acctSheet .acct-plot .dot{fill:var(--accent);stroke:var(--raise);stroke-width:2}
+#acctSheet .acct-plot .val{fill:var(--ink);font-size:11px;font-weight:700}
+#acctSheet .acct-plot .x{stroke:var(--muted);stroke-width:1;stroke-dasharray:2 3}
+#acctSheet .acct-tip{position:absolute;top:6px;transform:translateX(-50%);background:var(--ink);color:#fff;font-size:.75rem;padding:4px 9px;border-radius:9px;white-space:nowrap;pointer-events:none}
+#acctSheet .acct-empty{margin:0;padding:14px;border-radius:16px;background:var(--raise)}
+#acctSheet .acct-chart .acct-sub{display:block;margin-top:4px}
+#acctSheet .acct-units{list-style:none;margin:0;padding:10px 14px;border-radius:16px;background:var(--raise);display:flex;flex-direction:column;gap:9px}
+#acctSheet .acct-units li{display:grid;grid-template-columns:minmax(0,9.5em) 1fr auto;align-items:center;gap:10px;font-size:.85rem}
+#acctSheet .acct-un{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#acctSheet .acct-track{display:block;height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+#acctSheet .acct-track i{display:block;height:100%;border-radius:4px;background:#e0a91b}
+#acctSheet .acct-units b{font-size:.8rem;font-variant-numeric:tabular-nums;color:var(--muted);font-weight:600}
+@media (max-width:640px){dialog#acctSheet{width:100%;max-width:100%;margin:auto 0 0;border-radius:26px 26px 0 0;max-height:88vh;padding-bottom:env(safe-area-inset-bottom,0px)}}
