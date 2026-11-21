@@ -1534,7 +1534,7 @@ function gameSize(){
   if(!g.aim.x){g.aim.x=g.ax+g.s*6;g.aim.y=g.gy-g.s*5}
 }
 function nextWave(){
-  const g=G;g.wave++;g.lw++;g.count=Math.min(6+g.wave*3,30);g.spawned=0;g.interval=Math.max(.6,1.5-.07*g.wave);g.spawnT=1.5;
+  const g=G;g.wave++;g.lw++;g.count=Math.min(Math.round((6+g.wave*3)*1.25),38);g.spawned=0;g.interval=Math.max(.6,1.5-.07*g.wave)*1.25; /* 20% fewer words on screen at once, but more of them per wave, so a wave lasts longer */ g.spawnT=1.5;
   g.bannerTxt='Level '+g.level;g.bannerSub='Wave '+g.lw;g.banner=1.8;
   g.sp=g.H*(.1+.011*g.wave)*.8;g.maxLen=Math.min(3+g.wave,9);
 }
