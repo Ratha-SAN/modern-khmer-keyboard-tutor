@@ -1,14 +1,42 @@
 rules_version = '2';
-// Each signed-in learner can read and write only their own progress document.
+// Everything not listed here is denied.
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // Progress: each signed-in learner reads and writes only their own document.
     match /users/{uid} {
-      allow read: if request.auth != null && request.auth.uid == uid;
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
       allow create, update: if request.auth != null && request.auth.uid == uid
         && request.resource.data.keys().hasOnly(['p', 'name', 'updated'])
         && request.resource.data.p is map
-        && request.resource.data.p.size() <= 600;
-      allow delete: if request.auth != null && request.auth.uid == uid;
+        && request.resource.data.p.size() <= 600
+        && (!('name' in request.resource.data)
+            || (request.resource.data.name is string && request.resource.data.name.size() <= 120))
+        && request.resource.data.updated == request.time;
+    }
+
+    // Google sign-in hand-off between an in-app browser (Telegram...) and Safari/Chrome.
+    // The document id is a random 48-character secret made by the app, so a document can only be
+    // fetched by someone who has that id: reading is by id only (no listing), the document stops
+    // being readable after 5 minutes, and a stored token can never be overwritten.
+    match /handoff/{code} {
+      allow get: if code.matches('[0-9a-f]{48}')
+        && request.time < resource.data.created + duration.value(5, 'm');
+      allow create: if code.matches('[0-9a-f]{48}') && validHandoff();
+      allow update: if code.matches('[0-9a-f]{48}') && validHandoff()
+        && !('idToken' in resource.data)
+        && request.time < resource.data.created + duration.value(5, 'm');
+      allow delete: if code.matches('[0-9a-f]{48}');
+      allow list: if false;
+
+      function validHandoff() {
+        let d = request.resource.data;
+        return d.keys().hasOnly(['waiting', 'idToken', 'accessToken', 'created'])
+          && d.created == request.time
+          && (('idToken' in d) ? (d.idToken is string && d.idToken.size() > 100 && d.idToken.size() <= 4096) : d.waiting == true)
+          && (!('accessToken' in d) || d.accessToken == null
+              || (d.accessToken is string && d.accessToken.size() <= 2048));
+      }
     }
   }
 }
