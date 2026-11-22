@@ -1802,8 +1802,8 @@ function nextWave(){
   g.sp=g.H*(.1+.011*g.wave)*.8*.7*.75; /* .7 then .75: words fall slowly */g.maxLen=Math.min(3+g.wave,9);
 }
 /* the first levels use the words people type most in everyday messages, at school and at work */
-const DAILY_KM='សួស្តី អរគុណ បាទ ចាស ទេ មែន ល្អ បាន អត់ មិន ទៅ មក នៅ ធ្វើ ញ៉ាំ បាយ ទឹក ផឹក ដេក ព្រឹក ល្ងាច យប់ ថ្ងៃនេះ ស្អែក ម្សិលមិញ ម៉ោង នាទី ឥឡូវ ឆាប់ យឺត ចាំ ជួប ដឹង យល់ សួរ ឆ្លើយ ប្រាប់ ហៅ ផ្ញើ សារ ទូរស័ព្ទ លេខ រូប ផ្ទះ គ្រួសារ ម្ដាយ ឪពុក បង ប្អូន កូន មិត្ត សាលា រៀន គ្រូ សិស្ស ថ្នាក់ មេរៀន សៀវភៅ ប៊ិច ប្រឡង លំហាត់ កិច្ចការ ការងារ ធ្វើការ ប្រជុំ ការិយាល័យ ឯកសារ គម្រោង ប្រធាន ក្រុម អ៊ីមែល កុំព្យូទ័រ លុយ ទិញ លក់ ផ្សារ ហាង ផ្លូវ ឡាន ម៉ូតូ ជួយ ត្រូវការ ចង់ អាច សុំទោស មិនអីទេ រីករាយ នឹក ស្រលាញ់ សុខសប្បាយ ឈឺ សម្រាក សប្ដាហ៍ ខែ ឆ្នាំ ថ្មី ចាស់ ធំ តូច ច្រើន តិច ពិតជា ហើយ ទៀត អ្នក ខ្ញុំ យើង គាត់ ពួកគេ នេះ នោះ ណា អ្វី ហេតុអ្វី យ៉ាងម៉េច ពេលណា នៅឯណា ប៉ុន្មាន ចប់ ចាប់ផ្ដើម បើក បិទ ដើរ រត់ អង្គុយ ឈរ មើល ស្ដាប់ និយាយ សរសេរ អាន គិត ភ្លេច ចងចាំ ព្យាយាម បញ្ចប់ ពិនិត្យ កែ ចែក ទទួល ផ្ដល់ រង់ចាំ ត្រឡប់ ចេញ ចូល ឡើង ចុះ ថ្ងៃ ពេល ម្ហូប កាហ្វេ តែ ថ្លៃ ថោក ស្អាត កខ្វក់ ក្ដៅ ត្រជាក់ ភ្លៀង ថ្ងៃត្រង់ ពេលព្រឹក អាហារ ប្រាក់ខែ អតិថិជន ក្រុមហ៊ុន បុគ្គលិក សំណួរ ចម្លើយ កាលវិភាគ ព័ត៌មាន ឯកសារភ្ជាប់ ទំនាក់ទំនង'.split(' ');
-const DAILY_EN='hi hello thanks thank yes no ok okay please sorry good morning night today tomorrow tonight school class teacher student homework study lesson test exam book pen work office meeting email phone call text send reply team boss lunch dinner home family friend mom dad love miss see you soon later busy free time help need want know ask answer project report file plan done ready late early bus car money shop buy pay week day month we they he she it this that what why how when where who which can will would should could just also still very really sure maybe great nice cool fine sick tired happy sad hungry coffee tea food water class notes slides deadline update check share upload download print sign meet join leave start finish wait open close bring take give get'.split(' ');
+const DAILY_KM='សួស្តី អរគុណ ផ្កា បេះដូង បាទ ចាស ទេ មែន ល្អ បាន អត់ មិន ទៅ មក នៅ ធ្វើ ញ៉ាំ បាយ ទឹក ផឹក ដេក ព្រឹក ល្ងាច យប់ ថ្ងៃនេះ ស្អែក ម្សិលមិញ ម៉ោង នាទី ឥឡូវ ឆាប់ យឺត ចាំ ជួប ដឹង យល់ សួរ ឆ្លើយ ប្រាប់ ហៅ ផ្ញើ សារ ទូរស័ព្ទ លេខ រូប ផ្ទះ គ្រួសារ ម្ដាយ ឪពុក បង ប្អូន កូន មិត្ត សាលា រៀន គ្រូ សិស្ស ថ្នាក់ មេរៀន សៀវភៅ ប៊ិច ប្រឡង លំហាត់ កិច្ចការ ការងារ ធ្វើការ ប្រជុំ ការិយាល័យ ឯកសារ គម្រោង ប្រធាន ក្រុម អ៊ីមែល កុំព្យូទ័រ លុយ ទិញ លក់ ផ្សារ ហាង ផ្លូវ ឡាន ម៉ូតូ ជួយ ត្រូវការ ចង់ អាច សុំទោស មិនអីទេ រីករាយ នឹក ស្រលាញ់ សុខសប្បាយ ឈឺ សម្រាក សប្ដាហ៍ ខែ ឆ្នាំ ថ្មី ចាស់ ធំ តូច ច្រើន តិច ពិតជា ហើយ ទៀត អ្នក ខ្ញុំ យើង គាត់ ពួកគេ នេះ នោះ ណា អ្វី ហេតុអ្វី យ៉ាងម៉េច ពេលណា នៅឯណា ប៉ុន្មាន ចប់ ចាប់ផ្ដើម បើក បិទ ដើរ រត់ អង្គុយ ឈរ មើល ស្ដាប់ និយាយ សរសេរ អាន គិត ភ្លេច ចងចាំ ព្យាយាម បញ្ចប់ ពិនិត្យ កែ ចែក ទទួល ផ្ដល់ រង់ចាំ ត្រឡប់ ចេញ ចូល ឡើង ចុះ ថ្ងៃ ពេល ម្ហូប កាហ្វេ តែ ថ្លៃ ថោក ស្អាត កខ្វក់ ក្ដៅ ត្រជាក់ ភ្លៀង ថ្ងៃត្រង់ ពេលព្រឹក អាហារ ប្រាក់ខែ អតិថិជន ក្រុមហ៊ុន បុគ្គលិក សំណួរ ចម្លើយ កាលវិភាគ ព័ត៌មាន ឯកសារភ្ជាប់ ទំនាក់ទំនង'.split(' ');
+const DAILY_EN='hi hello thanks heart flower thank yes no ok okay please sorry good morning night today tomorrow tonight school class teacher student homework study lesson test exam book pen work office meeting email phone call text send reply team boss lunch dinner home family friend mom dad love miss see you soon later busy free time help need want know ask answer project report file plan done ready late early bus car money shop buy pay week day month we they he she it this that what why how when where who which can will would should could just also still very really sure maybe great nice cool fine sick tired happy sad hungry coffee tea food water class notes slides deadline update check share upload download print sign meet join leave start finish wait open close bring take give get'.split(' ');
 const gamePool=()=>{const g=G;if(g.level<=3){if(!g.daily){const d=(S.lang==='km'?DAILY_KM.filter(w=>[...w].every(c=>typable(c))):DAILY_EN).slice();for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}g.daily=d.slice(0,60)} /* a fresh 60 of the everyday words each game */
   if(g.daily.length>=20)return g.daily}return g.pool};
 function spawnWord(){
@@ -1910,6 +1910,22 @@ function gameImpact(a){ /* a true arrow lands in its word: it sticks and wobbles
   g.shake=Math.max(g.shake,.06);gsound(a.last?['pop','break','boom','blast'][gTier(w)]:'hit');
   if(a.last){gameBurst(w);if(w.pu&&!w.chained)gamePower(w.pu)}
 }
+/* words by theme: breaking one sends up a little shower of its own emoji */
+const EMO_CAT={
+  love:{e:['❤️','💕','🌹','🌸','💖','🌷'],w:'ស្រលាញ់ នឹក សង្សារ ស្នេហា បេះដូង ផ្កា ផ្កាឈូក ផ្កាកុលាប រីករាយ សុខសប្បាយ ស្អាត love miss heart flower rose kiss hug dear sweet happy'},
+  food:{e:['🍚','🍜','☕','🥭','🍵','🍲'],w:'ញ៉ាំ បាយ ទឹក ផឹក ម្ហូប កាហ្វេ តែ អាហារ ថ្ងៃត្រង់ ស្រូវ នំ ផ្លែឈើ lunch dinner food coffee tea water eat hungry breakfast'},
+  school:{e:['📚','✏️','🎓','📝','🏫','📖'],w:'សាលា រៀន គ្រូ សិស្ស ថ្នាក់ មេរៀន សៀវភៅ ប៊ិច ប្រឡង លំហាត់ សរសេរ អាន សំណួរ ចម្លើយ school class teacher student homework study lesson test exam book pen notes slides'},
+  work:{e:['💼','📧','📊','🗂️','💻','📅'],w:'ការងារ ធ្វើការ ប្រជុំ ការិយាល័យ ឯកសារ គម្រោង ប្រធាន ក្រុម អ៊ីមែល កុំព្យូទ័រ ប្រាក់ខែ អតិថិជន ក្រុមហ៊ុន បុគ្គលិក កាលវិភាគ ឯកសារភ្ជាប់ work office meeting email project report file plan team boss deadline update upload download print'},
+  hello:{e:['👋','😊','🙏','😄','🤝'],w:'សួស្តី អរគុណ បាទ ចាស សុំទោស មិនអីទេ ជួប hi hello thanks thank please sorry ok okay yes nice great'},
+  time:{e:['⏰','☀️','🌙','⌛','📆'],w:'ម៉ោង នាទី ឥឡូវ ថ្ងៃនេះ ស្អែក ម្សិលមិញ ព្រឹក ល្ងាច យប់ ថ្ងៃ ពេល ពេលព្រឹក សប្ដាហ៍ ខែ ឆ្នាំ ឆាប់ យឺត morning night today tomorrow tonight time week day month late early soon later'},
+  home:{e:['🏠','👨‍👩‍👧','👶','🐶','🛋️'],w:'ផ្ទះ គ្រួសារ ម្ដាយ ឪពុក បង ប្អូន កូន មិត្ត home family mom dad friend'},
+  money:{e:['💰','💵','🛒','🪙','🛍️'],w:'លុយ ទិញ លក់ ផ្សារ ហាង ថ្លៃ ថោក money shop buy pay'},
+  travel:{e:['🚗','🛵','🚌','🛣️','✈️'],w:'ឡាន ម៉ូតូ ផ្លូវ ទៅ មក ដើរ រត់ bus car'},
+  phone:{e:['📱','💬','📞','✉️','📲'],w:'ទូរស័ព្ទ សារ ផ្ញើ ហៅ លេខ រូប ទំនាក់ទំនង ព័ត៌មាន phone call text send reply share'},
+  weather:{e:['🌧️','☀️','🌈','⛅','💧'],w:'ភ្លៀង ក្ដៅ ត្រជាក់ ព្រះអាទិត្យ ខ្យល់ rain sun hot cold'},
+  feel:{e:['😴','🤒','😢','😃','🥳'],w:'ឈឺ សម្រាក ដេក tired sick sad happy'}};
+const EMO={};for(const k in EMO_CAT)for(const w of EMO_CAT[k].w.split(' '))if(!EMO[w])EMO[w]=EMO_CAT[k].e;
+const gEmoji=t=>EMO[t]||EMO[t.toLowerCase()]||null;
 const gTier=w=>{const n=w.ch.length;return n<=2?0:n<=4?1:n<=6?2:3}; /* how big the word was: a tick, a shatter, a burst or a blast */
 function gameBurst(w){ /* the last arrow: the word breaks into its letters, and the longer the word, the bigger the break */
   const g=G,c=g.cx,T=gTier(w),P=[.6,1,1.5,2.1][T];g.words=g.words.filter(x=>x!==w);c.font=g.font;const x0=w.x+w.ox-w.w/2,cy=w.y+w.oy-g.fs*.3;
@@ -1921,6 +1937,8 @@ function gameBurst(w){ /* the last arrow: the word breaks into its letters, and 
     if(T===3)g.rings.push({x:w.x+w.ox,y:cy,t:0,max:w.w*.7+g.s*2,rays:0,delay:.1})}
   g.blots.push({x:w.x,y:w.y,r:w.w*[.25,.35,.5,.7][T],a:.55});
   g.floats.push({x:w.x,y:w.y-g.fs,t:0,txt:'+'+KD(w.ch.length*15),big:T});
+  const em=gEmoji(w.t);if(em){const n=6+T*3;(g.emo=g.emo||[]);for(let i=0;i<n;i++){const an=-1.5708+(Math.random()-.5)*2.2,v=(90+Math.random()*150)*(.8+T*.15);
+    g.emo.push({e:em[i%em.length],x:w.x+w.ox+(Math.random()-.5)*w.w*.5,y:cy,vx:Math.cos(an)*v,vy:Math.sin(an)*v,r:(Math.random()-.5)*.6,vr:(Math.random()-.5)*3,sz:g.fs*(.8+Math.random()*.55),t:0,life:1.5+Math.random()*.6})}}
   g.shake=Math.max(g.shake,[.04,.1,.2,.34][T]);if(T===3)g.flash=.3;if(w.boss)bossWordKilled(w);gameHint();
 }
 function gameBow(){ /* where the arrow leaves the bow, in page pixels */
@@ -1980,6 +1998,7 @@ function gameStep(dt){
   g.letters=g.letters.filter(l=>l.t<l.life);
   for(const r of g.rings){if(r.delay>0)r.delay-=dt;else r.t+=dt}g.rings=g.rings.filter(r=>r.t<.5);
   for(const b of g.bits){b.vy+=320*dt;b.x+=b.vx*dt;b.y+=b.vy*dt;b.a-=dt*.9}g.bits=g.bits.filter(b=>b.a>0);
+  if(g.emo){for(const e of g.emo){e.t+=dt;e.vy+=170*dt;e.vx*=1-dt*.6;e.x+=e.vx*dt+Math.sin(e.t*5+e.r*9)*12*dt;e.y+=e.vy*dt;e.r+=e.vr*dt}g.emo=g.emo.filter(e=>e.t<e.life&&e.y<g.H+40)} /* emoji float up, drift and fall away */
   for(const b of g.blots)b.a-=dt*.22;g.blots=g.blots.filter(b=>b.a>0);
   for(const f of g.floats)f.t+=dt;g.floats=g.floats.filter(f=>f.t<1);
   const t=gameTarget(),k=Math.min(1,dt*9);
@@ -2281,6 +2300,8 @@ function gameDraw(){
     for(let k=0;k<r.rays;k++){const an=k/r.rays*6.283+.2;c.beginPath();c.moveTo(r.x+Math.cos(an)*rr*.55,r.y+Math.sin(an)*rr*.55);c.lineTo(r.x+Math.cos(an)*rr*1.05,r.y+Math.sin(an)*rr*1.05);c.stroke()}}
   c.globalAlpha=1;
   for(const b of g.bits){c.globalAlpha=Math.max(0,b.a);c.beginPath();c.arc(b.x,b.y,b.r,0,6.283);c.fill()}c.globalAlpha=1;
+  if(g.emo&&g.emo.length){c.textAlign='center';c.textBaseline='middle';for(const e of g.emo){c.save();c.globalAlpha=gClamp((e.life-e.t)/.5,0,1)*gClamp(e.t/.08,0,1);c.translate(e.x,e.y);c.rotate(e.r);
+    const k=Math.min(1,e.t/.15);c.font=Math.round(e.sz*(.5+.5*k))+'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';c.fillText(e.e,0,0);c.restore()}c.textBaseline='alphabetic';c.textAlign='left'}
   for(const f of g.floats){c.globalAlpha=1-f.t;c.fillStyle=g.acc;c.font=Math.round(g.fs*(.8+(f.big||0)*.22)*1.18)+'px '+PENF;c.textAlign='center';gTxt(c,f.txt,f.x,f.y-f.t*26)}c.globalAlpha=1;
   /* score, lives and the wave banner, kept clear of the back button on the left */
   c.fillStyle=g.ink2;c.textAlign='right';c.font=Math.round((g.fs*.8)*1.18)+'px '+PENF;gTxt(c,KD(g.score),W-58,24);
