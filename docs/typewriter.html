@@ -194,13 +194,15 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 .tb.on{color:var(--tool-on);filter:drop-shadow(0 0 5px rgba(255,236,190,.55))}
 .tb.open{background:rgba(0,0,0,.25);color:var(--tool-on)}
 .tb.chev.on{filter:none}
-.collapsed .tb.chev{transform:rotate(180deg)}
+.tools.more .tb.chev{transform:rotate(180deg)}
 .tools{justify-content:center}
 .tools .gap{flex:none;width:0} /* the tools sit centred in the bar, most visibly in landscape */
 .tb svg.i{width:26px;height:26px}
 .tools .div{flex:none;width:1px;height:26px;background:rgba(255,255,255,.16);margin:0 3px}
-.collapsed .fold{display:none}
-.tools:not(.collapsed) .alt{display:none} /* the toolbar's second page, after the > button */
+.tools:not(.more) .fold{display:none}
+.tools.more .main{display:none} /* page one: the two games; page two, after >: writing and the other tools */
+.tb.main{flex:0 1 auto;max-width:none;width:auto;display:inline-flex;align-items:center;gap:7px;padding:0 16px;margin:0 3px;border-radius:999px;font:600 14px var(--ui),"Noto Sans Khmer";white-space:nowrap}
+.tb.main.on{background:rgba(255,236,190,.14);filter:none}
 
 .panel{position:absolute;left:12px;right:12px;bottom:calc(100% + 22px);z-index:6;background:var(--panel);color:var(--panel-text);
   border:1px solid var(--panel-line);border-radius:18px;padding:14px 16px 16px;box-shadow:0 16px 40px rgba(0,0,0,.55);
@@ -341,6 +343,7 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 .pages .tabs{display:flex;gap:6px}
 .unit{border:0;margin-top:4px}
 /* learn: a hero card for the next lesson, the game, then each unit with its progress */
+.lgnote{margin:0 0 12px;padding:10px 14px;border-radius:14px;background:rgba(240,213,138,.1);border:1px solid rgba(240,213,138,.3);font-size:13px;line-height:1.5}
 .lhero{display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:20px;margin-bottom:4px;
   background:linear-gradient(150deg,#3a332a,#2a2622 60%);border:1px solid rgba(240,213,138,.22)}
 .lgo{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;padding:2px 64px 2px 0;color:inherit}
@@ -554,6 +557,7 @@ const IC={
   enter:'<path d="M20 5v8H6M10 9l-4 4 4 4"/>',
   copy:'<rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5V5a1.5 1.5 0 00-1.5-1.5H5A1.5 1.5 0 003.5 5v9A1.5 1.5 0 005 15.5h3.5"/>',
   tutor:'<rect x="2.5" y="4" width="19" height="12.5" rx="1.8"/><path d="M8 20h8M12 16.5V20M6.5 8.5h.01M9.5 8.5h.01M12.5 8.5h.01M15.5 8.5h.01M8 12.5h8"/>',
+  write:'<path d="M4 20l1-4.5L15.5 5a2.1 2.1 0 013 3L8 18.5z"/><path d="M13.5 7l3 3M4 20h16"/>',
   learn:'<path d="M2.5 9L12 4.5 21.5 9 12 13.5z"/><path d="M6.5 11.2V16c3 2.4 8 2.4 11 0v-4.8M21.5 9v5.5"/>'
 };
 
@@ -1238,11 +1242,15 @@ const TOOLS=[ /* grouped: writing | practice | look and sound | you; a null is a
 ];
 let openPanel=null,timerEnd=0,timerInt;
 function renderTools(){
-  tools.innerHTML=`<button class="tb chev${S.collapsed?'':' on'}" data-t="chev" aria-label="${S.collapsed?'Show tools':'Hide tools'}">${svg(IC.chev)}</button>`+
-    `<button class="tb alt" data-t="tutor" aria-label="Keyboard tutor (ហាត់វាយ)" title="Keyboard tutor">${svg(IC.tutor)}</button>`+
+  const gm=G&&G.mode;
+  tools.innerHTML=`<button class="tb chev${S.more?' on':''}" data-t="chev" aria-label="${S.more?'Back to the games':'More: writing page and tools'}" title="${S.more?'Games':'More'}">${svg(IC.chev)}</button>`+
+    `<button class="tb main${gm==='lesson'?' on':''}" data-t="glearn" aria-label="Lesson games" title="Play the lessons as a game">${svg(IC.learn)}<span>មេរៀន</span></button>`+
+    `<button class="tb main${gm==='play'?' on':''}" data-t="gplay" aria-label="Play Ink Archer" title="Play">${svg(IC.game)}<span>លេង</span></button>`+
+    `<button class="tb fold${!G&&!D?' on':''}" data-t="write" aria-label="Writing page" title="Writing page">${svg(IC.write)}</button><span class="div fold"></span>`+
+    `<button class="tb fold" data-t="tutor" aria-label="Keyboard tutor (ហាត់វាយ)" title="Keyboard tutor">${svg(IC.tutor)}</button>`+
     TOOLS.map(t=>!t?'<span class="div fold"></span>':`<button class="tb fold${(t.toggle&&S[t.toggle])||(t.id==='timer'&&timerEnd)||(t.id==='sound'&&(S.sound||S.bell))||(t.id==='acct'&&window.Auth&&Auth.user)?' on':''}${openPanel===t.id?' open':''}" data-t="${t.id}" aria-label="${t.label}" title="${t.label}"${t.toggle?` aria-pressed="${!!S[t.toggle]}"`:''}>${svg(IC[t.id])}</button>`).join('')+
     `<span class="gap"></span>`+(S.osk?'':`<button class="tb" data-t="keys" aria-label="Show on-screen keys" title="Show on-screen keys">${svg(IC.keys)}</button>`);
-  tools.classList.toggle('collapsed',S.collapsed);
+  tools.classList.toggle('more',!!S.more);
 }
 function applyLook(){
   device.dataset.light=S.light;device.dataset.keys=S.keys;device.classList.toggle('focus',S.focus);
@@ -1277,7 +1285,10 @@ window.addEventListener('progresssync',()=>{ /* Ink Archer bests from the accoun
 });
 tools.addEventListener('click',e=>{
   const b=e.target.closest('.tb');if(!b)return;const id=b.dataset.t,t=TOOLS.find(x=>x&&x.id===id);audio();
-  if(id==='chev'){S.collapsed=!S.collapsed;closePanel()}
+  if(id==='chev'){S.more=!S.more;closePanel()}
+  else if(id==='gplay'){closePanel();if(G&&G.mode==='play')return;if(G)exitGame();startGame({mode:'play'});return}
+  else if(id==='glearn'){closePanel();showLearn('lessons',true);return}
+  else if(id==='write'){closePanel();if(G)exitGame();if(D)exitDrill(false);learnEl.hidden=true;pages.hidden=true;renderTools();focusTa();return}
   else if(id==='keys'){setOsk(true);return}
   else if(id==='page'){if(G)exitGame();closePanel();showPages();return}
   else if(id==='tutor'){if(G)exitGame();closePanel();location.href='./';return}
@@ -1517,6 +1528,8 @@ if(window.visualViewport)visualViewport.addEventListener('resize',refit);
 addEventListener('resize',refit);addEventListener('orientationchange',refit);
 new ResizeObserver(()=>layout()).observe(scroll);
 applyLook();applyOsk();renderTools();buildKb();
+/* the page opens on the game; the writing page is one tap away (> then the pen) */
+setTimeout(()=>{if(!G&&!D&&pages.hidden&&learnEl.hidden)startGame({mode:'play'})},350);
 ta.value=doc().text;ta.setSelectionRange(ta.value.length,ta.value.length);lastN=count();autoShift();
 fit();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(layout);
 /* fetch the Khmer faces up front so the first Khmer letter never waits on a download */
@@ -1538,7 +1551,7 @@ const COENG='្';
 const EN_SENT=['The lamp is on and the page is waiting.','Type slowly at first; speed will come later.','Keep your eyes on the paper, not on the keys.',
   'Every good story starts with one small word.','Rain fell all night, and the river rose by morning.','She wrote ten lines, read them twice, and smiled.',
   'Is it late? Yes, but the work is almost done.','Practice a little each day, and your hands will learn.'];
-let course=null,learnTab='lessons';
+let course=null,learnTab='lessons',learnGame=false; /* learnGame: the list opened from the Lesson games button, so a lesson starts as a game */
 
 function buildCourse(){
   const K=KMP,where={},units=[],lessons=[];
@@ -1751,17 +1764,18 @@ function statsHtml(){
   h+='<h4>Recent lessons</h4>'+H.slice(-8).reverse().map(x=>'<div class="pg"><div class="open"><div class="t">'+esc(name(x.i))+'</div><div class="m">'+new Date(x.d).toLocaleDateString(undefined,{month:'short',day:'numeric'})+' · '+x.w+' wpm · '+x.a+'% · '+Math.floor(x.s/60)+':'+String(x.s%60).padStart(2,'0')+'</div></div></div>').join('');
   return h+'<div class="rowset" style="margin-top:18px"><button class="chip" data-reset>Reset statistics</button></div></div>';
 }
-function showLearn(tab){
-  if(tab)learnTab=tab;
+function showLearn(tab,asGame){
+  if(tab)learnTab=tab;learnGame=!!asGame;
   learnEl.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('sel',b.dataset.tab===learnTab));
-  learnBody.innerHTML=learnTab==='stats'?statsHtml():lessonsHtml();
+  learnBody.innerHTML=(learnGame&&learnTab!=='stats'?'<p class="lgnote">🏹 ជ្រើសមេរៀនដើម្បីលេង · Choose a lesson to play it as a game: three waves of its words, then on to the next lesson.</p>':'')+(learnTab==='stats'?statsHtml():lessonsHtml());
   learnEl.hidden=false;
 }
+
 learnEl.addEventListener('click',e=>{
   const l=e.target.closest('[data-l]'),t=e.target.closest('[data-tab]'),r=e.target.closest('[data-reset]');
   if(e.target.closest('[data-game]')){audio();startGame();return}
-  if(l){audio();startDrill(l.dataset.l)}
-  else if(t)showLearn(t.dataset.tab);
+  if(l){audio();if(learnGame){if(G)exitGame();startGame({mode:'lesson',id:l.dataset.l})}else startDrill(l.dataset.l)}
+  else if(t)showLearn(t.dataset.tab,learnGame);
   else if(r){if(!r.classList.contains('sure')){r.classList.add('sure');r.textContent='Erase all lesson results?';return}S.learn=null;save();showLearn()}
 });
 $('learnClose').addEventListener('click',()=>{learnEl.hidden=true;if(D)exitDrill(false);else focusTa()});
@@ -1772,22 +1786,27 @@ $('learnClose').addEventListener('click',()=>{learnEl.hidden=true;if(D)exitDrill
 const EN_GW='ink page type key word bell paper letter ribbon shoot arrow bow string rain storm cloud river forest mountain village garden bridge lantern candle window morning evening silver golden quiet gentle swift stone feather whisper thunder meadow harbor journey castle shadow ember willow moon star night light dream sleep water fire wind leaf rose snow sand wave hill road gate tower story song smile heart brave'.split(' ');
 const gameWords=()=>S.lang==='km'?KMW.filter(w=>[...w].every(c=>typable(c))):EN_GW;
 const gClamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-function startGame(){
-  if(G)return;if(D)exitDrill(false);
+let gameOpts={mode:'play'};
+const lessonWords=les=>{const set=new Set();for(let i=0;i<4;i++)String(les.make()||'').split(/\s+/).forEach(w=>{if(w&&[...w].every(c=>typable(c)))set.add(w)});return [...set]};
+function startGame(opts){
+  if(G)return;if(D)exitDrill(false);gameOpts=opts||gameOpts||{mode:'play'};
+  const prevLang=S.lang;let les=null;
+  if(gameOpts.mode==='lesson'){const c=getCourse();les=c.lessons.find(l=>l.id===gameOpts.id)||c.lessons.find(l=>!LN().best[l.id])||c.lessons[0];if(les.lang)S.lang=les.lang}
   closePanel();learnEl.hidden=true;pages.hidden=true;resultEl.hidden=true;
   G={cv:$('gcv'),W:0,H:0,dpr:1,words:[],arrows:[],bits:[],blots:[],floats:[],wave:0,score:0,lives:5,lock:null,over:false,overT:0,t:0,last:performance.now(),
     shake:0,aim:{x:0,y:0},dr:0,rel:0,pool:gameWords(),best:(S.gbest||{})[S.lang]||0,newBest:false,combo:0,banner:0,raf:0,shots:[],letters:[],rings:[],flash:0,hurt:0,hurtCool:0,tier:0,slowT:0,dblT:0,chain:[],note:null,sinceSpecial:0,rec:0,recv:0,pull:0,lastShot:0,level:1,lw:0,phase:'waves',boss:null,fadeA:0,fadeDir:0,bannerTxt:'',bannerSub:'',clearT:0,stars:Array.from({length:46},()=>[Math.random(),Math.random(),.6+Math.random()*1.3,Math.random()*6])};
-  G.cx=G.cv.getContext('2d');
+  G.cx=G.cv.getContext('2d');G.mode=gameOpts.mode;G.prevLang=prevLang;
+  if(les){G.les=les;G.lesWords=lessonWords(les);G.kOk=0;G.kBad=0;G.lesT0=performance.now()}
   device.classList.add('game');device.classList.toggle('nokeys',!S.osk);shift=0;mode='abc';moreOn=false;ta.value='';buildKb();paintBars();
-  gameSize();nextWave();G.bannerTxt='កម្រិត '+KD(1);G.bannerSub=SET_EN[G.th.set]+' · '+TIME_EN[G.th.time];G.raf=requestAnimationFrame(gameTick);focusTa();gameHint();
+  gameSize();nextWave();if(les){G.bannerTxt=les.t[0];G.bannerSub=les.t[1]}else{G.bannerTxt='កម្រិត '+KD(1);G.bannerSub=SET_EN[G.th.set]+' · '+TIME_EN[G.th.time]}G.raf=requestAnimationFrame(gameTick);focusTa();gameHint();renderTools();
 }
 function exitGame(){
-  if(!G)return;cancelAnimationFrame(G.raf);G=null;device.classList.remove('game','nokeys');
+  if(!G)return;cancelAnimationFrame(G.raf);if(G.prevLang&&G.prevLang!==S.lang)S.lang=G.prevLang;G=null;device.classList.remove('game','nokeys');
   $('fan').querySelectorAll('.slug.hint').forEach(e=>e.classList.remove('hint'));
   ta.value=doc().text;ta.setSelectionRange(ta.value.length,ta.value.length);
-  mode='abc';shift=0;buildKb();paintBars();layout();lastN=count();autoShift();focusTa();
+  mode='abc';shift=0;buildKb();paintBars();layout();lastN=count();autoShift();focusTa();renderTools();
 }
-function gameRestart(){if(!G)return;const raf=G.raf;cancelAnimationFrame(raf);G=null;startGame()}
+function gameRestart(){if(!G)return;const raf=G.raf,pl=G.prevLang;cancelAnimationFrame(raf);G=null;S.lang=pl||S.lang;startGame(gameOpts)}
 function gameSize(){
   const g=G,pg=$('page'),w=pg.clientWidth,h=pg.clientHeight;if(!w||!h)return;
   g.dpr=Math.min(2,window.devicePixelRatio||1);g.W=w;g.H=h;g.cv.width=Math.round(w*g.dpr);g.cv.height=Math.round(h*g.dpr);
@@ -1804,7 +1823,7 @@ function nextWave(){
 /* the first levels use the words people type most in everyday messages, at school and at work */
 const DAILY_KM='សួស្តី អរគុណ ផ្កា បេះដូង បាទ ចាស ទេ មែន ល្អ បាន អត់ មិន ទៅ មក នៅ ធ្វើ ញ៉ាំ បាយ ទឹក ផឹកទឹក ផឹកកាហ្វេ ដេក ព្រឹក ល្ងាច យប់ ថ្ងៃនេះ ស្អែក ម្សិលមិញ ម៉ោង នាទី ឥឡូវ ឆាប់ យឺត ចាំ ជួប ដឹង យល់ សួរ ឆ្លើយ ប្រាប់ ហៅ ផ្ញើ សារ ទូរស័ព្ទ លេខ រូប ផ្ទះ គ្រួសារ ម្ដាយ ឪពុក បង ប្អូន កូន មិត្ត សាលា រៀន គ្រូ សិស្ស ថ្នាក់ មេរៀន សៀវភៅ ប៊ិច ប្រឡង លំហាត់ កិច្ចការ ការងារ ធ្វើការ ប្រជុំ ការិយាល័យ ឯកសារ គម្រោង ប្រធាន ក្រុម អ៊ីមែល កុំព្យូទ័រ លុយ ទិញ លក់ ផ្សារ ហាង ផ្លូវ ឡាន ម៉ូតូ ជួយ ត្រូវការ ចង់ អាច សុំទោស មិនអីទេ រីករាយ នឹក ស្រលាញ់ សុខសប្បាយ ឈឺ សម្រាក សប្ដាហ៍ ខែ ឆ្នាំ ថ្មី ចាស់ ធំ តូច ច្រើន តិច ពិតជា ហើយ ទៀត អ្នក ខ្ញុំ យើង គាត់ ពួកគេ នេះ នោះ ណា អ្វី ហេតុអ្វី យ៉ាងម៉េច ពេលណា នៅឯណា ប៉ុន្មាន ចប់ ចាប់ផ្ដើម បើក បិទ ដើរ រត់ អង្គុយ ឈរ មើល ស្ដាប់ និយាយ សរសេរ អាន គិត ភ្លេច ចងចាំ ព្យាយាម បញ្ចប់ ពិនិត្យ កែ ចែក ទទួល ផ្ដល់ រង់ចាំ ត្រឡប់ ចេញ ចូល ឡើង ចុះ ថ្ងៃ ពេល ម្ហូប កាហ្វេ តែ ថ្លៃ ថោក ស្អាត កខ្វក់ ក្ដៅ ត្រជាក់ ភ្លៀង ថ្ងៃត្រង់ ពេលព្រឹក អាហារ ប្រាក់ខែ អតិថិជន ក្រុមហ៊ុន បុគ្គលិក សំណួរ ចម្លើយ កាលវិភាគ ព័ត៌មាន ឯកសារភ្ជាប់ ទំនាក់ទំនង'.split(' ');
 const DAILY_EN='hi hello thanks heart flower thank yes no ok okay please sorry good morning night today tomorrow tonight school class teacher student homework study lesson test exam book pen work office meeting email phone call text send reply team boss lunch dinner home family friend mom dad love miss see you soon later busy free time help need want know ask answer project report file plan done ready late early bus car money shop buy pay week day month we they he she it this that what why how when where who which can will would should could just also still very really sure maybe great nice cool fine sick tired happy sad hungry coffee tea food water class notes slides deadline update check share upload download print sign meet join leave start finish wait open close bring take give get'.split(' ');
-const gamePool=()=>{const g=G;if(g.level<=3){if(!g.daily){const d=(S.lang==='km'?DAILY_KM.filter(w=>[...w].every(c=>typable(c))):DAILY_EN).slice();for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}g.daily=d.slice(0,60)} /* a fresh 60 of the everyday words each game */
+const gamePool=()=>{const g=G;if(g.mode==='lesson'&&g.lesWords&&g.lesWords.length)return g.lesWords;if(g.level<=3){if(!g.daily){const d=(S.lang==='km'?DAILY_KM.filter(w=>[...w].every(c=>typable(c))):DAILY_EN).slice();for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}g.daily=d.slice(0,60)} /* a fresh 60 of the everyday words each game */
   if(g.daily.length>=20)return g.daily}return g.pool};
 function spawnWord(){
   const g=G,cx=g.cx;cx.font=g.font;
@@ -1848,12 +1867,12 @@ function gameInput(){
   if(!w){let b=null;for(const x of g.words)if(!x.hit&&x.t.startsWith(s)&&(!b||x.y>b.y))b=x;if(b)w=g.lock=b}
   if(w&&w.ch.slice(w.n).join('').startsWith(s)){
     /* a right key: the archer shoots, and the arrow flies true to the word */
-    const k=[...s].length;w.n+=k;g.combo++;const m=gMult();g.score+=10*k*m;gameTier();
+    const k=[...s].length;w.n+=k;g.combo++;g.kOk=(g.kOk||0)+k;const m=gMult();g.score+=10*k*m;gameTier();
     const last=w.n>=w.ch.length;if(last){w.hit=true;g.lock=null;g.score+=(w.ch.length*5+Math.min(g.combo,30))*m*(w.rep?2:1)} /* a repeated word counts double */
     gameQueue('hit',w,k,last);play('key')}
   else{
     /* a wrong key: a weak, wobbling shot that drops short, and the word shakes off the insult */
-    gameComboLost();const t=w||gameTarget();
+    gameComboLost();g.kBad=(g.kBad||0)+1;const t=w||gameTarget();
     if(t){if(!t.boss&&!t.proj)(g.review=g.review||new Set()).add(t.t);t.err=.3;t.vox+=(Math.random()<.5?-1:1)*110;t.vrot+=(Math.random()-.5)*5;gameQueue('miss',t,0,false)}
     g.shake=.12;if(S.sound)noise(.07,170,1.2,.75);haptic('heavy')}
   gameHint();
@@ -2026,7 +2045,22 @@ const PAL={day:{ink:'#1f3a93',ink2:'#1c1c24',scene:'#8394c9',acc:'#c8232c',gold:
 function gTxt(c,t,x,y){c.save();c.lineJoin='round';c.lineWidth=Math.max(2,(parseFloat(c.font.replace(/^\D+/,''))||16)*.13);c.strokeStyle=(G&&G.halo)||'#f4efe2';c.strokeText(t,x,y);c.restore();c.fillText(t,x,y)}
 const gTheme=L=>({set:SETTINGS[(L-1)%4],time:TIMES[(L-1)%3]});
 function gApplyTheme(){const g=G,th=gTheme(g.level),p=PAL[th.time];g.th=th;g.pal=p;g.ink=p.ink||g.ink0;g.ink2=p.ink2||g.ink;g.acc=p.acc;g.gold=p.gold;g.halo=p.halo}
-function gameWaveDone(){const g=G;if(g.lw>=3)startBoss();else nextWave()}
+function gameWaveDone(){const g=G;if(g.mode==='lesson'&&g.lw>=3){lessonGameDone();return}if(g.lw>=3)startBoss();else nextWave()}
+/* lesson mode: three waves of the lesson's words, then its result is saved like a typed lesson and the next lesson begins */
+function lessonGameDone(){
+  const g=G,les=g.les,L=LN(),secs=Math.max(1,Math.round((performance.now()-g.lesT0)/1000)),a=Math.round(100*g.kOk/Math.max(1,g.kOk+g.kBad)),w=Math.round(g.kOk/5/(secs/60));
+  const st=a>=97?3:a>=90?2:1,old=L.best[les.id];
+  L.best[les.id]={w:Math.max(w,old?old.w:0),a:Math.max(a,old?old.a:0),s:Math.max(st,old?old.s:0)};
+  L.hist.push({d:Date.now(),i:les.id,w,a,s:secs,c:g.kOk});if(L.hist.length>300)L.hist.splice(0,L.hist.length-300);
+  const k=dkey(Date.now());L.days[k]=(L.days[k]||0)+secs;save();
+  g.score+=100*st;gnote('★'.repeat(st)+' '+KD(a)+'%');g.floats.push({x:g.W/2,y:g.H*.3,t:0,txt:'+'+KD(100*st),big:2});
+  const c=getCourse(),i=c.lessons.findIndex(l=>l.id===les.id),next=c.lessons[i+1]||c.lessons[0];
+  g.les=next;gameOpts={mode:'lesson',id:next.id};if(next.lang&&next.lang!==S.lang){S.lang=next.lang;buildKb();paintBars()}
+  g.lesWords=lessonWords(next);g.kOk=0;g.kBad=0;g.lesT0=performance.now();
+  g.level++;g.lw=0;g.phase='waves';g.lives=Math.min(5,g.lives+1);gApplyTheme();
+  g.words=[];g.chain=[];g.shots=[];g.arrows=g.arrows.filter(a=>a.state==='ground');
+  nextWave();g.bannerTxt=next.t[0];g.bannerSub=next.t[1];g.banner=2.6;gameHint();
+}
 function bossWord(u){
   const g=G,cx=g.cx;cx.font=g.font;const min=S.lang==='km'?5:7,pool=g.pool.filter(w=>[...w].length>=min&&!g.words.some(x=>x.t===w)),src=pool.length?pool:g.pool;
   const t=src[Math.floor(Math.random()*src.length)],w=Math.ceil(cx.measureText(t).width);
@@ -2310,7 +2344,7 @@ function gameDraw(){
   if(g.lives!==g.lLast){g.lPop=g.lLast!=null&&g.lives<g.lLast?1:0;g.lLast=g.lives}g.lPop=Math.max(0,(g.lPop||0)-.04);
   const fS=Math.round(g.fs*.7),fL=Math.round(g.fs*.48),row1=22,row2=row1+fS*.95;
   c.fillStyle=g.ink2;c.textAlign='left';c.font=fS+'px '+PENF;c.save();c.translate(58,row1);c.scale(1+.3*g.sPop,1+.3*g.sPop);gTxt(c,KD(g.score),0,0);c.restore();
-  c.globalAlpha=.7;c.fillStyle=g.ink;c.font=fL+'px '+PENF;gTxt(c,'កម្រិត '+KD(g.level)+(g.phase==='boss'?' · មេធំ':' · វគ្គ '+KD(Math.max(1,g.lw)))+(g.best?' · ល្អបំផុត '+KD(g.best):''),58,row2);c.globalAlpha=1;
+  c.globalAlpha=.7;c.fillStyle=g.ink;c.font=fL+'px '+PENF;gTxt(c,g.mode==='lesson'&&g.les?'មេរៀន '+KD(getCourse().lessons.indexOf(g.les)+1)+' · '+g.les.t[0]+' · វគ្គ '+KD(Math.max(1,g.lw))+'/'+KD(3):'កម្រិត '+KD(g.level)+(g.phase==='boss'?' · មេធំ':' · វគ្គ '+KD(Math.max(1,g.lw)))+(g.best?' · ល្អបំផុត '+KD(g.best):''),58,row2);c.globalAlpha=1;
   for(let i=0;i<5;i++){const hr=Math.max(5,g.fs*.26),x=W-58-hr-i*(hr*2.6),y=row1-hr*.55+(i===g.lives&&g.lPop?Math.sin(g.lPop*40)*3*g.lPop:0),full=i<g.lives;
     c.globalAlpha=full?1:.22;gIcon(c,'heart',x,y,hr,g.acc)}c.globalAlpha=1;
   const rowC=row2+g.fs*.95,rowP=rowC+g.fs*1.05;
