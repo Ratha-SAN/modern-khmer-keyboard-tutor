@@ -1315,7 +1315,7 @@ function renderTools(){
   tools.innerHTML=`<button class="tb chev${S.more?' on':''}" data-t="chev" aria-label="${S.more?'Back to the games':'More: writing page and tools'}" title="${S.more?'Games':'More'}">${svg(IC.chev)}</button>`+
     `<button class="tb main${gm==='lesson'?' on':''}" data-t="glearn" aria-label="Lesson games" title="Play the lessons as a game">${svg(IC.learn)}<span>មេរៀន</span></button>`+
     `<button class="tb main${gm==='play'?' on':''}" data-t="gplay" aria-label="Play Ink Archer" title="Play">${svg(IC.game)}<span>លេង</span></button>`+
-    `<button class="tb main kidb${S.kidmode==='young'||S.kidmode==='older'?' on':''}" data-t="kid" aria-label="Kids mode: ${S.kidmode==='young'?'young kids':S.kidmode==='older'?'older kids':'off'}. Tap to change" title="Kids mode">${S.kidmode==='young'?'🧸 ក្មេង':S.kidmode==='older'?'🎮 យុវវ័យ':'🧸'}</button>`+
+    `<button class="tb main kidb${S.kidmode==='young'||S.kidmode==='older'?' on':''}" data-t="kid" aria-label="Kids mode: ${S.kidmode==='young'?'young kids':S.kidmode==='older'?'older kids':'off'}. Tap to change" title="Kids mode">${S.kidmode==='young'?'ក្មេងតូច':S.kidmode==='older'?'ក្មេងធំ':'ក្មេង'}</button>`+
     `<button class="tb main${openPanel==='gset'?' open':''}" data-t="gset" aria-label="Game settings: speed, keys, layout and theme" title="Game settings">${svg(IC.set)}</button>`+
     `<button class="tb fold${!G&&!D?' on':''}" data-t="write" aria-label="Writing page" title="Writing page">${svg(IC.write)}</button><span class="div fold"></span>`+
     `<button class="tb fold" data-t="tutor" aria-label="Keyboard tutor (ហាត់វាយ)" title="Keyboard tutor">${svg(IC.tutor)}</button>`+
@@ -1361,7 +1361,7 @@ tools.addEventListener('click',e=>{
     const nx=S.kidmode==='young'?'older':S.kidmode==='older'?'off':'young';
     if(!S.kidmode||S.kidmode==='off')S.kidPrev={keys:S.keys,gtheme:S.gtheme||'pen'};
     S.kidmode=nx;if(nx==='young'){S.keys='kid';S.gtheme='kid'}else if(nx==='older'){S.keys='teen';S.gtheme='pen'}else{const pv=S.kidPrev||{};S.keys=pv.keys||'ivory';S.gtheme=pv.gtheme||'pen';S.kidPrev=null}
-    applyLook();save();closePanel();toast(nx==='young'?'🧸 ក្មេង · Young kids':nx==='older'?'🎮 យុវវ័យ · Older kids':'Kids mode off');
+    applyLook();save();closePanel();toast(nx==='young'?'ក្មេងតូច · Young kids':nx==='older'?'ក្មេងធំ · Older kids':'ក្មេង · Kids mode off');
     if(G){const was=G.mode;exitGame();startGame({mode:was})}renderTools();return}
   else if(id==='gset'){openPanel==='gset'?closePanel():showPanel('gset');return}
   else if(id==='gspeed'){const old=gSpd();S.gspeed=S.gspeed==='fast'?'slow':'fast';const k=gSpd()/old;
@@ -1878,20 +1878,29 @@ const EN_GW='ink page type key word bell paper letter ribbon shoot arrow bow str
 const gameWords=()=>S.lang==='km'?KMW.filter(w=>[...w].every(c=>typable(c))):EN_GW;
 const gClamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 let gameOpts={mode:'lesson'};
-/* kids theme: a course of one-letter lessons, every Khmer consonant and then the English alphabet. A lesson rains its letter,
-   now and then with a simple vowel, so a young child learns where one key is at a time */
-const KID_KM='ក ខ គ ឃ ង ច ឆ ជ ឈ ញ ដ ឋ ឌ ឍ ណ ត ថ ទ ធ ន ប ផ ព ភ ម យ រ ល វ ស ហ ឡ អ'.split(' ');
+/* kids theme: a course that goes one keyboard row at a time. Each row starts with one lesson per letter (that key only),
+   then a lesson of two-letter mixes of the row, then three-letter mixes, before moving on to the next row.
+   Order: home row, top row, bottom row, then the letters behind Shift; then the English rows the same way */
 let kidC=null;
-const kidCourse=()=>kidC||(kidC={units:[{id:'kletters',icon:'🔤',t:['អក្សរម្ដងមួយ','One Khmer letter at a time']},{id:'kletters-en',icon:'🔡',t:['អក្សរអង់គ្លេស','English letters']}],
-  lessons:KID_KM.map((L,ix)=>({id:'kl-'+L,key:L,unit:'kletters',icon:'',t:['អក្សរ '+L,'Letter '+L],lang:'km',make:()=>kidMix(KID_KM,ix,['ា','ិ','ូ','េ'])}))
-    .concat('abcdefghijklmnopqrstuvwxyz'.split('').map((L,ix,AZ)=>({id:'kl-'+L,key:L,unit:'kletters-en',icon:'',t:['អក្សរ '+L.toUpperCase()+' '+L,'Letter '+L],lang:'en',make:()=>kidMix(AZ,ix,[])})))});
-/* the first letters are just the one key; from the fifth on, the lesson's letter also comes with a vowel or paired with a letter
-   already learned, more often the further along the child is */
-function kidMix(set,ix,vowels){const L=set[ix],out=[];if(ix<4)return Array(12).fill(L).join(' ');
-  const mix=Math.min(.6,.15+ix*.02);for(let i=0;i<14;i++){const r=Math.random();
-    if(r>mix)out.push(L);else if(vowels.length&&r<mix/2)out.push(L+vowels[Math.floor(Math.random()*vowels.length)]);
-    else{const o=set[Math.floor(Math.random()*ix)];out.push(Math.random()<.5?L+o:o+L)}}
-  return out.join(' ')}
+const kidCourse=()=>{if(kidC)return kidC;
+  const isK=c=>c>='ក'&&c<='អ',KR=KROWS,units=[],lessons=[];
+  const rowSets=[[2,'ជួរកណ្ដាល','Home row'],[1,'ជួរលើ','Top row'],[3,'ជួរក្រោម','Bottom row']];
+  const km=rowSets.map(([ri,a,b])=>({id:'kr'+ri,t:[a,b],L:KR[ri].map(c=>KMP[c]&&KMP[c][0]).filter(c=>c&&isK(c))}));
+  const seen=new Set(km.flatMap(u=>u.L));
+  km.push({id:'krs',t:['អក្សរ Shift','Shift letters'],L:[2,1,3,0].flatMap(ri=>KR[ri].map(c=>KMP[c]&&KMP[c][1])).filter(c=>c&&isK(c)&&!seen.has(c))});
+  const en=[['asdfghjkl','ជួរកណ្ដាល (អង់គ្លេស)','Home row (English)'],['qwertyuiop','ជួរលើ (អង់គ្លេស)','Top row (English)'],['zxcvbnm','ជួរក្រោម (អង់គ្លេស)','Bottom row (English)']]
+    .map(([w,a,b],i)=>({id:'ke'+i,t:[a,b],L:w.split(''),en:1}));
+  const pick=A=>A[Math.floor(Math.random()*A.length)];
+  const mixes=(A,n,k)=>Array.from({length:k},()=>{let w='';for(let i=0;i<n;i++)w+=pick(A);return w}).join(' ');
+  let learned=[];
+  for(const u of km.concat(en)){if(!u.L.length)continue;const lang=u.en?'en':'km';
+    units.push({id:u.id,icon:u.en?'🔡':'🔤',t:u.t});
+    u.L.forEach(L=>lessons.push({id:'kl-'+L,key:L,unit:u.id,icon:'',t:['អក្សរ '+(u.en?L.toUpperCase()+' '+L:L),'Letter '+L],lang,make:()=>Array(12).fill(L).join(' ')}));
+    const row=u.L.slice(),pool=learned.concat(row);
+    lessons.push({id:'kl-'+u.id+'-2',unit:u.id,icon:'',t:['ផ្គុំ ២ តួ · '+u.t[0],'2-letter mix · '+u.t[1]],lang,make:()=>mixes(row,2,14)});
+    lessons.push({id:'kl-'+u.id+'-3',unit:u.id,icon:'',t:['ផ្គុំ ៣ តួ · '+u.t[0],'3-letter mix · '+u.t[1]],lang,make:()=>mixes(pool.length>row.length&&!u.en?pool.slice(-20):row,3,14)});
+    if(!u.en)learned=learned.concat(row)}
+  return kidC={units,lessons}};
 const gCourse=les=>les&&String(les.id||les).startsWith('kl-')?kidCourse():getCourse();
 /* two speeds for both games: slow is 30% slower than the standard pace, fast 30% faster (fall speed and the gap between words) */
 const gSpd=()=>S.gspeed==='fast'?1.3:S.gspeed==='normal'?1:.7; /* normal is the standard pace */
