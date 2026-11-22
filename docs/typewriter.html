@@ -183,6 +183,41 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 [data-keys=black] .tbar.hot .slug{box-shadow:inset 0 0 0 .5px #000,0 1px 0 #55575b,0 2px 0 #1a1a1c}
 [data-keys=black] .slug.on{background:linear-gradient(90deg,#6e5424 0%,#f0d58a 30%,#c39a45 55%,#5e4619 100%)}
 [data-keys=black] .slug.on b{color:#2f2d2b}
+/* ballpoint pen: the whole machine drawn in blue pen on paper. Keys are hand-drawn outlines with a second, lighter pass of the
+   pen, the type bars are single pen lines, and the basket, platen, knobs and spools are sketched rather than metal */
+[data-keys=pen] .rail{--brass:#1f3a93;background:#f3eee0}
+[data-keys=pen] .rail::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.6;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='1' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .25 0 0 0 0 .18 0 0 0 .55 -.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+[data-keys=pen] .slug{background:#fbf8ef;border-radius:5px 7px 4px 8px/7px 4px 8px 5px;
+  box-shadow:inset 0 0 0 1.4px #1f3a93,1.5px 1.2px 0 -.2px rgba(31,58,147,.35)}
+[data-keys=pen] .slug::before,[data-keys=pen] .slug::after{display:none}
+[data-keys=pen] .slug b{color:#1f3a93;font-weight:600}
+[data-keys=pen] .tbar.hot .slug{background:#e3e9fb;box-shadow:inset 0 0 0 1.6px #1f3a93}
+[data-keys=pen] .slug.on{background:#1f3a93}[data-keys=pen] .slug.on b{color:#fbf8ef}
+[data-keys=pen] .slug.down{background:#dfe6fa}
+[data-keys=pen] .arm::before{width:1.3px;margin-left:-.65px;background:#1f3a93;opacity:.55;box-shadow:none}
+[data-keys=pen] .fan svg path[stroke="#0b0a09"]{stroke:#1f3a93;opacity:.06}
+[data-keys=pen] .platen{background:#fbf8ef;box-shadow:inset 0 0 0 1.4px #1f3a93,0 2px 0 -.5px rgba(31,58,147,.3)}
+[data-keys=pen] .knob{background:#fbf8ef;box-shadow:inset 0 0 0 1.4px #1f3a93,inset 0 0 0 5px #fbf8ef,inset 0 0 0 6.2px rgba(31,58,147,.55)}
+[data-keys=pen] .bail{background:#1f3a93;box-shadow:none;height:1.6px}[data-keys=pen] .bail b{background:#fbf8ef;box-shadow:inset 0 0 0 1.2px #1f3a93}
+[data-keys=pen] .lever{background:#1f3a93;height:1.6px;box-shadow:none}[data-keys=pen] .lever::before{background:#fbf8ef;box-shadow:inset 0 0 0 1.3px #1f3a93}
+[data-keys=pen] .spool{background:radial-gradient(circle,#1f3a93 0 2px,transparent 2.5px),repeating-conic-gradient(#fbf8ef 0 14deg,rgba(31,58,147,.5) 14deg 18deg);box-shadow:0 0 0 1.4px #1f3a93}
+[data-keys=pen] .head::before{box-shadow:none}
+/* kids: candy-coloured round keys, one colour per row, on a sunny polka-dot mat */
+[data-keys=kid] .rail{--brass:#ff7eb6;background:radial-gradient(circle,#ffe08a 0 2px,transparent 2.6px) 0 0/22px 22px,radial-gradient(circle,#b8e6ff 0 2px,transparent 2.6px) 11px 11px/22px 22px,#fff6dc}
+[data-keys=kid] .slug{border-radius:42%;background:var(--kc,#ffd1e3);box-shadow:inset 0 -3px 0 rgba(0,0,0,.08),0 3px 0 var(--kd,#f39ac0),0 5px 8px rgba(120,60,120,.18)}
+[data-keys=kid] .slug::before{display:none}
+[data-keys=kid] .slug::after{left:18%;right:45%;top:12%;height:12%;border-radius:9px;background:rgba(255,255,255,.75)}
+[data-keys=kid] .slug b{color:#5a2d82;font-weight:800}
+[data-keys=kid] .tbar[data-r="0"]{--kc:#ffd1e3;--kd:#f39ac0}[data-keys=kid] .tbar[data-r="1"]{--kc:#ffe7a8;--kd:#f3c24f}
+[data-keys=kid] .tbar[data-r="2"]{--kc:#c8f2c2;--kd:#7fd27a}[data-keys=kid] .tbar[data-r="3"]{--kc:#c9e9ff;--kd:#7cc3f0}
+[data-keys=kid] .tbar[data-r="4"]{--kc:#e4d4ff;--kd:#b89af0}[data-keys=kid] .tbar[data-r="5"]{--kc:#ffd9c2;--kd:#f5a477}
+[data-keys=kid] .tbar.hot .slug{box-shadow:inset 0 -3px 0 rgba(0,0,0,.08),0 1px 0 var(--kd)}
+[data-keys=kid] .slug.on{background:#ff7eb6}[data-keys=kid] .slug.on b{color:#fff}
+[data-keys=kid] .arm::before{width:2px;background:repeating-linear-gradient(#ff9ecb 0 5px,#ffd36b 5px 10px,#8fd4ff 10px 15px);box-shadow:none;opacity:.85}
+[data-keys=kid] .fan svg path[stroke="#0b0a09"]{stroke:#ffb3d6;opacity:.12}
+[data-keys=kid] .platen{background:linear-gradient(#ffb3d6,#ff8fc4);box-shadow:0 2px 0 #e66aa6}
+[data-keys=kid] .knob{background:radial-gradient(circle at 38% 32%,#fff,#ffd36b 60%,#f5b02e)}
+[data-keys=kid] .spool{background:radial-gradient(circle,#fff 0 2.5px,transparent 3px),repeating-conic-gradient(#ff9ecb 0 30deg,#8fd4ff 30deg 60deg,#ffd36b 60deg 90deg);box-shadow:0 0 0 2px #fff}
 
 
 /* tool strip */
@@ -680,7 +715,7 @@ const isPhone=()=>dev==='ios'||dev==='android';
 const BARS=KROWS.flatMap((r,ri)=>r.map((c,i)=>({c,x:i+[0,1.5,1.8,2.3][ri]+ri*.01}))).sort((p,q)=>p.x-q.x).map(o=>o.c);
 let headPos=null,predMap={};
 const barEl={},mods={shift:false,alt:false};let fanW=0,fanB=0,fanSh=0,fanKey='',fanLnd=false;
-const headKey=()=>(S.size||18)+'|'+(innerWidth>innerHeight?'L':'P')+'|'+(S.pred?1:0)+'|'+S.lang+'|'+S.face+'|'+dev+'|'+(isPhone()&&mode==='123'?(moreOn?'m':'n'):'a');
+const headKey=()=>(S.flat?'F':'C')+(S.size||18)+'|'+(innerWidth>innerHeight?'L':'P')+'|'+(S.pred?1:0)+'|'+S.lang+'|'+S.face+'|'+dev+'|'+(isPhone()&&mode==='123'?(moreOn?'m':'n'):'a');
 function barMap(){return S.lang==='km'?KMP:EN}
 let altOn=0;
 /* option / AltGr is a layer on a Mac and for Khmer on Windows; a phone has only shift and its number layer */
@@ -738,6 +773,12 @@ function buildBars(){
   /* lay one set of rings out from the middle of each outward, a head at a time. Heads are spaced by how steep the ring is
      where they sit: close side by side near the bottom, further apart on the steep sides, where they would stack and overlap */
   const place=(a0,dB,dA,bMax)=>{
+    if(S.flat){ /* straight rows, like an ordinary keyboard: each row centred, one under the other */
+      const out=[];let ext=0,maxY=0;
+      for(let ri=0;ri<rows.length;ri++){const row=rows[ri],wd=row.map(q=>q[1]*sw+(q[1]-1)*GAP),tot=wd.reduce((a,b)=>a+b,0)+GAP*(row.length-1);
+        let x=-tot/2;const y=DY+sh*.9+ri*(sh+RG);
+        row.forEach(([id],i)=>{out.push({id,x:x+wd[i]/2,y,ri,wd:wd[i]});x+=wd[i]+GAP});ext=Math.max(ext,tot/2);maxY=Math.max(maxY,y)}
+      return {out,dB,b0:0,ext,maxY}}
     const b0=a0*(lnd?.34:touch?.5:.6),out=[];let ext=0,maxY=0; /* phone rings are a little flatter */
     for(let ri=0;ri<rows.length;ri++){
       const row=rows[ri],A=a0+ri*dA,B=b0+ri*dB,{smp,len}=arc(A,B),n=row.length,wd=row.map(q=>q[1]*sw+(q[1]-1)*GAP);
@@ -798,7 +839,7 @@ function buildBars(){
   [...out].sort((u,v)=>v.ri-u.ri).forEach(o=>{
     const L=o.Lc+(sh+IH)/2,ph=Math.atan2(o.x,o.y),pv=o.Lc/2; /* pivot halfway to the head's centre, so the head lands centred on the print point */
     const fn=o.id.startsWith('fn:'),lab=fn?' data-fn="'+o.id.slice(3)+'"':'';
-    h+=`<div class="tbar" data-c="${o.id}"${lab} style="transform:rotate(${(-ph).toFixed(4)}rad);perspective:${Math.round(L*1.6)}px;perspective-origin:0 ${pv.toFixed(1)}px">`+
+    h+=`<div class="tbar" data-c="${o.id}" data-r="${o.ri}"${lab} style="transform:rotate(${(-ph).toFixed(4)}rad);perspective:${Math.round(L*1.6)}px;perspective-origin:0 ${pv.toFixed(1)}px">`+
       `<div class="arm" data-up="${ph.toFixed(4)}" style="left:${-(o.wd+IW)/2}px;width:${o.wd+IW}px;height:${L.toFixed(1)}px;--pv:${pv.toFixed(1)}px;--sh:${sh+IH}px;--lf:${lf}px;--up:${ph.toFixed(4)}rad"><span class="slug"><b></b></span></div></div>`;
   });
   const path=pts=>'M'+pts.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join('L');
@@ -1250,7 +1291,7 @@ function renderTools(){
   tools.innerHTML=`<button class="tb chev${S.more?' on':''}" data-t="chev" aria-label="${S.more?'Back to the games':'More: writing page and tools'}" title="${S.more?'Games':'More'}">${svg(IC.chev)}</button>`+
     `<button class="tb main${gm==='lesson'?' on':''}" data-t="glearn" aria-label="Lesson games" title="Play the lessons as a game">${svg(IC.learn)}<span>មេរៀន</span></button>`+
     `<button class="tb main${gm==='play'?' on':''}" data-t="gplay" aria-label="Play Ink Archer" title="Play">${svg(IC.game)}<span>លេង</span></button>`+
-    `<button class="tb main spd" data-t="gspeed" aria-label="Game speed: ${S.gspeed==='fast'?'fast':'slow'}. Tap to change" title="Speed">${S.gspeed==='fast'?'⚡ លឿន':'🐢 យឺត'}</button>`+
+    `<button class="tb main${openPanel==='gset'?' open':''}" data-t="gset" aria-label="Game settings: speed, keys, layout and theme" title="Game settings">${svg(IC.set)}</button>`+
     `<button class="tb fold${!G&&!D?' on':''}" data-t="write" aria-label="Writing page" title="Writing page">${svg(IC.write)}</button><span class="div fold"></span>`+
     `<button class="tb fold" data-t="tutor" aria-label="Keyboard tutor (ហាត់វាយ)" title="Keyboard tutor">${svg(IC.tutor)}</button>`+
     TOOLS.map(t=>!t?'<span class="div fold"></span>':`<button class="tb fold${(t.toggle&&S[t.toggle])||(t.id==='timer'&&timerEnd)||(t.id==='sound'&&(S.sound||S.bell))||(t.id==='acct'&&window.Auth&&Auth.user)?' on':''}${openPanel===t.id?' open':''}" data-t="${t.id}" aria-label="${t.label}" title="${t.label}"${t.toggle?` aria-pressed="${!!S[t.toggle]}"`:''}>${svg(IC[t.id])}</button>`).join('')+
@@ -1291,6 +1332,7 @@ window.addEventListener('progresssync',()=>{ /* Ink Archer bests from the accoun
 tools.addEventListener('click',e=>{
   const b=e.target.closest('.tb');if(!b)return;const id=b.dataset.t,t=TOOLS.find(x=>x&&x.id===id);audio();
   if(id==='chev'){S.more=!S.more;closePanel()}
+  else if(id==='gset'){openPanel==='gset'?closePanel():showPanel('gset');return}
   else if(id==='gspeed'){const old=gSpd();S.gspeed=S.gspeed==='fast'?'slow':'fast';const k=gSpd()/old;
     if(G){G.sp*=k;G.words.forEach(w=>{if(!w.boss)w.vy*=k});if(G.interval)G.interval/=k}
     toast(S.gspeed==='fast'?'លឿន · Fast':'យឺត · Slow');save();renderTools();focusTa();return}
@@ -1314,6 +1356,11 @@ function showPanel(id){
     <h4>Type size</h4><div class="rowset"><button class="chip" data-a="size" data-v="-2" aria-label="Smaller type">A−</button><span class="szv">${S.size} px</span><button class="chip" data-a="size" data-v="2" aria-label="Bigger type">A+</button></div>
     <h4>Light</h4><div class="rowset">${Object.keys(LIGHTS).map(k=>`<button class="chip${S.light===k?' sel':''}" data-a="light" data-v="${k}">${LIGHTS[k]}</button>`).join('')}</div>`;
   else if(id==='sound')panel.innerHTML=`<h4>Sounds</h4><div class="rowset">${[['sound','Key sounds'],['bell','Margin bell']].map(([k,l])=>`<button class="chip${S[k]?' sel':''}" data-a="tog" data-v="${k}" aria-pressed="${!!S[k]}">${l}: ${S[k]?'on':'off'}</button>`).join('')}</div>`;
+  else if(id==='gset'){const ch=(a,v,on,l)=>`<button class="chip${on?' sel':''}" data-a="${a}" data-v="${v}">${l}</button>`;
+    panel.innerHTML=`<h4>ល្បឿន · Speed</h4><div class="rowset">${ch('gspd','slow',S.gspeed!=='fast'&&S.gspeed!=='normal','🐢 យឺត · Slow')}${ch('gspd','normal',S.gspeed==='normal','🚶 ធម្មតា · Normal')}${ch('gspd','fast',S.gspeed==='fast','⚡ លឿន · Fast')}</div>
+    <h4>គ្រាប់ចុច · Keys</h4><div class="rowset">${[['ivory','Ivory'],['black','Black'],['pen','🖊 Ballpoint'],['kid','🧸 Kids']].map(([k,l])=>ch('keys',k,S.keys===k,l)).join('')}</div>
+    <h4>ប្លង់ · Layout</h4><div class="rowset">${ch('flat','0',!S.flat,'◠ Curved')}${ch('flat','1',!!S.flat,'▭ Straight rows')}</div>
+    <h4>ស្បែកហ្គេម · Game theme</h4><div class="rowset">${ch('gtheme','pen',S.gtheme!=='kid','🖊 Ballpoint')}${ch('gtheme','kid',S.gtheme==='kid','🧸 Kids')}</div>`}
   else if(id==='timer')panel.innerHTML=`<h4>Writing timer</h4><div class="rowset">${[5,10,15,25,45].map(m=>`<button class="chip" data-a="timer" data-v="${m}">${m} min</button>`).join('')}${timerEnd?'<button class="chip sel" data-a="timer" data-v="0">Stop timer</button>':''}</div>`;
   else if(id==='share')panel.innerHTML=`<h4>Take your text with you</h4><div class="rowset"><button class="chip sel" data-a="copy">Copy text</button><button class="chip" data-a="selall">Select all</button></div>
     <h4>Download this page</h4><div class="rowset">${FMTS.map(([k,l])=>`<button class="chip" data-a="dl" data-v="${k}">${l}</button>`).join('')}</div>`;
@@ -1325,7 +1372,7 @@ function showPanel(id){
     <div class="field"><label for="sMove">Moving paper<small>The page slides past the print point like a real carriage. Turn off to keep the page still</small></label><input type="checkbox" id="sMove"${S.fixedPaper?'':' checked'}></div>
     <div class="field"><label for="sErase">No erasing<small>Like real paper: delete is disabled</small></label><input type="checkbox" id="sErase"${S.noErase?' checked':''}></div>
     <div class="field"><label for="sCap">Capitalize new sentences<small>On-screen keys only</small></label><input type="checkbox" id="sCap"${S.autoCap?' checked':''}></div>
-    <div class="field"><label for="sKeys">Key colour</label><select id="sKeys"><option value="ivory">Ivory</option><option value="black">Black</option></select></div>
+    <div class="field"><label for="sKeys">Key colour</label><select id="sKeys"><option value="ivory">Ivory</option><option value="black">Black</option><option value="pen">Ballpoint pen</option><option value="kid">Kids</option></select></div>
     <div class="field"><label for="sPred">Word prediction<small>Floats the likely next words above the keys</small></label><input type="checkbox" id="sPred"${S.pred?' checked':''}></div>
     <div class="field"><label for="sDev">Keyboard<small>Which keyboard the type heads copy. Mac and Windows also set the Khmer key map for a physical keyboard</small></label><select id="sDev"><option value="mac">Mac</option><option value="windows">Windows PC</option><option value="ios">iPhone / iPad</option><option value="android">Android</option></select></div>`;
   if(id==='set'){const p=$('sDev');if(p)p.value=dev}
@@ -1341,6 +1388,10 @@ panel.addEventListener('click',e=>{
   else if(a==='timer'){startTimer(+v);closePanel();focusTa()}
   else if(a==='copy'){copyText();closePanel()}
   else if(a==='selall'){closePanel();ta.focus();ta.select()}
+  else if(a==='gspd'){{const old=gSpd();S.gspeed=v;const k=gSpd()/old;if(G){G.sp*=k;G.words.forEach(w=>{if(!w.boss)w.vy*=k});if(G.interval)G.interval/=k}}save();showPanel('gset')}
+  else if(a==='keys'){S.keys=v;applyLook();save();showPanel('gset')}
+  else if(a==='flat'){S.flat=v==='1';save();fanKey='';buildBars();follow.n=0;layout();if(G)gameHint();showPanel('gset')}
+  else if(a==='gtheme'){S.gtheme=v;save();if(G)gApplyTheme();showPanel('gset')}
   else if(a==='dl'){exportDocs([doc()],v)}
   else if(a==='size'){S.size=Math.max(14,Math.min(40,S.size+ +v));applyLook();layout();save();showPanel('look')}
 });
@@ -1797,7 +1848,7 @@ const gameWords=()=>S.lang==='km'?KMW.filter(w=>[...w].every(c=>typable(c))):EN_
 const gClamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 let gameOpts={mode:'lesson'};
 /* two speeds for both games: slow is 30% slower than the standard pace, fast 30% faster (fall speed and the gap between words) */
-const gSpd=()=>S.gspeed==='fast'?1.3:.7;
+const gSpd=()=>S.gspeed==='fast'?1.3:S.gspeed==='normal'?1:.7; /* normal is the standard pace */
 const lessonWords=les=>{const set=new Set();for(let i=0;i<4;i++)String(les.make()||'').split(/\s+/).forEach(w=>{if(w&&[...w].every(c=>typable(c)))set.add(w)});return [...set]};
 function startGame(opts){
   if(G)return;if(D)exitDrill(false);gameOpts=opts||gameOpts||{mode:'play'};
@@ -2051,11 +2102,12 @@ const BOSSES=['drones','robodog','humanoid'],BOSS_EN={drones:'យន្តហោ
 /* ballpoint pens: blue for the drawing, red for hits and danger, green for power-ups */
 const PAL={day:{ink:'#1f3a93',ink2:'#1c1c24',scene:'#8394c9',acc:'#c8232c',gold:'#1d7a46',halo:'rgba(247,242,227,.92)',sky:null},
   dusk:{ink:'#23306f',ink2:'#24161a',scene:'#6c6a95',acc:'#b3202a',gold:'#1d6a40',halo:'rgba(252,228,196,.9)',sky:['#f0a05a','#fbe1bd']},
+  kid:{ink:'#6a3fb5',ink2:'#ff4f8b',scene:'#6fb8e6',acc:'#ff4f8b',gold:'#ff9f1c',halo:'rgba(255,255,255,.95)',sky:['#bfe9ff','#fff3fb'],ground:'#c8f0b4'},
   night:{ink:'#d3defc',ink2:'#f4efde',scene:'#7d8dbd',acc:'#ff8f8f',gold:'#9fe3b8',halo:'rgba(12,20,46,.9)',sky:['#0b1430','#243662']}};
 /* text in the game gets a thin outline in the paper's colour, so it never runs into the drawing behind it */
 function gTxt(c,t,x,y){c.save();c.lineJoin='round';c.lineWidth=Math.max(2,(parseFloat(c.font.replace(/^\D+/,''))||16)*.13);c.strokeStyle=(G&&G.halo)||'#f4efe2';c.strokeText(t,x,y);c.restore();c.fillText(t,x,y)}
 const gTheme=L=>({set:SETTINGS[(L-1)%4],time:TIMES[(L-1)%3]});
-function gApplyTheme(){const g=G,th=gTheme(g.level),p=PAL[th.time];g.th=th;g.pal=p;g.ink=p.ink||g.ink0;g.ink2=p.ink2||g.ink;g.acc=p.acc;g.gold=p.gold;g.halo=p.halo}
+function gApplyTheme(){const g=G,th=gTheme(g.level),kid=S.gtheme==='kid';if(kid)th.time='day';const p=kid?PAL.kid:PAL[th.time];g.kid=kid;g.th=th;g.pal=p;g.ink=p.ink||g.ink0;g.ink2=p.ink2||g.ink;g.acc=p.acc;g.gold=p.gold;g.halo=p.halo}
 function gameWaveDone(){const g=G;if(g.mode==='lesson'&&g.lw>=3){lessonGameDone();return}if(g.lw>=3)startBoss();else nextWave()}
 /* lesson mode: three waves of the lesson's words, then its result is saved like a typed lesson and the next lesson begins */
 function lessonGameDone(){
@@ -2221,7 +2273,7 @@ function gameScene0(c,g){ /* the scenery, drawn in thin ink behind the words: mo
   const W=g.W,H=g.H,gy=g.gy,mh=Math.min(H*.36,W*.5),s=g.s,th=g.th,pal=g.pal,night=th.time==='night',dusk=th.time==='dusk';
   c.save();c.lineCap='round';c.lineJoin='round';c.strokeStyle=g.ink;c.fillStyle=g.ink;
   if(pal.sky){const gr=c.createLinearGradient(0,0,0,gy);gr.addColorStop(0,pal.sky[0]);gr.addColorStop(1,pal.sky[1]);c.globalAlpha=night?1:.92;c.fillStyle=gr;c.fillRect(0,0,W,H);
-    c.globalAlpha=night?.95:.35;c.fillStyle=night?'#0a1022':'#c9a57a';c.fillRect(0,gy,W,H-gy);c.fillStyle=g.ink}
+    c.globalAlpha=night?.95:.35;c.fillStyle=pal.ground||(night?'#0a1022':'#c9a57a');c.fillRect(0,gy,W,H-gy);c.fillStyle=g.ink}
   const range=(pts,al,hatch)=>{c.globalAlpha=al;c.lineWidth=1.3;c.beginPath();pts.forEach((p,i)=>{const x=p[0]*W,y=gy-mh*p[1];i?c.lineTo(x,y):c.moveTo(x,y)});c.stroke();
     if(hatch){c.lineWidth=.8;for(const p of pts){if(p[1]<.6)continue;const x=p[0]*W,y=gy-mh*p[1];for(let k=1;k<=4;k++){c.beginPath();c.moveTo(x+k*4,y+k*mh*.07);c.lineTo(x+k*4+mh*.09,y+k*mh*.07+mh*.11);c.stroke()}
       c.beginPath();c.moveTo(x-mh*.1,y+mh*.13);c.lineTo(x-mh*.04,y+mh*.09);c.lineTo(x,y+mh*.14);c.lineTo(x+mh*.04,y+mh*.09);c.lineTo(x+mh*.1,y+mh*.13);c.stroke()}}};
@@ -2233,10 +2285,18 @@ function gameScene0(c,g){ /* the scenery, drawn in thin ink behind the words: mo
   if(night){for(const st of g.stars){c.globalAlpha=.3+.6*Math.abs(Math.sin(g.t*.8+st[3]));c.beginPath();c.arc(st[0]*W,st[1]*gy*.62,st[2],0,6.283);c.fill()}
     c.globalAlpha=.95;c.fillStyle='#f4efdc';c.beginPath();c.arc(sx,sy,sr,0,6.283);c.fill();c.fillStyle=pal.sky[0];c.beginPath();c.arc(sx+sr*.5,sy-sr*.2,sr*.88,0,6.283);c.fill();c.fillStyle=g.ink}
   else if(dusk){const dx=W*.22,dy=gy-mh*.5,gr=c.createRadialGradient(dx,dy,0,dx,dy,sr*2.4);gr.addColorStop(0,'rgba(255,120,50,.9)');gr.addColorStop(.35,'rgba(255,150,70,.5)');gr.addColorStop(1,'rgba(255,170,90,0)');c.globalAlpha=1;c.fillStyle=gr;c.fillRect(dx-sr*3,dy-sr*3,sr*6,sr*6);c.fillStyle='#ff7d3c';c.globalAlpha=.9;c.beginPath();c.arc(dx,dy,sr*1.05,0,6.283);c.fill();c.fillStyle=g.ink}
+  else if(g.kid){ /* kids: a round smiling sun with rosy cheeks */
+    c.globalAlpha=1;c.fillStyle='#ffd23f';c.strokeStyle='#ffb000';c.lineWidth=2;
+    for(let k=0;k<10;k++){const a=k*.6283+g.t*.3;c.beginPath();c.moveTo(sx+Math.cos(a)*sr*1.3,sy+Math.sin(a)*sr*1.3);c.lineTo(sx+Math.cos(a)*sr*1.75,sy+Math.sin(a)*sr*1.75);c.stroke()}
+    c.beginPath();c.arc(sx,sy,sr,0,6.283);c.fill();c.fillStyle='#5a2d82';
+    c.beginPath();c.arc(sx-sr*.35,sy-sr*.15,sr*.11,0,6.283);c.arc(sx+sr*.35,sy-sr*.15,sr*.11,0,6.283);c.fill();
+    c.strokeStyle='#5a2d82';c.lineWidth=1.6;c.beginPath();c.arc(sx,sy+sr*.05,sr*.38,.35,2.8);c.stroke();
+    c.fillStyle='rgba(255,110,150,.55)';c.beginPath();c.arc(sx-sr*.6,sy+sr*.2,sr*.15,0,6.283);c.arc(sx+sr*.6,sy+sr*.2,sr*.15,0,6.283);c.fill();
+    c.strokeStyle=g.ink;c.fillStyle=g.ink}
   else{c.globalAlpha=.5;c.lineWidth=1.4;c.beginPath();c.arc(sx,sy,sr,0,6.283);c.stroke();
   for(let k=0;k<12;k++){const a=k*.5236+g.t*.12;c.beginPath();c.moveTo(sx+Math.cos(a)*sr*1.35,sy+Math.sin(a)*sr*1.35);c.lineTo(sx+Math.cos(a)*sr*(k%2?1.7:2),sy+Math.sin(a)*sr*(k%2?1.7:2));c.stroke()}}
   /* clouds drift slowly to the left and come round again */
-  const cloud=(x,y,r)=>{c.beginPath();c.moveTo(x-r*1.6,y);c.arc(x-r*.9,y-r*.1,r*.7,Math.PI,Math.PI*1.9);c.arc(x,y-r*.5,r*.9,Math.PI*1.1,Math.PI*1.95);c.arc(x+r*1,y-r*.1,r*.7,Math.PI*1.15,Math.PI*2.1);c.lineTo(x+r*1.7,y);c.lineTo(x-r*1.6,y);c.stroke()};
+  const cloud=(x,y,r)=>{c.beginPath();c.moveTo(x-r*1.6,y);c.arc(x-r*.9,y-r*.1,r*.7,Math.PI,Math.PI*1.9);c.arc(x,y-r*.5,r*.9,Math.PI*1.1,Math.PI*1.95);c.arc(x+r*1,y-r*.1,r*.7,Math.PI*1.15,Math.PI*2.1);c.lineTo(x+r*1.7,y);c.lineTo(x-r*1.6,y);if(g.kid){c.save();c.globalAlpha=.95;c.fillStyle='#fff';c.fill();c.restore()}c.stroke()};
   c.globalAlpha=.4;c.lineWidth=1.3;
   (night?[]:[[.18,.17,1.1,7],[.55,.3,.8,5],[.92,.1,1,9]]).forEach(([fx,fy,k,v])=>{const r=Math.max(8,s*1.2)*k,x=((fx*W-g.t*v)%(W+r*6)+W+r*6)%(W+r*6)-r*3;cloud(x,Math.max(fy*H*.8,r*1.5,hudB+r*.6),r)});
   /* trees */
