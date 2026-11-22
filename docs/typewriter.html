@@ -213,6 +213,12 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 [data-keys=kid] .tbar[data-r="4"]{--kc:#e4d4ff;--kd:#b89af0}[data-keys=kid] .tbar[data-r="5"]{--kc:#ffd9c2;--kd:#f5a477}
 [data-keys=kid] .tbar.hot .slug{box-shadow:inset 0 -3px 0 rgba(0,0,0,.08),0 1px 0 var(--kd)}
 [data-keys=kid] .slug.on{background:#ff7eb6}[data-keys=kid] .slug.on b{color:#fff}
+/* the key to press next: kids get a bright white key with a pulsing pink and gold glow; ballpoint keys a yellow highlighter mark */
+[data-keys=kid] .slug.hint{background:#fff;animation:khint .55s ease-in-out infinite alternate!important}
+[data-keys=kid] .slug.hint b{color:#ff2f7a}
+@keyframes khint{from{box-shadow:0 0 0 3px #ff4f8b,0 0 8px 2px rgba(255,79,139,.55),0 3px 0 #ff4f8b}to{box-shadow:0 0 0 4px #ffb000,0 0 18px 7px rgba(255,176,0,.75),0 3px 0 #ffb000}}
+[data-keys=pen] .slug.hint{background:#fff1a6;animation:phint .6s ease-in-out infinite alternate!important}
+@keyframes phint{from{box-shadow:inset 0 0 0 1.6px #c8232c,0 0 0 0 rgba(200,35,44,0)}to{box-shadow:inset 0 0 0 2.2px #c8232c,0 0 12px 3px rgba(200,35,44,.45)}}
 [data-keys=kid] .arm::before{width:2px;background:repeating-linear-gradient(#ff9ecb 0 5px,#ffd36b 5px 10px,#8fd4ff 10px 15px);box-shadow:none;opacity:.85}
 [data-keys=kid] .fan svg path[stroke="#0b0a09"]{stroke:#ffb3d6;opacity:.12}
 [data-keys=kid] .platen{background:linear-gradient(#ffb3d6,#ff8fc4);box-shadow:0 2px 0 #e66aa6}
