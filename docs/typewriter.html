@@ -343,6 +343,7 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 .pages .tabs{display:flex;gap:6px}
 .unit{border:0;margin-top:4px}
 /* learn: a hero card for the next lesson, the game, then each unit with its progress */
+.pick .tabs{display:none} /* the lesson-game picker is only the list */
 .lgnote{margin:0 0 12px;padding:10px 14px;border-radius:14px;background:rgba(240,213,138,.1);border:1px solid rgba(240,213,138,.3);font-size:13px;line-height:1.5}
 .lhero{display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:20px;margin-bottom:4px;
   background:linear-gradient(150deg,#3a332a,#2a2622 60%);border:1px solid rgba(240,213,138,.22)}
@@ -1717,13 +1718,13 @@ function streak(days){let n=0;const t=new Date();if(!days[dkey(t)])t.setDate(t.g
 function lessonsHtml(){
   const c=getCourse(),B=LN().best,nextL=c.lessons.find(l=>!B[l.id]),nDone=c.lessons.filter(l=>B[l.id]).length,N=c.lessons.length;
   const pct=N?Math.round(nDone/N*100):0,stars=c.lessons.reduce((a,l)=>a+(B[l.id]?B[l.id].s:0),0);
-  let h='<div class="lhero">'+(nextL?
+  let h=learnGame?'':'<div class="lhero">'+(nextL?
     '<button class="lgo" data-l="'+nextL.id+'"><span class="lk">'+(nDone?'Continue':'Start here')+' · lesson '+(c.lessons.indexOf(nextL)+1)+' of '+N+'</span>'+
       '<span class="lt">'+esc((nextL.icon?nextL.icon+' ':'')+nextL.t[0])+'</span><span class="ls">'+esc(nextL.t[1])+'</span><span class="lplay" aria-hidden="true">▶</span></button>':
     '<div class="lgo done"><span class="lk">Course complete</span><span class="lt">Every lesson done 🎉</span><span class="ls">Replay any lesson to beat your best speed</span></div>')+
     '<div class="lsum"><div><b>'+pct+'%</b><span>course</span></div><div><b>'+nDone+'</b><span>of '+N+' lessons</span></div><div><b>★ '+stars+'</b><span>of '+N*3+'</span></div></div>'+
     '<i class="lbar"><i style="width:'+pct+'%"></i></i></div>';
-  h+='<button class="lgame" data-game="archer"><span class="lgi" aria-hidden="true">🏹</span><span class="lgt"><b>Ink Archer</b><span>Shoot the raining words by typing them</span></span>'+((S.gbest||{})[S.lang]?'<span class="lgb"><b>'+S.gbest[S.lang]+'</b>best</span>':'')+'</button>';
+  if(!learnGame)h+='<button class="lgame" data-game="archer"><span class="lgi" aria-hidden="true">🏹</span><span class="lgt"><b>Ink Archer</b><span>Shoot the raining words by typing them</span></span>'+((S.gbest||{})[S.lang]?'<span class="lgb"><b>'+S.gbest[S.lang]+'</b>best</span>':'')+'</button>';
   let n=0;
   c.units.forEach(u=>{
     const ls=c.lessons.filter(l=>l.unit===u.id);if(!ls.length)return;
@@ -1767,8 +1768,8 @@ function statsHtml(){
 function showLearn(tab,asGame){
   if(tab)learnTab=tab;learnGame=!!asGame;
   learnEl.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('sel',b.dataset.tab===learnTab));
-  learnBody.innerHTML=(learnGame&&learnTab!=='stats'?'<p class="lgnote">🏹 ជ្រើសមេរៀនដើម្បីលេង · Choose a lesson to play it as a game: three waves of its words, then on to the next lesson.</p>':'')+(learnTab==='stats'?statsHtml():lessonsHtml());
-  learnEl.hidden=false;
+  learnBody.innerHTML=(learnGame&&learnTab!=='stats'?'<p class="lgnote">🏹 ជ្រើសមេរៀនដើម្បីលេង · Choose a lesson to play</p>':'')+(learnTab==='stats'?statsHtml():lessonsHtml());
+  learnEl.classList.toggle('pick',learnGame);learnEl.hidden=false;
 }
 
 learnEl.addEventListener('click',e=>{
