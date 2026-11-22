@@ -200,6 +200,7 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 .tb svg.i{width:26px;height:26px}
 .tools .div{flex:none;width:1px;height:26px;background:rgba(255,255,255,.16);margin:0 3px}
 .collapsed .fold{display:none}
+.tools:not(.collapsed) .alt{display:none} /* the toolbar's second page, after the > button */
 
 .panel{position:absolute;left:12px;right:12px;bottom:calc(100% + 22px);z-index:6;background:var(--panel);color:var(--panel-text);
   border:1px solid var(--panel-line);border-radius:18px;padding:14px 16px 16px;box-shadow:0 16px 40px rgba(0,0,0,.55);
@@ -877,8 +878,9 @@ function follow(smooth=true){
   /* a new line: the text is put in place at once and the whole sheet makes a short slide up (150 ms). The browser's own
      caret scrolling, which used to hide the new line during a slide, is undone by the scroll guard below */
   scrollWant=top;
-  if(Math.abs(top-scroll.scrollTop)>1){const dy=top-scroll.scrollTop;scroll.scrollTop=top;pageEl=pageEl||$('page');
-    if(smooth&&dy>0&&dy<r.height*.6){if(pageEl._feed)pageEl._feed.cancel();pageEl._feed=pageEl.animate([{translate:'0 '+Math.round(dy)+'px'},{translate:'0 0'}],{duration:150,easing:'cubic-bezier(.25,.7,.35,1)'})}}
+  if(Math.abs(top-scroll.scrollTop)>1){const dy=top-scroll.scrollTop;scroll.scrollTop=top;
+    /* only the sheet's text and grain slide; the lamp light stays where it is (moving it made the light flicker) */
+    if(smooth&&dy>0&&dy<r.height*.6){if(scroll._feed)scroll._feed.cancel();scroll._feed=scroll.animate([{translate:'0 '+Math.round(dy)+'px'},{translate:'0 0'}],{duration:150,easing:'cubic-bezier(.25,.7,.35,1)'})}}
   const x=Math.min(Math.max(m.left-r.left,12),r.width-12);
   /* the head stays at the print point, the middle of the frame; the page slides so the caret sits under it.
      Small moves step like the escapement, a long one back is the carriage return */
@@ -1219,7 +1221,6 @@ const TOOLS=[ /* grouped: writing | practice | look and sound | you; a null is a
   {id:'timer',label:'Writing timer',panel:1},
   null,
   {id:'learn',label:'Typing lessons'},
-  {id:'tutor',label:'Keyboard tutor (ហាត់វាយ)'},
   null,
   {id:'look',label:'Ink, paper and light',panel:1},
   {id:'sound',label:'Sounds: keys and margin bell',panel:1},
@@ -1230,6 +1231,7 @@ const TOOLS=[ /* grouped: writing | practice | look and sound | you; a null is a
 let openPanel=null,timerEnd=0,timerInt;
 function renderTools(){
   tools.innerHTML=`<button class="tb chev${S.collapsed?'':' on'}" data-t="chev" aria-label="${S.collapsed?'Show tools':'Hide tools'}">${svg(IC.chev)}</button>`+
+    `<button class="tb alt" data-t="tutor" aria-label="Keyboard tutor (ហាត់វាយ)" title="Keyboard tutor">${svg(IC.tutor)}</button>`+
     TOOLS.map(t=>!t?'<span class="div fold"></span>':`<button class="tb fold${(t.toggle&&S[t.toggle])||(t.id==='timer'&&timerEnd)||(t.id==='sound'&&(S.sound||S.bell))||(t.id==='acct'&&window.Auth&&Auth.user)?' on':''}${openPanel===t.id?' open':''}" data-t="${t.id}" aria-label="${t.label}" title="${t.label}"${t.toggle?` aria-pressed="${!!S[t.toggle]}"`:''}>${svg(IC[t.id])}</button>`).join('')+
     `<span class="gap"></span>`+(S.osk?'':`<button class="tb" data-t="keys" aria-label="Show on-screen keys" title="Show on-screen keys">${svg(IC.keys)}</button>`);
   tools.classList.toggle('collapsed',S.collapsed);
