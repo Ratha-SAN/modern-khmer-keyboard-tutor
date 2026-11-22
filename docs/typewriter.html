@@ -203,6 +203,8 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 .tools.more .main{display:none} /* page one: the two games; page two, after >: writing and the other tools */
 .tb.main{flex:0 1 auto;max-width:none;width:auto;display:inline-flex;align-items:center;gap:7px;padding:0 16px;margin:0 3px;border-radius:999px;font:600 14px var(--ui),"Noto Sans Khmer";white-space:nowrap}
 .tb.main.on{background:rgba(255,236,190,.14);filter:none}
+@media (max-width:400px){ /* narrow phones (many Androids are 360 px): slightly smaller tools so every one fits */
+  .tb{min-width:25px}.tb svg.i{width:23px;height:23px}.tools .div{margin:0 2px}.tools{padding-inline:6px}.chassis{padding-inline:6px}.tb.main{padding:0 12px}}
 
 .panel{position:absolute;left:12px;right:12px;bottom:calc(100% + 22px);z-index:6;background:var(--panel);color:var(--panel-text);
   border:1px solid var(--panel-line);border-radius:18px;padding:14px 16px 16px;box-shadow:0 16px 40px rgba(0,0,0,.55);
@@ -910,7 +912,7 @@ function follow(smooth=true){
        moment: on a short screen the text cannot always scroll that far, and sizing from the live caret then grew the
        rail a step on every key, squeezing the paper and making it jump */
     const pyW=pyL; /* the fixed line height, not the caret's, which changes a few px between a line start and mid-line */
-    if(fanB){const want=Math.max(40,Math.ceil(pyW+fanB+fanSh*(fanLnd?1.6:2.3)+(fanLnd?4:10)));if(Math.abs(rail.offsetHeight-want)>1){rail.style.height=want+'px';
+    if(fanB){const want=Math.max(40,Math.ceil(pyW+fanB+fanSh/1.2+8)); /* the rail ends just under the lowest keys, so the key set sits on the toolbar and the page gets the room */if(Math.abs(rail.offsetHeight-want)>1){rail.style.height=want+'px';
       if((follow.n=(follow.n||0)+1)<4)requestAnimationFrame(layout)} /* the paper changed height: measure it again and settle */
     else follow.n=0}}
   const rl=rail?rail.getBoundingClientRect().left:0,pr=pageEl.getBoundingClientRect();
