@@ -1903,8 +1903,8 @@ const EN_GW='ink page type key word bell paper letter ribbon shoot arrow bow str
 const gameWords=()=>S.lang==='km'?KMW.filter(w=>[...w].every(c=>typable(c))):EN_GW;
 const gClamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 let gameOpts={mode:'lesson'};
-/* kids theme: a course that goes one keyboard row at a time. Each row starts with one lesson per letter (that key only),
-   then a lesson of two-letter mixes of the row, then three-letter mixes, before moving on to the next row.
+/* kids theme: a course that goes one keyboard row at a time. Each row starts with a lesson of single letters (any letter of
+   that row, one key at a time), then a lesson of two-letter mixes of the row, then three-letter mixes, before moving on to the next row.
    Order: home row, top row, bottom row, then the letters behind Shift; then the English rows the same way */
 let kidC=null;
 const kidCourse=()=>{if(kidC)return kidC;
@@ -1920,8 +1920,9 @@ const kidCourse=()=>{if(kidC)return kidC;
   let learned=[];
   for(const u of km.concat(en)){if(!u.L.length)continue;const lang=u.en?'en':'km';
     units.push({id:u.id,icon:u.en?'🔡':'🔤',t:u.t});
-    u.L.forEach(L=>lessons.push({id:'kl-'+L,key:L,unit:u.id,icon:'',t:['អក្សរ '+(u.en?L.toUpperCase()+' '+L:L),'Letter '+L],lang,make:()=>Array(12).fill(L).join(' ')}));
     const row=u.L.slice(),pool=learned.concat(row);
+    /* first lesson of a row: single letters, any letter of the row, one key at a time */
+    lessons.push({id:'kl-'+u.id+'-1',unit:u.id,icon:'',t:['អក្សរម្ដងមួយ · '+u.t[0],'One letter at a time · '+u.t[1]],lang,make:()=>mixes(row,1,16)});
     lessons.push({id:'kl-'+u.id+'-2',unit:u.id,icon:'',t:['ផ្គុំ ២ តួ · '+u.t[0],'2-letter mix · '+u.t[1]],lang,make:()=>mixes(row,2,14)});
     lessons.push({id:'kl-'+u.id+'-3',unit:u.id,icon:'',t:['ផ្គុំ ៣ តួ · '+u.t[0],'3-letter mix · '+u.t[1]],lang,make:()=>mixes(pool.length>row.length&&!u.en?pool.slice(-20):row,3,14)});
     if(!u.en)learned=learned.concat(row)}
