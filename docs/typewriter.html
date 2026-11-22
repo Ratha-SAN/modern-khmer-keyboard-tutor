@@ -890,8 +890,12 @@ function follow(smooth=true){
     device.style.setProperty('--tx',tx+'px');lastTx=tx}
   const rail=headEl.offsetParent,fr=paper.getBoundingClientRect();
   if(rail){const py=Math.round((m.top+m.bottom)/2-rail.getBoundingClientRect().top);device.style.setProperty('--py',py+'px');
-    if(fanB){const want=Math.max(40,Math.ceil(py+fanB+fanSh*(fanLnd?1.6:2.3)+(fanLnd?4:10)));if(Math.abs(rail.offsetHeight-want)>1){rail.style.height=want+'px';
-      if((follow.n=(follow.n||0)+1)<4)requestAnimationFrame(()=>follow(false))} /* the print point moved with the rail: settle it again, a few times at most */
+    /* the rail is sized from where the typing line belongs (just above the foot of the paper), not where it is this
+       moment: on a short screen the text cannot always scroll that far, and sizing from the live caret then grew the
+       rail a step on every key, squeezing the paper and making it jump */
+    const pyW=Math.round(r.bottom-rail.getBoundingClientRect().top-25-(m.bottom-m.top)/2);
+    if(fanB){const want=Math.max(40,Math.ceil(pyW+fanB+fanSh*(fanLnd?1.6:2.3)+(fanLnd?4:10)));if(Math.abs(rail.offsetHeight-want)>1){rail.style.height=want+'px';
+      if((follow.n=(follow.n||0)+1)<4)requestAnimationFrame(layout)} /* the paper changed height: measure it again and settle */
     else follow.n=0}}
   const rl=rail?rail.getBoundingClientRect().left:0,pr=pageEl.getBoundingClientRect();
   device.style.setProperty('--rx',(!rail?mid:S.fixedPaper?fr.left+pageEl.offsetLeft+(r.left-pr.left)+x+letterW()/2-rl:fr.left+fr.width/2-rl)+'px');
