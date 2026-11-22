@@ -1775,7 +1775,7 @@ resultEl.addEventListener('click',e=>{const b=e.target.closest('[data-r]');if(!b
 function streak(days){let n=0;const t=new Date();if(!days[dkey(t)])t.setDate(t.getDate()-1);
   while(days[dkey(t)]){n++;t.setDate(t.getDate()-1)}return n}
 function lessonsHtml(){
-  const c=getCourse(),B=LN().best,nextL=c.lessons.find(l=>!B[l.id]),nDone=c.lessons.filter(l=>B[l.id]).length,N=c.lessons.length;
+  const c=learnGame&&S.gtheme==='kid'?kidCourse():getCourse(),B=LN().best,nextL=c.lessons.find(l=>!B[l.id]),nDone=c.lessons.filter(l=>B[l.id]).length,N=c.lessons.length;
   const pct=N?Math.round(nDone/N*100):0,stars=c.lessons.reduce((a,l)=>a+(B[l.id]?B[l.id].s:0),0);
   let h=learnGame?'':'<div class="lhero">'+(nextL?
     '<button class="lgo" data-l="'+nextL.id+'"><span class="lk">'+(nDone?'Continue':'Start here')+' · lesson '+(c.lessons.indexOf(nextL)+1)+' of '+N+'</span>'+
@@ -1847,13 +1847,21 @@ const EN_GW='ink page type key word bell paper letter ribbon shoot arrow bow str
 const gameWords=()=>S.lang==='km'?KMW.filter(w=>[...w].every(c=>typable(c))):EN_GW;
 const gClamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 let gameOpts={mode:'lesson'};
+/* kids theme: a course of one-letter lessons, every Khmer consonant and then the English alphabet. A lesson rains its letter,
+   now and then with a simple vowel, so a young child learns where one key is at a time */
+const KID_KM='ក ខ គ ឃ ង ច ឆ ជ ឈ ញ ដ ឋ ឌ ឍ ណ ត ថ ទ ធ ន ប ផ ព ភ ម យ រ ល វ ស ហ ឡ អ'.split(' ');
+let kidC=null;
+const kidCourse=()=>kidC||(kidC={units:[{id:'kletters',icon:'🔤',t:['អក្សរម្ដងមួយ','One Khmer letter at a time']},{id:'kletters-en',icon:'🔡',t:['អក្សរអង់គ្លេស','English letters']}],
+  lessons:KID_KM.map(L=>({id:'kl-'+L,unit:'kletters',icon:'',t:['អក្សរ '+L,'Letter '+L],lang:'km',make:()=>Array.from({length:12},(_,i)=>i%3?L:L+['ា','ិ','ូ','េ'][(i/3)%4]).join(' ')}))
+    .concat('abcdefghijklmnopqrstuvwxyz'.split('').map(L=>({id:'kl-'+L,unit:'kletters-en',icon:'',t:['អក្សរ '+L.toUpperCase()+' '+L,'Letter '+L],lang:'en',make:()=>Array(10).fill(L).join(' ')})))});
+const gCourse=les=>les&&String(les.id||les).startsWith('kl-')?kidCourse():getCourse();
 /* two speeds for both games: slow is 30% slower than the standard pace, fast 30% faster (fall speed and the gap between words) */
 const gSpd=()=>S.gspeed==='fast'?1.3:S.gspeed==='normal'?1:.7; /* normal is the standard pace */
 const lessonWords=les=>{const set=new Set();for(let i=0;i<4;i++)String(les.make()||'').split(/\s+/).forEach(w=>{if(w&&[...w].every(c=>typable(c)))set.add(w)});return [...set]};
 function startGame(opts){
   if(G)return;if(D)exitDrill(false);gameOpts=opts||gameOpts||{mode:'play'};
   const prevLang=S.lang;let les=null;
-  if(gameOpts.mode==='lesson'){const c=getCourse();les=c.lessons.find(l=>l.id===gameOpts.id)||c.lessons.find(l=>!LN().best[l.id])||c.lessons[0];if(les.lang)S.lang=les.lang}
+  if(gameOpts.mode==='lesson'){const c=gameOpts.id?gCourse(gameOpts.id):S.gtheme==='kid'?kidCourse():getCourse();les=c.lessons.find(l=>l.id===gameOpts.id)||c.lessons.find(l=>!LN().best[l.id])||c.lessons[0];if(les.lang)S.lang=les.lang}
   closePanel();learnEl.hidden=true;pages.hidden=true;resultEl.hidden=true;
   G={cv:$('gcv'),W:0,H:0,dpr:1,words:[],arrows:[],bits:[],blots:[],floats:[],wave:0,score:0,lives:5,lock:null,over:false,overT:0,t:0,last:performance.now(),
     shake:0,aim:{x:0,y:0},dr:0,rel:0,pool:gameWords(),best:(S.gbest||{})[S.lang]||0,newBest:false,combo:0,banner:0,raf:0,shots:[],letters:[],rings:[],flash:0,hurt:0,hurtCool:0,tier:0,slowT:0,dblT:0,chain:[],note:null,sinceSpecial:0,rec:0,recv:0,pull:0,lastShot:0,level:1,lw:0,phase:'waves',boss:null,fadeA:0,fadeDir:0,bannerTxt:'',bannerSub:'',clearT:0,stars:Array.from({length:46},()=>[Math.random(),Math.random(),.6+Math.random()*1.3,Math.random()*6])};
@@ -2117,7 +2125,7 @@ function lessonGameDone(){
   L.hist.push({d:Date.now(),i:les.id,w,a,s:secs,c:g.kOk});if(L.hist.length>300)L.hist.splice(0,L.hist.length-300);
   const k=dkey(Date.now());L.days[k]=(L.days[k]||0)+secs;save();
   g.score+=100*st;gnote('★'.repeat(st)+' '+KD(a)+'%');g.floats.push({x:g.W/2,y:g.H*.3,t:0,txt:'+'+KD(100*st),big:2});
-  const c=getCourse(),i=c.lessons.findIndex(l=>l.id===les.id),next=c.lessons[i+1]||c.lessons[0];
+  const c=gCourse(les),i=c.lessons.findIndex(l=>l.id===les.id),next=c.lessons[i+1]||c.lessons[0];
   g.les=next;gameOpts={mode:'lesson',id:next.id};if(next.lang&&next.lang!==S.lang){S.lang=next.lang;buildKb();paintBars()}
   g.lesWords=lessonWords(next);g.kOk=0;g.kBad=0;g.lesT0=performance.now();
   g.level++;g.lw=0;g.phase='waves';g.lives=Math.min(5,g.lives+1);gApplyTheme();
@@ -2415,7 +2423,7 @@ function gameDraw(){
   if(g.lives!==g.lLast){g.lPop=g.lLast!=null&&g.lives<g.lLast?1:0;g.lLast=g.lives}g.lPop=Math.max(0,(g.lPop||0)-.04);
   const fS=Math.round(g.fs*.7),fL=Math.round(g.fs*.48),row1=22,row2=row1+fS*.95;
   c.fillStyle=g.ink2;c.textAlign='left';c.font=fS+'px '+PENF;c.save();c.translate(58,row1);c.scale(1+.3*g.sPop,1+.3*g.sPop);gTxt(c,KD(g.score),0,0);c.restore();
-  c.globalAlpha=.7;c.fillStyle=g.ink;c.font=fL+'px '+PENF;gTxt(c,g.mode==='lesson'&&g.les?'មេរៀន '+KD(getCourse().lessons.indexOf(g.les)+1)+' · '+g.les.t[0]+' · វគ្គ '+KD(Math.max(1,g.lw))+'/'+KD(3):'កម្រិត '+KD(g.level)+(g.phase==='boss'?' · មេធំ':' · វគ្គ '+KD(Math.max(1,g.lw)))+(g.best?' · ល្អបំផុត '+KD(g.best):''),58,row2);c.globalAlpha=1;
+  c.globalAlpha=.7;c.fillStyle=g.ink;c.font=fL+'px '+PENF;gTxt(c,g.mode==='lesson'&&g.les?'មេរៀន '+KD(gCourse(g.les).lessons.indexOf(g.les)+1)+' · '+g.les.t[0]+' · វគ្គ '+KD(Math.max(1,g.lw))+'/'+KD(3):'កម្រិត '+KD(g.level)+(g.phase==='boss'?' · មេធំ':' · វគ្គ '+KD(Math.max(1,g.lw)))+(g.best?' · ល្អបំផុត '+KD(g.best):''),58,row2);c.globalAlpha=1;
   for(let i=0;i<5;i++){const hr=Math.max(5,g.fs*.26),x=W-58-hr-i*(hr*2.6),y=row1-hr*.55+(i===g.lives&&g.lPop?Math.sin(g.lPop*40)*3*g.lPop:0),full=i<g.lives;
     c.globalAlpha=full?1:.22;gIcon(c,'heart',x,y,hr,g.acc)}c.globalAlpha=1;
   const rowC=row2+g.fs*.95,rowP=rowC+g.fs*1.05;
