@@ -873,7 +873,7 @@ function follow(smooth=true){
   const v=D?D.target:ta.value,p=D?D.st[D.ci]||0:ta.selectionEnd;
   before.textContent=v.slice(0,p);after.textContent=v.slice(p)+' ';
   const sh=$('show');if(D)drillPaint(sh);else if(sh.textContent!==v)sh.textContent=v;
-  const m=mark.getBoundingClientRect(),r=scroll.getBoundingClientRect();
+  let m=mark.getBoundingClientRect(),r=scroll.getBoundingClientRect();
   const top=Math.max(0,Math.round(m.bottom-r.top+scroll.scrollTop-anchor+3));
   /* a new line: the text is put in place at once and the whole sheet makes a short slide up (150 ms). The browser's own
      caret scrolling, which used to hide the new line during a slide, is undone by the scroll guard below */
@@ -892,11 +892,15 @@ function follow(smooth=true){
     for(const el of [pageEl,headEl.offsetParent])if(el){el.classList.remove('step','ret');if(cls)el.classList.add(cls)}
     device.style.setProperty('--tx',tx+'px');lastTx=tx}
   const rail=headEl.offsetParent,fr=paper.getBoundingClientRect();
-  if(rail){const py=Math.round((m.top+m.bottom)/2-rail.getBoundingClientRect().top);device.style.setProperty('--py',py+'px');
+  /* while the text layer is mid-slide its measured position is shifted; take the slide out so the keys and heads stay put */
+  m=mark.getBoundingClientRect();r=scroll.getBoundingClientRect(); /* measured again now the paper has moved */
+  const ty=r.top-pageEl.getBoundingClientRect().top;
+  if(rail){const rt=rail.getBoundingClientRect().top,pyM=Math.round((m.top+m.bottom)/2-ty-rt),pyL=Math.round(r.bottom-ty-rt-25-lh/2);
+    const py=Math.abs(pyM-pyL)<lh/2?pyL:pyM; /* on the typing line use its steady middle, so the heads do not twitch with the caret's height */device.style.setProperty('--py',py+'px');
     /* the rail is sized from where the typing line belongs (just above the foot of the paper), not where it is this
        moment: on a short screen the text cannot always scroll that far, and sizing from the live caret then grew the
        rail a step on every key, squeezing the paper and making it jump */
-    const pyW=Math.round(r.bottom-rail.getBoundingClientRect().top-25-(m.bottom-m.top)/2);
+    const pyW=pyL; /* the fixed line height, not the caret's, which changes a few px between a line start and mid-line */
     if(fanB){const want=Math.max(40,Math.ceil(pyW+fanB+fanSh*(fanLnd?1.6:2.3)+(fanLnd?4:10)));if(Math.abs(rail.offsetHeight-want)>1){rail.style.height=want+'px';
       if((follow.n=(follow.n||0)+1)<4)requestAnimationFrame(layout)} /* the paper changed height: measure it again and settle */
     else follow.n=0}}
