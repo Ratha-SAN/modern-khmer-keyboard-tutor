@@ -1801,10 +1801,15 @@ function nextWave(){
   g.bannerTxt='កម្រិត '+KD(g.level);g.bannerSub='វគ្គ '+KD(g.lw);g.banner=1.8;
   g.sp=g.H*(.1+.011*g.wave)*.8*.7*.75; /* .7 then .75: words fall slowly */g.maxLen=Math.min(3+g.wave,9);
 }
+/* the first levels use the words people type most in everyday messages, at school and at work */
+const DAILY_KM='សួស្តី អរគុណ បាទ ចាស ទេ មែន ល្អ បាន អត់ មិន ទៅ មក នៅ ធ្វើ ញ៉ាំ បាយ ទឹក ផឹក ដេក ព្រឹក ល្ងាច យប់ ថ្ងៃនេះ ស្អែក ម្សិលមិញ ម៉ោង នាទី ឥឡូវ ឆាប់ យឺត ចាំ ជួប ដឹង យល់ សួរ ឆ្លើយ ប្រាប់ ហៅ ផ្ញើ សារ ទូរស័ព្ទ លេខ រូប ផ្ទះ គ្រួសារ ម្ដាយ ឪពុក បង ប្អូន កូន មិត្ត សាលា រៀន គ្រូ សិស្ស ថ្នាក់ មេរៀន សៀវភៅ ប៊ិច ប្រឡង លំហាត់ កិច្ចការ ការងារ ធ្វើការ ប្រជុំ ការិយាល័យ ឯកសារ គម្រោង ប្រធាន ក្រុម អ៊ីមែល កុំព្យូទ័រ លុយ ទិញ លក់ ផ្សារ ហាង ផ្លូវ ឡាន ម៉ូតូ ជួយ ត្រូវការ ចង់ អាច សុំទោស មិនអីទេ រីករាយ នឹក ស្រលាញ់ សុខសប្បាយ ឈឺ សម្រាក សប្ដាហ៍ ខែ ឆ្នាំ ថ្មី ចាស់ ធំ តូច ច្រើន តិច ពិតជា ហើយ ទៀត'.split(' ');
+const DAILY_EN='hi hello thanks thank yes no ok okay please sorry good morning night today tomorrow tonight school class teacher student homework study lesson test exam book pen work office meeting email phone call text send reply team boss lunch dinner home family friend mom dad love miss see you soon later busy free time help need want know ask answer project report file plan done ready late early bus car money shop buy pay week day month'.split(' ');
+const gamePool=()=>{const g=G;if(g.level<=3){const d=S.lang==='km'?DAILY_KM.filter(w=>[...w].every(c=>typable(c))):DAILY_EN;if(d.length>=20)return d}return g.pool};
 function spawnWord(){
   const g=G,cx=g.cx;cx.font=g.font;
-  const lim=g.maxLen,pool=g.pool.filter(w=>[...w].length<=lim&&!g.words.some(x=>x.t===w));
-  const t=(pool.length?pool:g.pool)[Math.floor(Math.random()*(pool.length||g.pool.length))],w=Math.ceil(cx.measureText(t).width);
+  const all=gamePool(),daily=all!==g.pool,lim=g.maxLen+(daily&&S.lang==='km'?3:daily?1:0),free=all.filter(w=>!g.words.some(x=>x.t===w)),fit=free.filter(w=>[...w].length<=lim);
+  const pool=fit.length>=(daily?6:1)?fit:free;
+  const t=(pool.length?pool:all)[Math.floor(Math.random()*(pool.length||all.length))],w=Math.ceil(cx.measureText(t).width);
   for(let k=0;k<12;k++){
     const x=w/2+10+Math.random()*Math.max(1,g.W-w-20);
     if(g.words.every(o=>o.y>g.fs*2.2||Math.abs(o.x-x)>(o.w+w)/2+10)){
