@@ -863,6 +863,7 @@ function layout(){
   device.style.setProperty('--anchor',anchor+'px');
   follow(false);
 }
+let scrollWant=null,scrollHand=false; /* where follow() put the paper, and whether a finger is scrolling it */
 let headEl=null,pageEl=null,lastTx=0,lwKey='',lwVal=10;
 function letterW(){const f=getComputedStyle(ta).font,k=f+S.lang;if(k!==lwKey){lwKey=k;const c=document.createElement('canvas').getContext('2d');c.font=f;
   lwVal=c.measureText(S.lang==='km'?'កខគងចឆជញដតនបពមយរលសហអ':'abcdefghijklmnopqrstuvwxyz').width/(S.lang==='km'?22:26)}return lwVal}
@@ -873,11 +874,9 @@ function follow(smooth=true){
   const sh=$('show');if(D)drillPaint(sh);else if(sh.textContent!==v)sh.textContent=v;
   const m=mark.getBoundingClientRect(),r=scroll.getBoundingClientRect();
   const top=Math.max(0,Math.round(m.bottom-r.top+scroll.scrollTop-anchor+3));
-  if(Math.abs(top-scroll.scrollTop)>1){
-    /* a new line: jump the text into place at once (never a slow smooth scroll that hides the line being typed),
-       and let the whole sheet slide the last bit up quickly so it reads as the paper moving */
-    const dy=top-scroll.scrollTop;scroll.scrollTo({top,behavior:'auto'});pageEl=pageEl||$('page');
-    if(smooth&&dy>0&&dy<r.height*.6){if(pageEl._feed)pageEl._feed.cancel();pageEl._feed=pageEl.animate([{translate:'0 '+Math.round(dy)+'px'},{translate:'0 0'}],{duration:120,easing:'ease-out'})}}
+  /* a new line: the sheet moves up at once. No slide or smooth scroll: while one runs the caret dips below the paper's
+     edge and the phone's browser starts its own slow scroll to reveal it, which hid the new line */
+  scrollWant=top;if(Math.abs(top-scroll.scrollTop)>1)scroll.scrollTop=top;
   const x=Math.min(Math.max(m.left-r.left,12),r.width-12);
   /* the head stays at the print point, the middle of the frame; the page slides so the caret sits under it.
      Small moves step like the escapement, a long one back is the carriage return */
@@ -917,6 +916,7 @@ function count(){
 }
 let lastN=0;
 function onChange(kind){
+  scrollHand=false;
   if(D){drillInput();return}
   if(G){gameInput();return}
   const d=doc();d.text=ta.value;d.t=Date.now();save();
@@ -929,6 +929,14 @@ function onChange(kind){
   if(kind==='key'&&bellArmed&&frac>.86){bellArmed=false;play('bell')}
   play(kind);autoShift();suggest();
 }
+/* the browser may scroll the paper by itself to show the caret (phones do, slowly); put it straight back.
+   A finger or wheel scrolling to read back is left alone until the next key */
+scroll.addEventListener('pointerdown',()=>{scrollHand=true},{passive:true});
+scroll.addEventListener('wheel',()=>{scrollHand=true},{passive:true});
+scroll.addEventListener('touchstart',()=>{scrollHand=true},{passive:true});
+scroll.addEventListener('scroll',()=>{if(!scrollHand&&scrollWant!=null&&Math.abs(scroll.scrollTop-scrollWant)>1&&!G)scroll.scrollTop=scrollWant});
+addEventListener('scroll',()=>{if((scrollX||scrollY)&&!(window.visualViewport&&visualViewport.scale>1.02))scrollTo(0,0)});
+ta.addEventListener('keydown',()=>{scrollHand=false});
 ta.addEventListener('beforeinput',e=>{if(D){if(/^(delete|history)/.test(e.inputType||''))e.preventDefault();return}if(S.noErase&&/^(delete|history)/.test(e.inputType||'')){e.preventDefault();toast('No erasing is on. Keep going.')}});
 ta.addEventListener('input',e=>{const t=e.inputType||'';if(e.data)lastIn=e.data;
   onChange(/insertLineBreak|insertParagraph/.test(t)?'return':/^delete/.test(t)?'back':e.data===' '?'space':'key')});
