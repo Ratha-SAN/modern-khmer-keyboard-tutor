@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#0b0a09">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Inter:wght@400;500;600&family=Noto+Serif:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Serif+Khmer:wght@400;600&family=Noto+Sans+Khmer:wght@400;600&family=Kantumruy+Pro:wght@400;500&family=Battambang:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Inter:wght@400;500;600&family=Noto+Serif:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Serif+Khmer:wght@400;600&family=Noto+Sans+Khmer:wght@400;600&family=Kantumruy+Pro:wght@400;500&family=Battambang:wght@400;700&family=Fasthand&display=swap">
 <style>
 /* Khmer is bundled with the site, so it renders even if Google Fonts is unreachable */
 @font-face{font-family:"Noto Serif Khmer Local";src:url(fonts/NotoSerifKhmer-400.woff2) format("woff2");font-weight:400;font-display:swap;unicode-range:U+1780-17FF,U+19E0-19FF,U+200C-200D,U+25CC}
@@ -1779,7 +1779,7 @@ function startGame(){
     shake:0,aim:{x:0,y:0},dr:0,rel:0,pool:gameWords(),best:(S.gbest||{})[S.lang]||0,newBest:false,combo:0,banner:0,raf:0,shots:[],letters:[],rings:[],flash:0,hurt:0,hurtCool:0,tier:0,slowT:0,dblT:0,chain:[],note:null,sinceSpecial:0,rec:0,recv:0,pull:0,lastShot:0,level:1,lw:0,phase:'waves',boss:null,fadeA:0,fadeDir:0,bannerTxt:'',bannerSub:'',clearT:0,stars:Array.from({length:46},()=>[Math.random(),Math.random(),.6+Math.random()*1.3,Math.random()*6])};
   G.cx=G.cv.getContext('2d');
   device.classList.add('game');device.classList.toggle('nokeys',!S.osk);shift=0;mode='abc';moreOn=false;ta.value='';buildKb();paintBars();
-  gameSize();nextWave();G.bannerTxt='Level 1';G.bannerSub=SET_EN[G.th.set]+', '+TIME_EN[G.th.time];G.raf=requestAnimationFrame(gameTick);focusTa();gameHint();
+  gameSize();nextWave();G.bannerTxt='កម្រិត '+KD(1);G.bannerSub=SET_EN[G.th.set]+' · '+TIME_EN[G.th.time];G.raf=requestAnimationFrame(gameTick);focusTa();gameHint();
 }
 function exitGame(){
   if(!G)return;cancelAnimationFrame(G.raf);G=null;device.classList.remove('game','nokeys');
@@ -1798,7 +1798,7 @@ function gameSize(){
 }
 function nextWave(){
   const g=G;g.wave++;g.lw++;g.count=Math.min(Math.round((6+g.wave*3)*1.5),46);g.spawned=0;g.interval=Math.max(.6,1.5-.07*g.wave)*2.1; /* 20% fewer words on screen at once, but more of them per wave, so a wave lasts longer */ g.spawnT=1.5;
-  g.bannerTxt='Level '+g.level;g.bannerSub='Wave '+g.lw;g.banner=1.8;
+  g.bannerTxt='កម្រិត '+KD(g.level);g.bannerSub='វគ្គ '+KD(g.lw);g.banner=1.8;
   g.sp=g.H*(.1+.011*g.wave)*.8*.7*.75; /* .7 then .75: words fall slowly */g.maxLen=Math.min(3+g.wave,9);
 }
 function spawnWord(){
@@ -1825,7 +1825,7 @@ function gameGroundBlast(w){
 function gameHurt(l){ /* a letter of shrapnel hits the archer */
   const g=G;g.hurt=1;g.recv+=170;g.shake=Math.max(g.shake,.22);
   for(let i=0;i<6;i++)g.bits.push({x:l.x,y:l.y,vx:(Math.random()-.5)*160,vy:-30-Math.random()*90,r:1+Math.random()*1.6,a:1});
-  if(g.hurtCool<=0){g.floats.push({x:g.ax,y:g.gy-g.s*4.6,t:0,txt:'Ouch!',big:1});g.hurtCool=.6;gsound('hurt');haptic('heavy')}
+  if(g.hurtCool<=0){g.floats.push({x:g.ax,y:g.gy-g.s*4.6,t:0,txt:'អូយ!',big:1});g.hurtCool=.6;gsound('hurt');haptic('heavy')}
 }
 function gameTarget(){const g=G;if(!g)return null;if(g.lock)return g.lock;let b=null;for(const w of g.words)if(!w.hit&&(!b||w.y>b.y))b=w;return b}
 function gameInput(){
@@ -1850,8 +1850,8 @@ function gameInput(){
 const gMult=()=>{const g=G,c=g.combo;return (c>=24?4:c>=14?3:c>=6?2:1)*(g.dblT>0?2:1)};
 const gTierOf=c=>c>=24?3:c>=14?2:c>=6?1:0;
 function gnote(txt){G.note={txt,t:0}}
-function gameTier(){const g=G,t=gTierOf(g.combo);if(t>g.tier){g.tier=t;gnote('Combo ×'+(t+1));gsound('combo');g.shake=Math.max(g.shake,.08)}}
-function gameComboLost(){const g=G;if(g.combo>=6){gnote('Combo lost');gsound('lose')}g.combo=0;g.tier=0}
+function gameTier(){const g=G,t=gTierOf(g.combo);if(t>g.tier){g.tier=t;gnote('ជាប់គ្នា ×'+KD(t+1));gsound('combo');g.shake=Math.max(g.shake,.08)}}
+function gameComboLost(){const g=G;if(g.combo>=6){gnote('បាត់ការជាប់គ្នា');gsound('lose')}g.combo=0;g.tier=0}
 /* power-ups: some words glow gold and carry one; destroy the word to get it */
 const PU={slow:'Slow rain',heart:'+1 life',bomb:'Volley!',double:'Double score'};
 function gamePower(type){
@@ -1906,7 +1906,7 @@ function gameBurst(w){ /* the last arrow: the word breaks into its letters, and 
   if(T>=2){g.rings.push({x:w.x+w.ox,y:cy,t:0,max:w.w*(T===2?.8:1.2)+g.s*3,rays:T===2?9:16,delay:0});
     if(T===3)g.rings.push({x:w.x+w.ox,y:cy,t:0,max:w.w*.7+g.s*2,rays:0,delay:.1})}
   g.blots.push({x:w.x,y:w.y,r:w.w*[.25,.35,.5,.7][T],a:.55});
-  g.floats.push({x:w.x,y:w.y-g.fs,t:0,txt:'+'+(w.ch.length*15),big:T});
+  g.floats.push({x:w.x,y:w.y-g.fs,t:0,txt:'+'+KD(w.ch.length*15),big:T});
   g.shake=Math.max(g.shake,[.04,.1,.2,.34][T]);if(T===3)g.flash=.3;if(w.boss)bossWordKilled(w);gameHint();
 }
 function gameBow(){ /* where the arrow leaves the bow, in page pixels */
@@ -1937,7 +1937,7 @@ function gameStep(dt){
         gameGroundBlast(w);haptic('heavy');
         if(g.lives<=0){gameOver();break}gameHint()}}
     g.words=g.words.filter(w=>!w.gone);
-    if(g.phase==='waves'&&g.spawned>=g.count&&!g.words.length&&!g.shots.length&&!g.chain.length&&!g.arrows.some(a=>a.state!=='ground')&&!g.over){g.score+=g.wave*20;g.floats.push({x:g.W/2,y:g.H*.35,t:0,txt:'+'+g.wave*20});gameWaveDone();gameHint()}
+    if(g.phase==='waves'&&g.spawned>=g.count&&!g.words.length&&!g.shots.length&&!g.chain.length&&!g.arrows.some(a=>a.state!=='ground')&&!g.over){g.score+=g.wave*20;g.floats.push({x:g.W/2,y:g.H*.35,t:0,txt:'+'+KD(g.wave*20)});gameWaveDone();gameHint()}
   }
   /* the bow: each queued shot draws, then looses */
   let pull=0;
@@ -1982,11 +1982,13 @@ function gameTick(now){
    Bosses go drones, robot dog, humanoid robot. A boss's words are long; it also fires extra letters and short words at
    the archer, and puts up a barrier that blocks the arrow of the last letter once. */
 const SETTINGS=['village','city','school','pagoda'],TIMES=['day','dusk','night'];
-const SET_EN={village:'Village',city:'City',school:'School',pagoda:'Pagoda'},TIME_EN={day:'day',dusk:'dusk',night:'night'};
-const BOSSES=['drones','robodog','humanoid'],BOSS_EN={drones:'Drones',robodog:'Robot dog',humanoid:'Humanoid robot'};
-const PAL={day:{ink:null,acc:'#a3321f',gold:'#a8740a',sky:null},
-  dusk:{ink:'#3b2521',acc:'#a3321f',gold:'#7a4a05',sky:['#f0a05a','#fbe1bd']},
-  night:{ink:'#efe8d6',acc:'#ff8a6b',gold:'#f0c869',sky:['#0b1430','#243662']}};
+const SET_EN={village:'ភូមិ',city:'ទីក្រុង',school:'សាលារៀន',pagoda:'វត្ត'},TIME_EN={day:'ពេលថ្ងៃ',dusk:'ពេលល្ងាច',night:'ពេលយប់'}; /* the game's words on screen are Khmer, in a ballpoint hand */
+const KD=n=>String(n).replace(/\d/g,d=>'០១២៣៤៥៦៧៨៩'[d]),PENF='Fasthand,"Kantumruy Pro","Noto Sans Khmer",cursive';
+const BOSSES=['drones','robodog','humanoid'],BOSS_EN={drones:'យន្តហោះដ្រូន',robodog:'ឆ្កែយន្ត',humanoid:'មនុស្សយន្ត'};
+/* ballpoint pens: blue for the drawing, red for hits and danger, green for power-ups */
+const PAL={day:{ink:'#1f3a93',acc:'#c8232c',gold:'#1d7a46',sky:null},
+  dusk:{ink:'#23306f',acc:'#b3202a',gold:'#1d6a40',sky:['#f0a05a','#fbe1bd']},
+  night:{ink:'#d3defc',acc:'#ff8f8f',gold:'#9fe3b8',sky:['#0b1430','#243662']}};
 const gTheme=L=>({set:SETTINGS[(L-1)%4],time:TIMES[(L-1)%3]});
 function gApplyTheme(){const g=G,th=gTheme(g.level),p=PAL[th.time];g.th=th;g.pal=p;g.ink=p.ink||g.ink0;g.acc=p.acc;g.gold=p.gold}
 function gameWaveDone(){const g=G;if(g.lw>=3)startBoss();else nextWave()}
@@ -2000,7 +2002,7 @@ function startBoss(){
   const g=G,type=BOSSES[(g.level-1)%3],n=type==='drones'?Math.min(5,2+Math.ceil(g.level/2)):1,hp=type==='drones'?1:Math.min(9,3+g.level);
   g.phase='boss';g.boss={type,units:[],t:0,shieldT:3.5,projT:2.5,done:false};
   for(let i=0;i<n;i++){const u={i,x:type==='robodog'?g.W*1.05:type==='humanoid'?g.W*1.15:g.W*.5,y:g.gy,hp,hpMax:hp,dead:false,shield:false,ph:i*1.9+Math.random(),flash:0,run:0};g.boss.units.push(u);bossWord(u)}
-  g.bannerTxt='BOSS';g.bannerSub=BOSS_EN[type];g.banner=2.6;gsound('boom');gameHint();
+  g.bannerTxt='មេធំ';g.bannerSub=BOSS_EN[type];g.banner=2.6;gsound('boom');gameHint();
 }
 function spawnProj(u){ /* an extra letter or short word, fired at the archer */
   const g=G,cx=g.cx;cx.font=g.font;const letters=S.lang==='km'?[...'កខគងចដតនបមយរលសហ'].filter(typable):[...'aeiostnrlmdc'];
@@ -2014,7 +2016,7 @@ function bossStep(dt){
     u.flash=Math.max(0,u.flash-dt);u.sf=Math.max(0,(u.sf||0)-dt);
     if(b.type==='drones'){u.x=g.W*(.18+.64*u.i/Math.max(1,b.units.length-1))+Math.sin(b.t*.9+u.ph)*g.W*.09;u.y=g.H*(.15+.075*(u.i%2))+Math.sin(b.t*1.7+u.ph)*5-(1-Math.min(1,b.t/1.2))*g.H*.4}
     else if(b.type==='robodog'){u.x-=(g.W*.04+g.level*2)*dt*(b.t<1.6?2.2:1);u.y=g.gy;u.run+=dt*9;
-      if(u.x<g.ax+g.s*2.6){g.lives--;gameComboLost();g.hurt=1;g.recv+=170;g.shake=.3;g.floats.push({x:g.ax,y:g.gy-g.s*4.6,t:0,txt:'Bitten!',big:1});gsound('hurt');u.x=g.W*.98;if(g.lives<=0){gameOver();return}}}
+      if(u.x<g.ax+g.s*2.6){g.lives--;gameComboLost();g.hurt=1;g.recv+=170;g.shake=.3;g.floats.push({x:g.ax,y:g.gy-g.s*4.6,t:0,txt:'ត្រូវខាំ!',big:1});gsound('hurt');u.x=g.W*.98;if(g.lives<=0){gameOver();return}}}
     else{u.x+=(g.W*.77-u.x)*Math.min(1,dt*1.5);u.y=g.gy}
     if(u.w){const w=u.w;w.x=u.x;w.y=b.type==='drones'?u.y+g.fs*2.5:b.type==='robodog'?g.gy-g.s*5.2:g.gy-g.s*9.9}
   }
@@ -2034,19 +2036,19 @@ function bossWordKilled(w){
 function bossDefeated(){
   const g=G;g.boss.done=true;g.phase='clear';g.clearT=2.4;g.score+=250+g.level*50;
   gamePower('bomb'); /* everything still falling is shot down */
-  gnote('Boss down!');g.floats.push({x:g.W/2,y:g.H*.3,t:0,txt:'+'+(250+g.level*50),big:3});
+  gnote('ឈ្នះមេធំ!');g.floats.push({x:g.W/2,y:g.H*.3,t:0,txt:'+'+KD(250+g.level*50),big:3});
 }
 function gameBlocked(a,w){ /* the barrier takes the last arrow once and breaks; the word starts again */
   const g=G,u=w.u;u.shield=false;u.sf=.5;a.state='fall';a.vx=-a.vx*.2;a.vy=-130;a.ang+=1.4;
   w.n=0;w.shown=0;w.hit=false;if(g.lock===w)g.lock=null;gameComboLost();
-  g.floats.push({x:w.x,y:w.y-g.fs*1.4,t:0,txt:'Blocked!',big:1});
+  g.floats.push({x:w.x,y:w.y-g.fs*1.4,t:0,txt:'ការពារបាន!',big:1});
   for(let i=0;i<10;i++)g.bits.push({x:a.x,y:a.y,vx:(Math.random()-.5)*220,vy:-Math.random()*140,r:1+Math.random()*1.8,a:1});
   g.shake=Math.max(g.shake,.15);gsound('weak');gameHint();
 }
 function gameNextLevel(){
   const g=G;g.level++;g.lw=0;g.phase='waves';g.boss=null;g.lives=Math.min(5,g.lives+1);gApplyTheme();
   g.words=[];g.chain=[];g.shots=[];g.arrows=g.arrows.filter(a=>a.state==='ground');
-  nextWave();const th=g.th;g.bannerTxt='Level '+g.level;g.bannerSub=SET_EN[th.set]+', '+TIME_EN[th.time];g.banner=2.4;gameHint();
+  nextWave();const th=g.th;g.bannerTxt='កម្រិត '+KD(g.level);g.bannerSub=SET_EN[th.set]+' · '+TIME_EN[th.time];g.banner=2.4;gameHint();
 }
 
 function gameGlow(c,g,bw){ /* at night and dusk the bow carries a warm lamp */
@@ -2262,31 +2264,31 @@ function gameDraw(){
     for(let k=0;k<r.rays;k++){const an=k/r.rays*6.283+.2;c.beginPath();c.moveTo(r.x+Math.cos(an)*rr*.55,r.y+Math.sin(an)*rr*.55);c.lineTo(r.x+Math.cos(an)*rr*1.05,r.y+Math.sin(an)*rr*1.05);c.stroke()}}
   c.globalAlpha=1;
   for(const b of g.bits){c.globalAlpha=Math.max(0,b.a);c.beginPath();c.arc(b.x,b.y,b.r,0,6.283);c.fill()}c.globalAlpha=1;
-  for(const f of g.floats){c.globalAlpha=1-f.t;c.fillStyle=g.acc;c.font='700 '+Math.round(g.fs*(.8+(f.big||0)*.22))+'px system-ui,sans-serif';c.textAlign='center';c.fillText(f.txt,f.x,f.y-f.t*26)}c.globalAlpha=1;
+  for(const f of g.floats){c.globalAlpha=1-f.t;c.fillStyle=g.acc;c.font=Math.round(g.fs*(.8+(f.big||0)*.22)*1.18)+'px '+PENF;c.textAlign='center';c.fillText(f.txt,f.x,f.y-f.t*26)}c.globalAlpha=1;
   /* score, lives and the wave banner, kept clear of the back button on the left */
-  c.fillStyle=g.ink;c.textAlign='right';c.font='600 '+Math.round(g.fs*.8)+'px system-ui,sans-serif';c.fillText(g.score+'',W-58,24);
-  c.globalAlpha=.55;c.font='500 '+Math.round(g.fs*.6)+'px system-ui,sans-serif';c.fillText('Level '+g.level+(g.phase==='boss'?' · BOSS':' · Wave '+Math.max(1,g.lw))+(g.best?' · Best '+g.best:''),W-58,24+g.fs*.8);c.globalAlpha=1;
+  c.fillStyle=g.ink;c.textAlign='right';c.font=Math.round((g.fs*.8)*1.18)+'px '+PENF;c.fillText(KD(g.score),W-58,24);
+  c.globalAlpha=.55;c.font=Math.round((g.fs*.6)*1.18)+'px '+PENF;c.fillText('កម្រិត '+KD(g.level)+(g.phase==='boss'?' · មេធំ':' · វគ្គ '+KD(Math.max(1,g.lw)))+(g.best?' · ល្អបំផុត '+KD(g.best):''),W-58,24+g.fs*.85);c.globalAlpha=1;
   for(let i=0;i<5;i++){const x=W/2-44+i*22,y=16,full=i<g.lives;c.globalAlpha=full?1:.25;c.fillStyle=g.ink;c.beginPath();c.arc(x,y+3,5,0,6.283);c.moveTo(x-4.4,y+1);c.lineTo(x,y-9);c.lineTo(x+4.4,y+1);c.fill()}c.globalAlpha=1;
   /* combo and the active power-ups, under the lives */
-  const mu=gMult();if(g.combo>=2&&!g.over){c.textAlign='center';c.fillStyle=mu>=3?g.acc:g.ink;c.font='700 '+Math.round(g.fs*.8)+'px system-ui,sans-serif';c.fillText('Combo '+g.combo+(mu>1?'  ×'+mu:''),W/2,44);
+  const mu=gMult();if(g.combo>=2&&!g.over){c.textAlign='center';c.fillStyle=mu>=3?g.acc:g.ink;c.font=Math.round((g.fs*.8)*1.18)+'px '+PENF;c.fillText('ជាប់គ្នា '+KD(g.combo)+(mu>1?'  ×'+KD(mu):''),W/2,44);
     const tiers=[6,14,24],nx=tiers.find(t=>t>g.combo),pv=g.combo>=24?1:(g.combo-(tiers[tiers.indexOf(nx)-1]||0))/(nx-(tiers[tiers.indexOf(nx)-1]||0));
     c.globalAlpha=.25;c.fillRect(W/2-45,50,90,3);c.globalAlpha=1;c.fillRect(W/2-45,50,90*pv,3)}
   let px=W/2-(g.slowT>0&&g.dblT>0?60:0);c.textBaseline='middle';
-  for(const [k,tt] of [['slow',g.slowT],['double',g.dblT]]){if(tt<=0)continue;gIcon(c,k,px-14,72,g.fs*.36,g.gold);c.fillStyle=g.gold;c.textAlign='left';c.font='600 '+Math.round(g.fs*.62)+'px system-ui,sans-serif';c.fillText(Math.ceil(tt)+'s',px,72);px+=70}
+  for(const [k,tt] of [['slow',g.slowT],['double',g.dblT]]){if(tt<=0)continue;gIcon(c,k,px-14,72,g.fs*.36,g.gold);c.fillStyle=g.gold;c.textAlign='left';c.font=Math.round((g.fs*.62)*1.18)+'px '+PENF;c.fillText(KD(Math.ceil(tt))+' វិ',px,72);px+=70}
   c.textBaseline='alphabetic';c.fillStyle=g.ink;
-  if(g.note&&!g.over){c.globalAlpha=Math.max(0,1-g.note.t/1.4);c.fillStyle=g.gold;c.textAlign='center';c.font='800 '+Math.round(g.fs*1.2)+'px system-ui,sans-serif';c.fillText(g.note.txt,W/2,g.H*.3-g.note.t*14);c.globalAlpha=1;c.fillStyle=g.ink}
-  if(g.banner>0&&!g.over){c.globalAlpha=Math.min(1,g.banner*1.4);c.fillStyle=g.bannerTxt==='BOSS'?g.acc:g.ink;c.textAlign='center';c.font='700 '+Math.round(g.fs*1.7)+'px system-ui,sans-serif';c.fillText(g.bannerTxt,W/2,g.H*.36);if(g.bannerSub){c.font='600 '+Math.round(g.fs*.95)+'px system-ui,sans-serif';c.fillStyle=g.ink;c.fillText(g.bannerSub,W/2,g.H*.36+g.fs*1.4)}c.globalAlpha=1}
+  if(g.note&&!g.over){c.globalAlpha=Math.max(0,1-g.note.t/1.4);c.fillStyle=g.gold;c.textAlign='center';c.font=Math.round((g.fs*1.2)*1.18)+'px '+PENF;c.fillText(g.note.txt,W/2,g.H*.3-g.note.t*14);c.globalAlpha=1;c.fillStyle=g.ink}
+  if(g.banner>0&&!g.over){c.globalAlpha=Math.min(1,g.banner*1.4);c.fillStyle=g.bannerTxt==='មេធំ'?g.acc:g.ink;c.textAlign='center';c.font=Math.round((g.fs*1.7)*1.18)+'px '+PENF;c.fillText(g.bannerTxt,W/2,g.H*.36);if(g.bannerSub){c.font=Math.round((g.fs*.95)*1.18)+'px '+PENF;c.fillStyle=g.ink;c.fillText(g.bannerSub,W/2,g.H*.36+g.fs*1.4)}c.globalAlpha=1}
   c.restore();
   if(g.fadeA>0){c.fillStyle='rgba(8,10,18,'+g.fadeA.toFixed(3)+')';c.fillRect(0,0,W,H)}
   if(g.flash>0){c.fillStyle='rgba(20,12,4,'+(g.flash*.5).toFixed(3)+')';c.fillRect(0,0,W,H)}
   if(g.over){
     c.fillStyle='rgba(0,0,0,.18)';c.fillRect(0,0,W,H);c.fillStyle=g.ink;c.textAlign='center';
-    c.font='700 '+Math.round(g.fs*1.5)+'px system-ui,sans-serif';c.fillText('The page is full',W/2,H*.36);
-    c.font='500 '+Math.round(g.fs*.95)+'px system-ui,sans-serif';c.fillText('Score '+g.score+(g.newBest?' · new best!':' · Best '+g.best),W/2,H*.36+g.fs*1.8);
+    c.font=Math.round((g.fs*1.5)*1.18)+'px '+PENF;c.fillText('ក្រដាសពេញហើយ',W/2,H*.36);
+    c.font=Math.round((g.fs*.95)*1.18)+'px '+PENF;c.fillText('ពិន្ទុ '+KD(g.score)+(g.newBest?' · កំណត់ត្រាថ្មី!':' · ល្អបំផុត '+KD(g.best)),W/2,H*.36+g.fs*1.8);
     const bw=g.fs*9,bh=g.fs*2.5,bx=W/2-bw/2,by=H*.36+g.fs*4.2;g.btn={x:bx,y:by,w:bw,h:bh};
     c.fillStyle=g.ink;c.beginPath();c.roundRect?c.roundRect(bx,by,bw,bh,bh/2):c.rect(bx,by,bw,bh);c.fill();
-    c.fillStyle='#f2ecdc';c.font='700 '+Math.round(g.fs*1.05)+'px system-ui,sans-serif';c.textBaseline='middle';c.fillText('Play again',W/2,by+bh/2+1);c.textBaseline='alphabetic';
-    c.fillStyle=g.ink;c.globalAlpha=.6;c.font='500 '+Math.round(g.fs*.8)+'px system-ui,sans-serif';c.fillText('or press any key',W/2,by+bh+g.fs*1.3);c.globalAlpha=1}
+    c.fillStyle='#f2ecdc';c.font=Math.round((g.fs*1.05)*1.18)+'px '+PENF;c.textBaseline='middle';c.fillText('លេងម្ដងទៀត',W/2,by+bh/2+1);c.textBaseline='alphabetic';
+    c.fillStyle=g.ink;c.globalAlpha=.6;c.font=Math.round((g.fs*.8)*1.18)+'px '+PENF;c.fillText('ឬចុចគ្រាប់ចុចណាមួយ',W/2,by+bh+g.fs*1.3);c.globalAlpha=1}
 }
 function gameHint(){
   const fan=$('fan');if(!fan)return;fan.querySelectorAll('.slug.hint').forEach(e=>e.classList.remove('hint'));
