@@ -204,7 +204,7 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 [data-keys=pen] .head::before{box-shadow:none}
 /* kids: candy-coloured round keys, one colour per row, on a sunny polka-dot mat */
 [data-keys=kid] .rail{--brass:#ff7eb6;background:radial-gradient(circle,#ffe08a 0 2px,transparent 2.6px) 0 0/22px 22px,radial-gradient(circle,#b8e6ff 0 2px,transparent 2.6px) 11px 11px/22px 22px,#fff6dc}
-[data-keys=kid] .slug{border-radius:42%;background:var(--kc,#ffd1e3);box-shadow:inset 0 -3px 0 rgba(0,0,0,.08),0 3px 0 var(--kd,#f39ac0),0 5px 8px rgba(120,60,120,.18)}
+[data-keys=kid] .slug{border-radius:22%;background:var(--kc,#ffd1e3);box-shadow:inset 0 -3px 0 rgba(0,0,0,.08),0 3px 0 var(--kd,#f39ac0),0 5px 8px rgba(120,60,120,.18)}
 [data-keys=kid] .slug::before{display:none}
 [data-keys=kid] .slug::after{left:18%;right:45%;top:12%;height:12%;border-radius:9px;background:rgba(255,255,255,.75)}
 [data-keys=kid] .slug b{color:#5a2d82;font-weight:800}
@@ -213,6 +213,23 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 [data-keys=kid] .tbar[data-r="4"]{--kc:#e4d4ff;--kd:#b89af0}[data-keys=kid] .tbar[data-r="5"]{--kc:#ffd9c2;--kd:#f5a477}
 [data-keys=kid] .tbar.hot .slug{box-shadow:inset 0 -3px 0 rgba(0,0,0,.08),0 1px 0 var(--kd)}
 [data-keys=kid] .slug.on{background:#ff7eb6}[data-keys=kid] .slug.on b{color:#fff}
+/* older kids: dark slate keys with a neon edge, one colour per row, on a dark grid mat */
+[data-keys=teen] .rail{--brass:#3df0ff;background:linear-gradient(rgba(61,240,255,.06) 1px,transparent 1px) 0 0/18px 18px,linear-gradient(90deg,rgba(61,240,255,.06) 1px,transparent 1px) 0 0/18px 18px,#121421}
+[data-keys=teen] .slug{border-radius:14%;background:linear-gradient(#262b42,#1a1d2e);box-shadow:inset 0 0 0 1.6px var(--nc,#3df0ff),0 0 8px -1px var(--nc,#3df0ff),0 3px 0 #0a0b13}
+[data-keys=teen] .slug::before{display:none}[data-keys=teen] .slug::after{left:12%;right:12%;top:8%;height:6%;background:rgba(255,255,255,.12)}
+[data-keys=teen] .slug b{color:#f2f6ff;font-weight:800;text-shadow:0 0 6px var(--nc,#3df0ff)}
+[data-keys=teen] .tbar[data-r="0"]{--nc:#ff4fd8}[data-keys=teen] .tbar[data-r="1"]{--nc:#ffb21f}[data-keys=teen] .tbar[data-r="2"]{--nc:#7dff6b}
+[data-keys=teen] .tbar[data-r="3"]{--nc:#3df0ff}[data-keys=teen] .tbar[data-r="4"]{--nc:#a98bff}[data-keys=teen] .tbar[data-r="5"]{--nc:#ff7a59}
+[data-keys=teen] .tbar.hot .slug{background:#2f3555;box-shadow:inset 0 0 0 2px var(--nc),0 0 16px 2px var(--nc)}
+[data-keys=teen] .slug.on{background:var(--nc,#3df0ff)}[data-keys=teen] .slug.on b{color:#121421;text-shadow:none}
+[data-keys=teen] .arm::before{width:1.4px;background:#3df0ff;opacity:.35;box-shadow:0 0 4px #3df0ff}
+[data-keys=teen] .fan svg path[stroke="#0b0a09"]{stroke:#3df0ff;opacity:.05}
+[data-keys=teen] .platen{background:linear-gradient(#2a2f4a,#161827);box-shadow:inset 0 0 0 1.4px #3df0ff,0 0 10px rgba(61,240,255,.35)}
+[data-keys=teen] .knob{background:radial-gradient(circle at 38% 32%,#4a5170,#161827);box-shadow:0 0 0 1.5px #ff4fd8}
+[data-keys=teen] .spool{background:radial-gradient(circle,#3df0ff 0 2px,transparent 2.5px),repeating-conic-gradient(#1a1d2e 0 20deg,#ff4fd8 20deg 26deg);box-shadow:0 0 0 1.5px #3df0ff}
+[data-keys=teen] .slug.hint{background:#f2f6ff;animation:thint .5s ease-in-out infinite alternate!important}
+[data-keys=teen] .slug.hint b{color:#121421;text-shadow:none}
+@keyframes thint{from{box-shadow:0 0 0 2px #fff,0 0 10px 3px var(--nc,#3df0ff)}to{box-shadow:0 0 0 3px #fff,0 0 22px 8px var(--nc,#3df0ff)}}
 /* the key to press next: kids get a bright white key with a pulsing pink and gold glow; ballpoint keys a yellow highlighter mark */
 [data-keys=kid] .slug.hint{background:#fff;animation:khint .55s ease-in-out infinite alternate!important}
 [data-keys=kid] .slug.hint b{color:#ff2f7a}
@@ -244,6 +261,7 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 .tools.more .main{display:none} /* page one: the two games; page two, after >: writing and the other tools */
 .tb.main{flex:0 1 auto;max-width:none;width:auto;display:inline-flex;align-items:center;gap:7px;padding:0 16px;margin:0 3px;border-radius:999px;font:600 14px var(--ui),"Noto Sans Khmer";white-space:nowrap}
 .tb.main.on{background:rgba(255,236,190,.14);filter:none}
+.tb.kidb{font-size:13px}
 .tb.spd{font-size:13px;color:var(--tool);border:1px solid rgba(255,255,255,.14)}
 @media (max-width:400px){ /* narrow phones (many Androids are 360 px): slightly smaller tools so every one fits */
   .tb{min-width:25px}.tb svg.i{width:23px;height:23px}.tools .div{margin:0 2px}.tools{padding-inline:6px}.chassis{padding-inline:6px}.tb.main{padding:0 12px}}
@@ -1297,6 +1315,7 @@ function renderTools(){
   tools.innerHTML=`<button class="tb chev${S.more?' on':''}" data-t="chev" aria-label="${S.more?'Back to the games':'More: writing page and tools'}" title="${S.more?'Games':'More'}">${svg(IC.chev)}</button>`+
     `<button class="tb main${gm==='lesson'?' on':''}" data-t="glearn" aria-label="Lesson games" title="Play the lessons as a game">${svg(IC.learn)}<span>មេរៀន</span></button>`+
     `<button class="tb main${gm==='play'?' on':''}" data-t="gplay" aria-label="Play Ink Archer" title="Play">${svg(IC.game)}<span>លេង</span></button>`+
+    `<button class="tb main kidb${S.kidmode==='young'||S.kidmode==='older'?' on':''}" data-t="kid" aria-label="Kids mode: ${S.kidmode==='young'?'young kids':S.kidmode==='older'?'older kids':'off'}. Tap to change" title="Kids mode">${S.kidmode==='young'?'🧸 ក្មេង':S.kidmode==='older'?'🎮 យុវវ័យ':'🧸'}</button>`+
     `<button class="tb main${openPanel==='gset'?' open':''}" data-t="gset" aria-label="Game settings: speed, keys, layout and theme" title="Game settings">${svg(IC.set)}</button>`+
     `<button class="tb fold${!G&&!D?' on':''}" data-t="write" aria-label="Writing page" title="Writing page">${svg(IC.write)}</button><span class="div fold"></span>`+
     `<button class="tb fold" data-t="tutor" aria-label="Keyboard tutor (ហាត់វាយ)" title="Keyboard tutor">${svg(IC.tutor)}</button>`+
@@ -1338,6 +1357,12 @@ window.addEventListener('progresssync',()=>{ /* Ink Archer bests from the accoun
 tools.addEventListener('click',e=>{
   const b=e.target.closest('.tb');if(!b)return;const id=b.dataset.t,t=TOOLS.find(x=>x&&x.id===id);audio();
   if(id==='chev'){S.more=!S.more;closePanel()}
+  else if(id==='kid'){ /* off → young kids → older kids → off; the grown-up look comes back when it is turned off */
+    const nx=S.kidmode==='young'?'older':S.kidmode==='older'?'off':'young';
+    if(!S.kidmode||S.kidmode==='off')S.kidPrev={keys:S.keys,gtheme:S.gtheme||'pen'};
+    S.kidmode=nx;if(nx==='young'){S.keys='kid';S.gtheme='kid'}else if(nx==='older'){S.keys='teen';S.gtheme='pen'}else{const pv=S.kidPrev||{};S.keys=pv.keys||'ivory';S.gtheme=pv.gtheme||'pen';S.kidPrev=null}
+    applyLook();save();closePanel();toast(nx==='young'?'🧸 ក្មេង · Young kids':nx==='older'?'🎮 យុវវ័យ · Older kids':'Kids mode off');
+    if(G){const was=G.mode;exitGame();startGame({mode:was})}renderTools();return}
   else if(id==='gset'){openPanel==='gset'?closePanel():showPanel('gset');return}
   else if(id==='gspeed'){const old=gSpd();S.gspeed=S.gspeed==='fast'?'slow':'fast';const k=gSpd()/old;
     if(G){G.sp*=k;G.words.forEach(w=>{if(!w.boss)w.vy*=k});if(G.interval)G.interval/=k}
@@ -1364,7 +1389,7 @@ function showPanel(id){
   else if(id==='sound')panel.innerHTML=`<h4>Sounds</h4><div class="rowset">${[['sound','Key sounds'],['bell','Margin bell']].map(([k,l])=>`<button class="chip${S[k]?' sel':''}" data-a="tog" data-v="${k}" aria-pressed="${!!S[k]}">${l}: ${S[k]?'on':'off'}</button>`).join('')}</div>`;
   else if(id==='gset'){const ch=(a,v,on,l)=>`<button class="chip${on?' sel':''}" data-a="${a}" data-v="${v}">${l}</button>`;
     panel.innerHTML=`<h4>ល្បឿន · Speed</h4><div class="rowset">${ch('gspd','slow',S.gspeed!=='fast'&&S.gspeed!=='normal','🐢 យឺត · Slow')}${ch('gspd','normal',S.gspeed==='normal','🚶 ធម្មតា · Normal')}${ch('gspd','fast',S.gspeed==='fast','⚡ លឿន · Fast')}</div>
-    <h4>គ្រាប់ចុច · Keys</h4><div class="rowset">${[['ivory','Ivory'],['black','Black'],['pen','🖊 Ballpoint'],['kid','🧸 Kids']].map(([k,l])=>ch('keys',k,S.keys===k,l)).join('')}</div>
+    <h4>គ្រាប់ចុច · Keys</h4><div class="rowset">${[['ivory','Ivory'],['black','Black'],['pen','🖊 Ballpoint'],['kid','🧸 Young kids'],['teen','🎮 Older kids']].map(([k,l])=>ch('keys',k,S.keys===k,l)).join('')}</div>
     <h4>ប្លង់ · Layout</h4><div class="rowset">${ch('flat','0',!S.flat,'◠ Curved')}${ch('flat','1',!!S.flat,'▭ Straight rows')}</div>
     <h4>ស្បែកហ្គេម · Game theme</h4><div class="rowset">${ch('gtheme','pen',S.gtheme!=='kid','🖊 Ballpoint')}${ch('gtheme','kid',S.gtheme==='kid','🧸 Kids')}</div>`}
   else if(id==='timer')panel.innerHTML=`<h4>Writing timer</h4><div class="rowset">${[5,10,15,25,45].map(m=>`<button class="chip" data-a="timer" data-v="${m}">${m} min</button>`).join('')}${timerEnd?'<button class="chip sel" data-a="timer" data-v="0">Stop timer</button>':''}</div>`;
@@ -1378,7 +1403,7 @@ function showPanel(id){
     <div class="field"><label for="sMove">Moving paper<small>The page slides past the print point like a real carriage. Turn off to keep the page still</small></label><input type="checkbox" id="sMove"${S.fixedPaper?'':' checked'}></div>
     <div class="field"><label for="sErase">No erasing<small>Like real paper: delete is disabled</small></label><input type="checkbox" id="sErase"${S.noErase?' checked':''}></div>
     <div class="field"><label for="sCap">Capitalize new sentences<small>On-screen keys only</small></label><input type="checkbox" id="sCap"${S.autoCap?' checked':''}></div>
-    <div class="field"><label for="sKeys">Key colour</label><select id="sKeys"><option value="ivory">Ivory</option><option value="black">Black</option><option value="pen">Ballpoint pen</option><option value="kid">Kids</option></select></div>
+    <div class="field"><label for="sKeys">Key colour</label><select id="sKeys"><option value="ivory">Ivory</option><option value="black">Black</option><option value="pen">Ballpoint pen</option><option value="kid">Young kids</option><option value="teen">Older kids</option></select></div>
     <div class="field"><label for="sPred">Word prediction<small>Floats the likely next words above the keys</small></label><input type="checkbox" id="sPred"${S.pred?' checked':''}></div>
     <div class="field"><label for="sDev">Keyboard<small>Which keyboard the type heads copy. Mac and Windows also set the Khmer key map for a physical keyboard</small></label><select id="sDev"><option value="mac">Mac</option><option value="windows">Windows PC</option><option value="ios">iPhone / iPad</option><option value="android">Android</option></select></div>`;
   if(id==='set'){const p=$('sDev');if(p)p.value=dev}
@@ -1858,8 +1883,15 @@ let gameOpts={mode:'lesson'};
 const KID_KM='ក ខ គ ឃ ង ច ឆ ជ ឈ ញ ដ ឋ ឌ ឍ ណ ត ថ ទ ធ ន ប ផ ព ភ ម យ រ ល វ ស ហ ឡ អ'.split(' ');
 let kidC=null;
 const kidCourse=()=>kidC||(kidC={units:[{id:'kletters',icon:'🔤',t:['អក្សរម្ដងមួយ','One Khmer letter at a time']},{id:'kletters-en',icon:'🔡',t:['អក្សរអង់គ្លេស','English letters']}],
-  lessons:KID_KM.map(L=>({id:'kl-'+L,unit:'kletters',icon:'',t:['អក្សរ '+L,'Letter '+L],lang:'km',make:()=>Array.from({length:12},(_,i)=>i%3?L:L+['ា','ិ','ូ','េ'][(i/3)%4]).join(' ')}))
-    .concat('abcdefghijklmnopqrstuvwxyz'.split('').map(L=>({id:'kl-'+L,unit:'kletters-en',icon:'',t:['អក្សរ '+L.toUpperCase()+' '+L,'Letter '+L],lang:'en',make:()=>Array(10).fill(L).join(' ')})))});
+  lessons:KID_KM.map((L,ix)=>({id:'kl-'+L,key:L,unit:'kletters',icon:'',t:['អក្សរ '+L,'Letter '+L],lang:'km',make:()=>kidMix(KID_KM,ix,['ា','ិ','ូ','េ'])}))
+    .concat('abcdefghijklmnopqrstuvwxyz'.split('').map((L,ix,AZ)=>({id:'kl-'+L,key:L,unit:'kletters-en',icon:'',t:['អក្សរ '+L.toUpperCase()+' '+L,'Letter '+L],lang:'en',make:()=>kidMix(AZ,ix,[])})))});
+/* the first letters are just the one key; from the fifth on, the lesson's letter also comes with a vowel or paired with a letter
+   already learned, more often the further along the child is */
+function kidMix(set,ix,vowels){const L=set[ix],out=[];if(ix<4)return Array(12).fill(L).join(' ');
+  const mix=Math.min(.6,.15+ix*.02);for(let i=0;i<14;i++){const r=Math.random();
+    if(r>mix)out.push(L);else if(vowels.length&&r<mix/2)out.push(L+vowels[Math.floor(Math.random()*vowels.length)]);
+    else{const o=set[Math.floor(Math.random()*ix)];out.push(Math.random()<.5?L+o:o+L)}}
+  return out.join(' ')}
 const gCourse=les=>les&&String(les.id||les).startsWith('kl-')?kidCourse():getCourse();
 /* two speeds for both games: slow is 30% slower than the standard pace, fast 30% faster (fall speed and the gap between words) */
 const gSpd=()=>S.gspeed==='fast'?1.3:S.gspeed==='normal'?1:.7; /* normal is the standard pace */
@@ -1899,7 +1931,8 @@ function nextWave(){
 /* the first levels use the words people type most in everyday messages, at school and at work */
 const DAILY_KM='សួស្តី អរគុណ ផ្កា បេះដូង បាទ ចាស ទេ មែន ល្អ បាន អត់ មិន ទៅ មក នៅ ធ្វើ ញ៉ាំ បាយ ទឹក ផឹកទឹក ផឹកកាហ្វេ ដេក ព្រឹក ល្ងាច យប់ ថ្ងៃនេះ ស្អែក ម្សិលមិញ ម៉ោង នាទី ឥឡូវ ឆាប់ យឺត ចាំ ជួប ដឹង យល់ សួរ ឆ្លើយ ប្រាប់ ហៅ ផ្ញើ សារ ទូរស័ព្ទ លេខ រូប ផ្ទះ គ្រួសារ ម្ដាយ ឪពុក បង ប្អូន កូន មិត្ត សាលា រៀន គ្រូ សិស្ស ថ្នាក់ មេរៀន សៀវភៅ ប៊ិច ប្រឡង លំហាត់ កិច្ចការ ការងារ ធ្វើការ ប្រជុំ ការិយាល័យ ឯកសារ គម្រោង ប្រធាន ក្រុម អ៊ីមែល កុំព្យូទ័រ លុយ ទិញ លក់ ផ្សារ ហាង ផ្លូវ ឡាន ម៉ូតូ ជួយ ត្រូវការ ចង់ អាច សុំទោស មិនអីទេ រីករាយ នឹក ស្រលាញ់ សុខសប្បាយ ឈឺ សម្រាក សប្ដាហ៍ ខែ ឆ្នាំ ថ្មី ចាស់ ធំ តូច ច្រើន តិច ពិតជា ហើយ ទៀត អ្នក ខ្ញុំ យើង គាត់ ពួកគេ នេះ នោះ ណា អ្វី ហេតុអ្វី យ៉ាងម៉េច ពេលណា នៅឯណា ប៉ុន្មាន ចប់ ចាប់ផ្ដើម បើក បិទ ដើរ រត់ អង្គុយ ឈរ មើល ស្ដាប់ និយាយ សរសេរ អាន គិត ភ្លេច ចងចាំ ព្យាយាម បញ្ចប់ ពិនិត្យ កែ ចែក ទទួល ផ្ដល់ រង់ចាំ ត្រឡប់ ចេញ ចូល ឡើង ចុះ ថ្ងៃ ពេល ម្ហូប កាហ្វេ តែ ថ្លៃ ថោក ស្អាត កខ្វក់ ក្ដៅ ត្រជាក់ ភ្លៀង ថ្ងៃត្រង់ ពេលព្រឹក អាហារ ប្រាក់ខែ អតិថិជន ក្រុមហ៊ុន បុគ្គលិក សំណួរ ចម្លើយ កាលវិភាគ ព័ត៌មាន ឯកសារភ្ជាប់ ទំនាក់ទំនង'.split(' ');
 const DAILY_EN='hi hello thanks heart flower thank yes no ok okay please sorry good morning night today tomorrow tonight school class teacher student homework study lesson test exam book pen work office meeting email phone call text send reply team boss lunch dinner home family friend mom dad love miss see you soon later busy free time help need want know ask answer project report file plan done ready late early bus car money shop buy pay week day month we they he she it this that what why how when where who which can will would should could just also still very really sure maybe great nice cool fine sick tired happy sad hungry coffee tea food water class notes slides deadline update check share upload download print sign meet join leave start finish wait open close bring take give get'.split(' ');
-const gamePool=()=>{const g=G;if(g.mode==='lesson'&&g.lesWords&&g.lesWords.length)return g.lesWords;if(g.level<=3){if(!g.daily){const d=(S.lang==='km'?DAILY_KM.filter(w=>[...w].every(c=>typable(c))):DAILY_EN).slice();for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}g.daily=d.slice(0,60)} /* a fresh 60 of the everyday words each game */
+const gamePool=()=>{const g=G;if(g.mode==='lesson'&&g.les&&g.les.key&&g.lw<=1)return [g.les.key]; /* kids: the first wave is just the one key */
+  if(g.mode==='lesson'&&g.lesWords&&g.lesWords.length)return g.lesWords;if(g.level<=3){if(!g.daily){const d=(S.lang==='km'?DAILY_KM.filter(w=>[...w].every(c=>typable(c))):DAILY_EN).slice();for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}g.daily=d.slice(0,60)} /* a fresh 60 of the everyday words each game */
   if(g.daily.length>=20)return g.daily}return g.pool};
 function spawnWord(){
   const g=G,cx=g.cx;cx.font=g.font;
