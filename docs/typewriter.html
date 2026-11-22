@@ -874,10 +874,10 @@ function follow(smooth=true){
   const m=mark.getBoundingClientRect(),r=scroll.getBoundingClientRect();
   const top=Math.max(0,Math.round(m.bottom-r.top+scroll.scrollTop-anchor+3));
   if(Math.abs(top-scroll.scrollTop)>1){
-    if(follow.feed){ /* Return: the whole sheet rolls up one line, lamp light and all, instead of the text sliding inside it */
-      const dy=top-scroll.scrollTop;scroll.scrollTo({top,behavior:'auto'});pageEl=pageEl||$('page');
-      if(pageEl._feed)pageEl._feed.cancel();pageEl._feed=pageEl.animate([{translate:'0 '+dy+'px'},{translate:'0 0'}],{duration:280,easing:'cubic-bezier(.3,.7,.35,1)'})}
-    else scroll.scrollTo({top,behavior:smooth?'smooth':'auto'})}
+    /* a new line: jump the text into place at once (never a slow smooth scroll that hides the line being typed),
+       and let the whole sheet slide the last bit up quickly so it reads as the paper moving */
+    const dy=top-scroll.scrollTop;scroll.scrollTo({top,behavior:'auto'});pageEl=pageEl||$('page');
+    if(smooth&&dy>0&&dy<r.height*.6){if(pageEl._feed)pageEl._feed.cancel();pageEl._feed=pageEl.animate([{translate:'0 '+Math.round(dy)+'px'},{translate:'0 0'}],{duration:120,easing:'ease-out'})}}
   const x=Math.min(Math.max(m.left-r.left,12),r.width-12);
   /* the head stays at the print point, the middle of the frame; the page slides so the caret sits under it.
      Small moves step like the escapement, a long one back is the carriage return */
@@ -919,8 +919,8 @@ function onChange(kind){
   const n=count();
   if(lastN<S.goal&&n>=S.goal&&kind){play('bell');toast('Goal reached: '+n.toLocaleString('en-US')+' '+(S.unit==='words'?'words':'characters'))}
   lastN=n;pointing=false;
-  follow.feed=kind==='return';
-  const frac=follow(true);follow.feed=false;
+
+  const frac=follow(true);
   if(kind==='key'||kind==='space'||kind==='back')stamp(kind);
   if(kind==='key'&&bellArmed&&frac>.86){bellArmed=false;play('bell')}
   play(kind);autoShift();suggest();
