@@ -1937,7 +1937,7 @@ function gameBurst(w){ /* the last arrow: the word breaks into its letters, and 
     if(T===3)g.rings.push({x:w.x+w.ox,y:cy,t:0,max:w.w*.7+g.s*2,rays:0,delay:.1})}
   g.blots.push({x:w.x,y:w.y,r:w.w*[.25,.35,.5,.7][T],a:.55});
   g.floats.push({x:w.x,y:w.y-g.fs,t:0,txt:'+'+KD(w.ch.length*15),big:T});
-  const em=gEmoji(w.t);if(em){const n=6+T*3;(g.emo=g.emo||[]);for(let i=0;i<n;i++){const an=-1.5708+(Math.random()-.5)*2.2,v=(90+Math.random()*150)*(.8+T*.15);
+  const em0=gEmoji(w.t);if(em0){const k0=Math.floor(Math.random()*em0.length),em=Math.random()<.5?[em0[k0]]:[em0[k0],em0[(k0+1)%em0.length]],n=3+Math.min(T,2); /* a small group of one or two kinds */(g.emo=g.emo||[]);for(let i=0;i<n;i++){const an=-1.5708+(Math.random()-.5)*2.2,v=(90+Math.random()*150)*(.8+T*.15);
     g.emo.push({e:em[i%em.length],x:w.x+w.ox+(Math.random()-.5)*w.w*.5,y:cy,vx:Math.cos(an)*v,vy:Math.sin(an)*v,r:(Math.random()-.5)*.6,vr:(Math.random()-.5)*3,sz:g.fs*(.8+Math.random()*.55),t:0,life:1.5+Math.random()*.6})}}
   g.shake=Math.max(g.shake,[.04,.1,.2,.34][T]);if(T===3)g.flash=.3;if(w.boss)bossWordKilled(w);gameHint();
 }
@@ -2300,7 +2300,7 @@ function gameDraw(){
     for(let k=0;k<r.rays;k++){const an=k/r.rays*6.283+.2;c.beginPath();c.moveTo(r.x+Math.cos(an)*rr*.55,r.y+Math.sin(an)*rr*.55);c.lineTo(r.x+Math.cos(an)*rr*1.05,r.y+Math.sin(an)*rr*1.05);c.stroke()}}
   c.globalAlpha=1;
   for(const b of g.bits){c.globalAlpha=Math.max(0,b.a);c.beginPath();c.arc(b.x,b.y,b.r,0,6.283);c.fill()}c.globalAlpha=1;
-  if(g.emo&&g.emo.length){c.textAlign='center';c.textBaseline='middle';for(const e of g.emo){c.save();c.globalAlpha=gClamp((e.life-e.t)/.5,0,1)*gClamp(e.t/.08,0,1);c.translate(e.x,e.y);c.rotate(e.r);
+  if(g.emo&&g.emo.length){c.textAlign='center';c.textBaseline='middle';for(const e of g.emo){c.save();c.globalAlpha=.6*gClamp((e.life-e.t)/.5,0,1)*gClamp(e.t/.08,0,1);c.translate(e.x,e.y);c.rotate(e.r);
     const k=Math.min(1,e.t/.15);c.font=Math.round(e.sz*(.5+.5*k))+'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';c.fillText(e.e,0,0);c.restore()}c.textBaseline='alphabetic';c.textAlign='left'}
   for(const f of g.floats){c.globalAlpha=1-f.t;c.fillStyle=g.acc;c.font=Math.round(g.fs*(.62+(f.big||0)*.12))+'px '+PENF;c.textAlign='center';
     const k=Math.min(1,f.t/.12);c.save();c.translate(f.x+Math.sin(f.t*9+f.x)*4,f.y-f.t*34);c.scale(.6+.4*k,.6+.4*k);gTxt(c,f.txt,0,0);c.restore()}c.globalAlpha=1;
