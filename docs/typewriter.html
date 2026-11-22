@@ -708,7 +708,7 @@ function fnItems(){const a=[['fn:shift',1]];if(isPhone())a.push(['fn:num',1]);el
   a.push(['fn:globe',1],['fn:space',khanKey?3:4]);if(khanKey)a.push(['fn:khan',1]);a.push(['fn:back',2],['fn:enter',1]);return a}
 function buildBars(){
   const fan=$('fan'),rail=fan&&fan.parentElement;if(!rail)return;
-  const W=rail.clientWidth;if(!W||Math.abs(W-fanW)<2&&fan.childElementCount&&fanKey===headKey())return;fanW=W;fanKey=headKey();
+  const W=rail.clientWidth;if(!W||Math.abs(W-fanW)<2&&fan.childElementCount&&fanKey===headKey())return;const prevW=fanW,prevKey=fanKey;fanW=W;fanKey=headKey();
   /* the basket: five concentric half rings centred on the print point. The four rows of letter keys sit on the inner
      four, the number row innermost; the shift, option, language, space, delete and return heads sit on the outer one.
      Heads are packed close along each ring. Every bar runs to the print point and pivots halfway, so a struck head
@@ -768,7 +768,11 @@ function buildBars(){
     if(L.ext<=half&&L.maxY+sh*(lnd?1.4:.8)<=hmax)break;
   }
   if(!lay)lay=fb;
-  if(!lay){fanW=0;fanKey='';return} /* nothing fitted yet (the page is still laying out): try again on the next pass */
+  if(!lay){ /* nothing fits at this moment (the page is mid-resize): keep the key set that works and try again shortly.
+     Marking the set as gone used to stop the whip and the key labels for good, as nothing tried again */
+    if(fan.childElementCount){fanW=prevW;fanKey=prevKey}else{fanW=0;fanKey=''}
+    clearTimeout(buildBars.t);if((buildBars.n=(buildBars.n||0)+1)<20)buildBars.t=setTimeout(()=>{fanKey='';buildBars();layout()},400);return}
+  buildBars.n=0;
   /* phones: stretch the whole layout sideways so its widest row reaches both edges of the screen. Every other row stretches by
      the same amount, so the rows keep their proportions; heads widen with it. Portrait is already width-limited, so this only
      takes up the last pixels there; in landscape the height limits the heads and the stretch carries them out to the sides. */
@@ -810,7 +814,7 @@ function paintBars(){
   renderPreds();
 }
 function whip(ch){
-  if(!ch||!fanW)return;
+  if(!ch)return;
   const ids=Object.keys(barEl).filter(k=>!k.startsWith('fn:')),f=[...ch][0];
   let c=ids.find(k=>headChar(k)===ch)||ids.find(k=>headChar(k)===f);
   if(!c&&!isPhone()){const M=barMap();c=ids.find(k=>M[k]&&M[k].includes(ch))||ids.find(k=>M[k]&&M[k].includes(f));
