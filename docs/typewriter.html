@@ -661,12 +661,23 @@ function noise(dur,freq,q,gain,when=0){const a=audio();if(!a)return;const n=Math
   for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,3);
   const s=a.createBufferSource();s.buffer=b;const f=a.createBiquadFilter();f.type='bandpass';f.frequency.value=freq;f.Q.value=q;
   const g=a.createGain();g.gain.value=gain;s.connect(f);f.connect(g);g.connect(a.destination);s.start(a.currentTime+when)}
-function ding(when=0){const a=audio();if(!a)return;const t=a.currentTime+when;[[2093,.22],[4186,.07],[5274,.04]].forEach(([hz,v])=>{
+function ding(when=0){if(kidSnd()){[1568,2093,2637].forEach((f,i)=>tone(f,f,.35,.07,'sine',when+i*.08));return} /* kids: a little glockenspiel sparkle */
+  const a=audio();if(!a)return;const t=a.currentTime+when;[[2093,.22],[4186,.07],[5274,.04]].forEach(([hz,v])=>{
   const o=a.createOscillator(),g=a.createGain();o.frequency.value=hz;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+1.3);
   o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+1.35)})}
+/* young kids mode and the kids game: soft, round sine-wave sounds on a happy five-note scale instead of clacks and bangs */
+const kidSnd=()=>S.kidmode==='young'||S.gtheme==='kid';
+const PENTA=[1047,1175,1319,1568,1760],pn=()=>PENTA[Math.floor(Math.random()*PENTA.length)];
+const arp=(fs,gap=.06,dur=.16,v=.07)=>fs.forEach((f,i)=>tone(f,f*1.02,dur,v,'sine',i*gap));
 function play(kind){
   if(kind==='bell'){if(S.bell)ding();return}
   if(!S.sound||!kind)return;
+  if(kidSnd()){
+    if(kind==='key'){const f=pn();tone(f,f*1.25,.09,.08,'sine');tone(f*2,f*2.4,.05,.015,'sine')}
+    else if(kind==='space')tone(392,587,.13,.07,'sine');
+    else if(kind==='back')tone(660,440,.11,.06,'sine');
+    else if(kind==='return'){arp([784,988,1175,1568]);if(S.bell)ding(.28)}
+    return}
   if(kind==='key'){noise(.035,2400+Math.random()*700,1.2,.55);noise(.05,320,1,.5)}
   else if(kind==='space'){noise(.07,650,.8,.65)}
   else if(kind==='back'){noise(.04,1500,1,.35)}
@@ -680,6 +691,20 @@ function tone(f0,f1,dur,gain,type='triangle',when=0){const a=audio();if(!a)retur
   g.gain.setValueAtTime(gain,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+dur+.02)}
 function gsound(k){
   if(!S.sound)return;
+  if(kidSnd()){
+    if(k==='shoot')tone(520,940,.08,.07,'sine');
+    else if(k==='weak')tone(420,300,.13,.05,'sine');
+    else if(k==='hit')tone(760,1180,.06,.08,'sine');
+    else if(k==='break')arp([659,784,988,1319],.05,.14,.07);
+    else if(k==='pop')tone(900,1450,.06,.07,'sine');
+    else if(k==='boom')arp([523,659,784,1047,1319],.05,.2,.08);
+    else if(k==='blast')arp([523,659,784,1047,1319,1568],.045,.26,.08);
+    else if(k==='combo')arp([988,1319],.07,.14,.07);
+    else if(k==='lose'){tone(520,440,.14,.06,'sine');tone(440,370,.18,.06,'sine',.13)}
+    else if(k==='power')arp([523,659,784,1047,1319,1568],.06,.2,.07);
+    else if(k==='hurt'){tone(320,190,.2,.09,'sine');tone(640,380,.2,.03,'sine')}
+    else if(k==='dirt')tone(210,170,.05,.035,'sine');
+    return}
   if(k==='shoot'){tone(660,260,.16,.2,'triangle');tone(1320,520,.1,.06,'sine');noise(.14,2600,.7,.28,.01)}
   else if(k==='weak'){tone(300,150,.14,.09,'triangle');noise(.16,900,.8,.16)}
   else if(k==='hit'){tone(150,55,.11,.5,'sine');noise(.05,1500,2,.4)}
