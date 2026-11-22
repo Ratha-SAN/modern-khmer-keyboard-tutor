@@ -84,6 +84,9 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 .scroll{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;overscroll-behavior:contain;cursor:text;
   -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 78px);mask-image:linear-gradient(to bottom,transparent 0,#000 78px)}
 .scroll::-webkit-scrollbar{display:none}
+/* a faint paper grain that belongs to the sheet, so a line feed reads as the paper itself rolling up */
+.scroll{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='1' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .25 0 0 0 0 .18 0 0 0 .55 -.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px 200px;background-attachment:local}
+.game .scroll{background-image:none}
 .focus .scroll{
   -webkit-mask-image:linear-gradient(to bottom,transparent 0,rgba(0,0,0,.14) 60px,rgba(0,0,0,.14) calc(var(--anchor) - 5.2em),#000 calc(var(--anchor) - 2.4em));
   mask-image:linear-gradient(to bottom,transparent 0,rgba(0,0,0,.14) 60px,rgba(0,0,0,.14) calc(var(--anchor) - 5.2em),#000 calc(var(--anchor) - 2.4em))}
@@ -828,7 +831,8 @@ function whipEl(e){
   slug._a=slug.animate(K.map(([d,o,ea])=>({transform:`rotateX(${-d}deg) rotate(${up})`,offset:o,...(ea?{easing:ea}:{})})),{duration:210});
   const k=Math.min(1,Math.max(.35,(S.size*1.3)/Math.max(1,slug.offsetHeight)));
   if(slug._s)slug._s.cancel();
-  slug._s=slug.animate([{scale:1},{scale:1,offset:.26},{scale:k,offset:.3},{scale:k,offset:.42},{scale:1,offset:.52},{scale:1}],{duration:210});
+  /* the head draws in as it swings up, from its own size to just over the letter's, meets the paper at that size and grows back on the way down */
+  slug._s=slug.animate([{scale:1},{scale:1,offset:.06},{scale:k,offset:.3},{scale:k,offset:.42},{scale:1,offset:.72},{scale:1}],{duration:210});
   arm._a=arm.animate([
     {transform:X(0),easing:'ease-out'},
     {transform:X(-6),offset:.06,easing:'cubic-bezier(.75,0,1,.8)'},
