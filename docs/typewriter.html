@@ -668,6 +668,15 @@ function ding(when=0){if(kidSnd()){[1568,2093,2637].forEach((f,i)=>tone(f,f,.35,
   o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+1.35)})}
 /* young kids mode and the kids game: soft, round sine-wave sounds on a happy five-note scale instead of clacks and bangs */
 const kidSnd=()=>S.kidmode==='young'||S.gtheme==='kid';
+/* the game's voice: letter names and a few cheers, made once with a local text-to-speech model (Meta MMS-TTS for Khmer, the Mac's
+   voice for English) and kept as small files in voice/. Loaded on first use, played through the same audio as the sounds */
+const VOX={},voxOn=()=>S.voice!==false&&S.sound!==false;let voxBusy=0;
+function voxName(ch){if(!ch)return null;const c=[...ch][0];if(c>='\u1780'&&c<='\u17A2'&&c!=='\u178d')return 'km-'+c.codePointAt(0).toString(16).padStart(4,'0');
+  const l=c.toLowerCase();return l>='a'&&l<='z'?'en-'+l:null}
+function vox(name,vol=1,force){if(!name||!voxOn())return;const a=audio();if(!a)return;const now=a.currentTime;if(!force&&now<voxBusy)return;
+  const go=b=>{const s=a.createBufferSource(),g=a.createGain();g.gain.value=.9*vol;s.buffer=b;s.connect(g);g.connect(a.destination);s.start();voxBusy=a.currentTime+Math.min(b.duration,.45)};
+  const v=VOX[name];if(v&&v.buf){go(v.buf);return}if(v)return;
+  VOX[name]={};fetch('voice/'+name+'.mp3').then(r=>r.ok?r.arrayBuffer():Promise.reject()).then(x=>a.decodeAudioData(x)).then(b=>{VOX[name].buf=b;if(G)go(b)}).catch(()=>{})}
 /* background music for the games: three little loops made on the fly (no files), soft and quiet, on or off in Game settings */
 const TRACKS={happy:{n:'🎈 សប្បាយ · Happy',bpm:118,mel:[72,76,79,76,74,77,81,77,72,76,79,84,81,79,76,74],bass:[48,0,55,0,53,0,55,0,48,0,55,0,50,0,55,0],w:'triangle'},
   calm:{n:'🌙 ស្ងប់ · Calm',bpm:72,mel:[76,0,79,0,74,0,72,0,76,0,81,0,79,0,0,0],bass:[48,0,0,0,53,0,0,0,55,0,0,0,52,0,0,0],w:'sine'},
@@ -1431,6 +1440,7 @@ function showPanel(id){
     panel.innerHTML=`<h4>ល្បឿន · Speed</h4><div class="rowset">${ch('gspd','slow',S.gspeed!=='fast'&&S.gspeed!=='normal','🐢 យឺត · Slow')}${ch('gspd','normal',S.gspeed==='normal','🚶 ធម្មតា · Normal')}${ch('gspd','fast',S.gspeed==='fast','⚡ លឿន · Fast')}</div>
     <h4>គ្រាប់ចុច · Keys</h4><div class="rowset">${[['ivory','Ivory'],['black','Black'],['pen','🖊 Ballpoint'],['kid','🧸 Young kids'],['teen','🎮 Older kids']].map(([k,l])=>ch('keys',k,S.keys===k,l)).join('')}</div>
     <h4>ប្លង់ · Layout</h4><div class="rowset">${ch('flat','0',!S.flat,'◠ Curved')}${ch('flat','1',!!S.flat,'▭ Straight rows')}</div>
+    <h4>សំឡេងហៅ · Voice</h4><div class="rowset">${ch('voice','1',S.voice!==false,'🗣 On')}${ch('voice','0',S.voice===false,'🔇 Off')}</div>
     <h4>តន្ត្រី · Music</h4><div class="rowset">${ch('music','off',!TRACKS[S.music],'🔇 Off')}${Object.keys(TRACKS).map(k=>ch('music',k,S.music===k,TRACKS[k].n)).join('')}</div>
     <h4>ស្បែកហ្គេម · Game theme</h4><div class="rowset">${ch('gtheme','pen',S.gtheme!=='kid','🖊 Ballpoint')}${ch('gtheme','kid',S.gtheme==='kid','🧸 Kids')}</div>`}
   else if(id==='timer')panel.innerHTML=`<h4>Writing timer</h4><div class="rowset">${[5,10,15,25,45].map(m=>`<button class="chip" data-a="timer" data-v="${m}">${m} min</button>`).join('')}${timerEnd?'<button class="chip sel" data-a="timer" data-v="0">Stop timer</button>':''}</div>`;
@@ -1463,6 +1473,7 @@ panel.addEventListener('click',e=>{
   else if(a==='gspd'){{const old=gSpd();S.gspeed=v;const k=gSpd()/old;if(G){G.sp*=k;G.words.forEach(w=>{if(!w.boss)w.vy*=k});if(G.interval)G.interval/=k}}save();showPanel('gset')}
   else if(a==='keys'){S.keys=v;applyLook();save();showPanel('gset')}
   else if(a==='flat'){S.flat=v==='1';save();fanKey='';buildBars();follow.n=0;layout();if(G)gameHint();showPanel('gset')}
+  else if(a==='voice'){S.voice=v==='1';save();if(S.voice)vox('combo1',1,true);showPanel('gset')}
   else if(a==='music'){S.music=v;save();audio();musicSync();showPanel('gset')}
   else if(a==='gtheme'){S.gtheme=v;save();if(G)gApplyTheme();showPanel('gset')}
   else if(a==='dl'){exportDocs([doc()],v)}
@@ -1958,7 +1969,7 @@ function startGame(opts){
   G.cx=G.cv.getContext('2d');G.mode=gameOpts.mode;G.prevLang=prevLang;
   if(les){G.les=les;G.lesWords=lessonWords(les);G.kOk=0;G.kBad=0;G.lesT0=performance.now()}
   device.classList.add('game');device.classList.toggle('nokeys',!S.osk);shift=0;mode='abc';moreOn=false;ta.value='';buildKb();paintBars();
-  gameSize();nextWave();if(les){G.bannerTxt=les.t[0];G.bannerSub=les.t[1]}else{G.bannerTxt='កម្រិត '+KD(1);G.bannerSub=SET_EN[G.th.set]+' · '+TIME_EN[G.th.time]}G.raf=requestAnimationFrame(gameTick);focusTa();gameHint();renderTools();
+  gameSize();nextWave();if(les){G.bannerTxt=les.t[0];G.bannerSub=les.t[1]}else{G.bannerTxt='កម្រិត '+KD(1);G.bannerSub=SET_EN[G.th.set]+' · '+TIME_EN[G.th.time]}G.raf=requestAnimationFrame(gameTick);focusTa();gameHint();renderTools();setTimeout(()=>vox('start',1,true),350);
 }
 function exitGame(){
   if(!G)return;cancelAnimationFrame(G.raf);if(G.prevLang&&G.prevLang!==S.lang)S.lang=G.prevLang;G=null;device.classList.remove('game','nokeys');
@@ -2029,7 +2040,7 @@ function gameInput(){
   if(!w){let b=null;for(const x of g.words)if(!x.hit&&x.t.startsWith(s)&&(!b||x.y>b.y))b=x;if(b)w=g.lock=b}
   if(w&&w.ch.slice(w.n).join('').startsWith(s)){
     /* a right key: the archer shoots, and the arrow flies true to the word */
-    const k=[...s].length;w.n+=k;g.combo++;g.kOk=(g.kOk||0)+k;const m=gMult();g.score+=10*k*m;gameTier();
+    const k=[...s].length;w.n+=k;g.combo++;g.kOk=(g.kOk||0)+k;vox(voxName(s));const m=gMult();g.score+=10*k*m;gameTier();
     const last=w.n>=w.ch.length;if(last){w.hit=true;g.lock=null;g.score+=(w.ch.length*5+Math.min(g.combo,30))*m*(w.rep?2:1)} /* a repeated word counts double */
     gameQueue('hit',w,k,last);play('key')}
   else{
@@ -2043,7 +2054,7 @@ function gameInput(){
 const gMult=()=>{const g=G,c=g.combo;return (c>=24?4:c>=14?3:c>=6?2:1)*(g.dblT>0?2:1)};
 const gTierOf=c=>c>=24?3:c>=14?2:c>=6?1:0;
 function gnote(txt){G.note={txt,t:0}}
-function gameTier(){const g=G,t=gTierOf(g.combo);if(t>g.tier){g.tier=t;gnote('ជាប់គ្នា ×'+KD(t+1));gsound('combo');g.shake=Math.max(g.shake,.08)}}
+function gameTier(){const g=G,t=gTierOf(g.combo);if(t>g.tier){g.tier=t;vox('combo'+(1+Math.min(2,t-1)),1,true);gnote('ជាប់គ្នា ×'+KD(t+1));gsound('combo');g.shake=Math.max(g.shake,.08)}}
 function gameComboLost(){const g=G;if(g.combo>=6){gnote('បាត់ការជាប់គ្នា');gsound('lose')}g.combo=0;g.tier=0}
 /* power-ups: some words glow gold and carry one; destroy the word to get it */
 const PU={slow:'ភ្លៀងយឺត',heart:'+១ ជីវិត',bomb:'បាញ់ទាំងអស់!',double:'ពិន្ទុ ×២',repeat:'ហាត់ពាក្យម្ដងទៀត ×២'};
@@ -2216,6 +2227,7 @@ function lessonGameDone(){
   L.best[les.id]={w:Math.max(w,old?old.w:0),a:Math.max(a,old?old.a:0),s:Math.max(st,old?old.s:0)};
   L.hist.push({d:Date.now(),i:les.id,w,a,s:secs,c:g.kOk});if(L.hist.length>300)L.hist.splice(0,L.hist.length-300);
   const k=dkey(Date.now());L.days[k]=(L.days[k]||0)+secs;save();
+  vox('done',1,true);setTimeout(()=>vox('start',1,true),1700);
   g.score+=100*st;gnote('★'.repeat(st)+' '+KD(a)+'%');g.floats.push({x:g.W/2,y:g.H*.3,t:0,txt:'+'+KD(100*st),big:2});
   const c=gCourse(les),i=c.lessons.findIndex(l=>l.id===les.id),next=c.lessons[i+1]||c.lessons[0];
   g.les=next;gameOpts={mode:'lesson',id:next.id};if(next.lang&&next.lang!==S.lang){S.lang=next.lang;buildKb();paintBars()}
@@ -2268,7 +2280,7 @@ function bossWordKilled(w){
 function bossDefeated(){
   const g=G;g.boss.done=true;g.phase='clear';g.clearT=2.4;g.score+=250+g.level*50;
   gamePower('bomb'); /* everything still falling is shot down */
-  gnote('ឈ្នះមេធំ!');g.floats.push({x:g.W/2,y:g.H*.3,t:0,txt:'+'+KD(250+g.level*50),big:3});
+  vox('boss',1,true);gnote('ឈ្នះមេធំ!');g.floats.push({x:g.W/2,y:g.H*.3,t:0,txt:'+'+KD(250+g.level*50),big:3});
 }
 function gameBlocked(a,w){ /* the barrier takes the last arrow once and breaks; the word starts again */
   const g=G,u=w.u;u.shield=false;u.sf=.5;a.state='fall';a.vx=-a.vx*.2;a.vy=-130;a.ang+=1.4;
@@ -2280,7 +2292,7 @@ function gameBlocked(a,w){ /* the barrier takes the last arrow once and breaks; 
 function gameNextLevel(){
   const g=G;g.level++;g.lw=0;g.phase='waves';g.boss=null;g.lives=Math.min(5,g.lives+1);gApplyTheme();
   g.words=[];g.chain=[];g.shots=[];g.arrows=g.arrows.filter(a=>a.state==='ground');
-  nextWave();const th=g.th;g.bannerTxt='កម្រិត '+KD(g.level);g.bannerSub=SET_EN[th.set]+' · '+TIME_EN[th.time];g.banner=2.4;gameHint();
+  vox('start',1,true);nextWave();const th=g.th;g.bannerTxt='កម្រិត '+KD(g.level);g.bannerSub=SET_EN[th.set]+' · '+TIME_EN[th.time];g.banner=2.4;gameHint();
 }
 
 function gameGlow(c,g,bw){ /* at night and dusk the bow carries a warm lamp */
