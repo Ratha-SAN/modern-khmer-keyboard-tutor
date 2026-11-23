@@ -203,14 +203,15 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 [data-keys=pen] .spool{background:radial-gradient(circle,#1f3a93 0 2px,transparent 2.5px),repeating-conic-gradient(#fbf8ef 0 14deg,rgba(31,58,147,.5) 14deg 18deg);box-shadow:0 0 0 1.4px #1f3a93}
 [data-keys=pen] .head::before{box-shadow:none}
 /* kids: candy-coloured round keys, one colour per row, on a sunny polka-dot mat */
-[data-keys=kid] .rail{--brass:#ff7eb6;background:radial-gradient(circle,#ffe08a 0 2px,transparent 2.6px) 0 0/22px 22px,radial-gradient(circle,#b8e6ff 0 2px,transparent 2.6px) 11px 11px/22px 22px,#fff6dc}
+[data-keys=kid] .rail{--brass:#ff4f9a;background:radial-gradient(circle,#ffc21a 0 2.4px,transparent 3px) 0 0/22px 22px,radial-gradient(circle,#4fb8ff 0 2.4px,transparent 3px) 11px 11px/22px 22px,#fff1c9}
 [data-keys=kid] .slug{border-radius:22%;background:var(--kc,#ffd1e3);box-shadow:inset 0 -3px 0 rgba(0,0,0,.08),0 3px 0 var(--kd,#f39ac0),0 5px 8px rgba(120,60,120,.18)}
 [data-keys=kid] .slug::before{display:none}
 [data-keys=kid] .slug::after{left:18%;right:45%;top:12%;height:12%;border-radius:9px;background:rgba(255,255,255,.75)}
-[data-keys=kid] .slug b{color:#5a2d82;font-weight:800}
-[data-keys=kid] .tbar[data-r="0"]{--kc:#ffd1e3;--kd:#f39ac0}[data-keys=kid] .tbar[data-r="1"]{--kc:#ffe7a8;--kd:#f3c24f}
-[data-keys=kid] .tbar[data-r="2"]{--kc:#c8f2c2;--kd:#7fd27a}[data-keys=kid] .tbar[data-r="3"]{--kc:#c9e9ff;--kd:#7cc3f0}
-[data-keys=kid] .tbar[data-r="4"]{--kc:#e4d4ff;--kd:#b89af0}[data-keys=kid] .tbar[data-r="5"]{--kc:#ffd9c2;--kd:#f5a477}
+[data-keys=kid] .slug b{color:#2b0f45;font-weight:800}
+/* bright, full colours, one per row, with a deeper edge of the same colour */
+[data-keys=kid] .tbar[data-r="0"]{--kc:#ff7fb8;--kd:#d6337c}[data-keys=kid] .tbar[data-r="1"]{--kc:#ffd02e;--kd:#d99a00}
+[data-keys=kid] .tbar[data-r="2"]{--kc:#6fe06a;--kd:#2f9e2b}[data-keys=kid] .tbar[data-r="3"]{--kc:#5cc4ff;--kd:#1f86cf}
+[data-keys=kid] .tbar[data-r="4"]{--kc:#b48cff;--kd:#7446d8}[data-keys=kid] .tbar[data-r="5"]{--kc:#ff9a4d;--kd:#d9620f}
 [data-keys=kid] .tbar.hot .slug{box-shadow:inset 0 -3px 0 rgba(0,0,0,.08),0 1px 0 var(--kd)}
 [data-keys=kid] .slug.on{background:#ff7eb6}[data-keys=kid] .slug.on b{color:#fff}
 /* older kids: dark slate keys with a neon edge, one colour per row, on a dark grid mat */
@@ -667,6 +668,20 @@ function ding(when=0){if(kidSnd()){[1568,2093,2637].forEach((f,i)=>tone(f,f,.35,
   o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+1.35)})}
 /* young kids mode and the kids game: soft, round sine-wave sounds on a happy five-note scale instead of clacks and bangs */
 const kidSnd=()=>S.kidmode==='young'||S.gtheme==='kid';
+/* background music for the games: three little loops made on the fly (no files), soft and quiet, on or off in Game settings */
+const TRACKS={happy:{n:'🎈 សប្បាយ · Happy',bpm:118,mel:[72,76,79,76,74,77,81,77,72,76,79,84,81,79,76,74],bass:[48,0,55,0,53,0,55,0,48,0,55,0,50,0,55,0],w:'triangle'},
+  calm:{n:'🌙 ស្ងប់ · Calm',bpm:72,mel:[76,0,79,0,74,0,72,0,76,0,81,0,79,0,0,0],bass:[48,0,0,0,53,0,0,0,55,0,0,0,52,0,0,0],w:'sine'},
+  adv:{n:'🚀 ផ្សងព្រេង · Adventure',bpm:136,mel:[64,67,71,67,64,67,72,67,62,66,69,66,62,66,71,74],bass:[40,40,47,47,43,43,50,50,38,38,45,45,43,43,47,47],w:'square'}};
+const mus={next:0,step:0,iv:0};
+const mf=m=>440*Math.pow(2,(m-69)/12);
+function mnote(f,t,dur,v,type){const a=audio();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.value=f;
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+dur+.05)}
+function musicTick(){const tr=TRACKS[S.music],a=ac;if(!tr||!a||!G||document.hidden||a.state!=='running')return;
+  const st=60/tr.bpm/2;if(mus.next<a.currentTime)mus.next=a.currentTime+.05;
+  while(mus.next<a.currentTime+.2){const i=mus.step%16,m=tr.mel[i],b=tr.bass[i];
+    if(m)mnote(mf(m),mus.next,st*1.6,tr.w==='square'?.018:.035,tr.w);if(b)mnote(mf(b),mus.next,st*(tr.bpm<90?3.5:1.8),.04,'sine');
+    mus.next+=st;mus.step++}}
+function musicSync(){clearInterval(mus.iv);mus.iv=0;if(TRACKS[S.music]){mus.next=0;mus.iv=setInterval(musicTick,60)}}
 const PENTA=[1047,1175,1319,1568,1760],pn=()=>PENTA[Math.floor(Math.random()*PENTA.length)];
 const arp=(fs,gap=.06,dur=.16,v=.07)=>fs.forEach((f,i)=>tone(f,f*1.02,dur,v,'sine',i*gap));
 function play(kind){
@@ -692,9 +707,9 @@ function tone(f0,f1,dur,gain,type='triangle',when=0){const a=audio();if(!a)retur
 function gsound(k){
   if(!S.sound)return;
   if(kidSnd()){
-    if(k==='shoot')tone(520,940,.08,.07,'sine');
+    if(k==='shoot'){tone(480,960,.09,.06,'sine');tone(960,1440,.05,.02,'triangle',.02)}
     else if(k==='weak')tone(420,300,.13,.05,'sine');
-    else if(k==='hit')tone(760,1180,.06,.08,'sine');
+    else if(k==='hit'){tone(1200,520,.09,.11,'sine');tone(1800,2700,.07,.05,'sine',.03);tone(2400,3600,.05,.025,'triangle',.05)} /* a bouncy plop and a bright sparkle */
     else if(k==='break')arp([659,784,988,1319],.05,.14,.07);
     else if(k==='pop')tone(900,1450,.06,.07,'sine');
     else if(k==='boom')arp([523,659,784,1047,1319],.05,.2,.08);
@@ -1416,6 +1431,7 @@ function showPanel(id){
     panel.innerHTML=`<h4>ល្បឿន · Speed</h4><div class="rowset">${ch('gspd','slow',S.gspeed!=='fast'&&S.gspeed!=='normal','🐢 យឺត · Slow')}${ch('gspd','normal',S.gspeed==='normal','🚶 ធម្មតា · Normal')}${ch('gspd','fast',S.gspeed==='fast','⚡ លឿន · Fast')}</div>
     <h4>គ្រាប់ចុច · Keys</h4><div class="rowset">${[['ivory','Ivory'],['black','Black'],['pen','🖊 Ballpoint'],['kid','🧸 Young kids'],['teen','🎮 Older kids']].map(([k,l])=>ch('keys',k,S.keys===k,l)).join('')}</div>
     <h4>ប្លង់ · Layout</h4><div class="rowset">${ch('flat','0',!S.flat,'◠ Curved')}${ch('flat','1',!!S.flat,'▭ Straight rows')}</div>
+    <h4>តន្ត្រី · Music</h4><div class="rowset">${ch('music','off',!TRACKS[S.music],'🔇 Off')}${Object.keys(TRACKS).map(k=>ch('music',k,S.music===k,TRACKS[k].n)).join('')}</div>
     <h4>ស្បែកហ្គេម · Game theme</h4><div class="rowset">${ch('gtheme','pen',S.gtheme!=='kid','🖊 Ballpoint')}${ch('gtheme','kid',S.gtheme==='kid','🧸 Kids')}</div>`}
   else if(id==='timer')panel.innerHTML=`<h4>Writing timer</h4><div class="rowset">${[5,10,15,25,45].map(m=>`<button class="chip" data-a="timer" data-v="${m}">${m} min</button>`).join('')}${timerEnd?'<button class="chip sel" data-a="timer" data-v="0">Stop timer</button>':''}</div>`;
   else if(id==='share')panel.innerHTML=`<h4>Take your text with you</h4><div class="rowset"><button class="chip sel" data-a="copy">Copy text</button><button class="chip" data-a="selall">Select all</button></div>
@@ -1447,6 +1463,7 @@ panel.addEventListener('click',e=>{
   else if(a==='gspd'){{const old=gSpd();S.gspeed=v;const k=gSpd()/old;if(G){G.sp*=k;G.words.forEach(w=>{if(!w.boss)w.vy*=k});if(G.interval)G.interval/=k}}save();showPanel('gset')}
   else if(a==='keys'){S.keys=v;applyLook();save();showPanel('gset')}
   else if(a==='flat'){S.flat=v==='1';save();fanKey='';buildBars();follow.n=0;layout();if(G)gameHint();showPanel('gset')}
+  else if(a==='music'){S.music=v;save();audio();musicSync();showPanel('gset')}
   else if(a==='gtheme'){S.gtheme=v;save();if(G)gApplyTheme();showPanel('gset')}
   else if(a==='dl'){exportDocs([doc()],v)}
   else if(a==='size'){S.size=Math.max(14,Math.min(40,S.size+ +v));applyLook();layout();save();showPanel('look')}
@@ -1644,7 +1661,7 @@ addEventListener('resize',refit);addEventListener('orientationchange',refit);
 new ResizeObserver(()=>layout()).observe(scroll);
 applyLook();applyOsk();renderTools();buildKb();
 /* the page opens on the game; the writing page is one tap away (> then the pen) */
-S.more=false;renderTools(); /* the toolbar always opens on its first page: the two games and the speed */
+S.more=false;renderTools();musicSync(); /* the toolbar always opens on its first page: the two games and the speed */
 setTimeout(()=>{if(!G&&!D&&pages.hidden&&learnEl.hidden)startGame({mode:'lesson'})},350);
 ta.value=doc().text;ta.setSelectionRange(ta.value.length,ta.value.length);lastN=count();autoShift();
 fit();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(layout);
@@ -2184,7 +2201,7 @@ const BOSSES=['drones','robodog','humanoid'],BOSS_EN={drones:'យន្តហោ
 /* ballpoint pens: blue for the drawing, red for hits and danger, green for power-ups */
 const PAL={day:{ink:'#1f3a93',ink2:'#1c1c24',scene:'#8394c9',acc:'#c8232c',gold:'#1d7a46',halo:'rgba(247,242,227,.92)',sky:null},
   dusk:{ink:'#23306f',ink2:'#24161a',scene:'#6c6a95',acc:'#b3202a',gold:'#1d6a40',halo:'rgba(252,228,196,.9)',sky:['#f0a05a','#fbe1bd']},
-  kid:{ink:'#6a3fb5',ink2:'#ff4f8b',scene:'#6fb8e6',acc:'#ff4f8b',gold:'#ff9f1c',halo:'rgba(255,255,255,.95)',sky:['#bfe9ff','#fff3fb'],ground:'#c8f0b4'},
+  kid:{ink:'#5a1fb0',ink2:'#ff2f7a',scene:'#2f86d6',acc:'#ff2f7a',gold:'#ff8a00',halo:'rgba(255,255,255,.95)',sky:['#6fcfff','#fff0fa'],ground:'#7ed957'},
   night:{ink:'#d3defc',ink2:'#f4efde',scene:'#7d8dbd',acc:'#ff8f8f',gold:'#9fe3b8',halo:'rgba(12,20,46,.9)',sky:['#0b1430','#243662']}};
 /* text in the game gets a thin outline in the paper's colour, so it never runs into the drawing behind it */
 function gTxt(c,t,x,y){c.save();c.lineJoin='round';c.lineWidth=Math.max(2,(parseFloat(c.font.replace(/^\D+/,''))||16)*.13);c.strokeStyle=(G&&G.halo)||'#f4efe2';c.strokeText(t,x,y);c.restore();c.fillText(t,x,y)}
