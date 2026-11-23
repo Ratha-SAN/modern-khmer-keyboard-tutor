@@ -310,6 +310,16 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 .kpop b{display:grid;place-items:center;height:var(--h);border-radius:11px 11px 0 0;background:var(--key-down);font-weight:400;line-height:1}
 .kpop i{display:block;height:10px;background:var(--key-down);clip-path:polygon(0 0,100% 0,calc(100% - var(--r)) 100%,var(--l) 100%)}
 .kpop.km{font-size:28px}
+.kpop2{position:absolute;z-index:9;pointer-events:none;transform:translate(-50%,-100%) scale(.6);opacity:0;min-width:1.9em;padding:.15em .45em .3em;border-radius:14px;
+  text-align:center;font:600 34px/1.25 "Noto Sans Khmer","Noto Sans",var(--ui);background:#fbf8ef;color:#1d1b19;box-shadow:0 8px 18px rgba(0,0,0,.35);transition:transform .12s,opacity .2s}
+.autochip[hidden]{display:none}
+.autochip{position:absolute;left:50%;transform:translateX(-50%);z-index:7;padding:7px 16px;border-radius:999px;border:0;font:600 18px "Noto Sans Khmer",var(--ui);
+  background:#ffd23f;color:#2b0f45;box-shadow:0 4px 0 #d99a00,0 6px 14px rgba(0,0,0,.3);animation:gpulse .7s ease-in-out infinite alternate;cursor:pointer;white-space:nowrap}
+.kpop2.on{transform:translate(-50%,-100%) scale(1);opacity:1}
+[data-keys=kid] .kpop2{background:#fff;color:#2b0f45;box-shadow:0 0 0 3px #ff7fb8,0 8px 18px rgba(120,40,120,.35)}
+[data-keys=teen] .kpop2{background:#1a1d2e;color:#f2f6ff;box-shadow:0 0 0 2px #3df0ff,0 0 18px rgba(61,240,255,.6)}
+[data-keys=pen] .kpop2{background:#fbf8ef;color:#1f3a93;box-shadow:inset 0 0 0 1.6px #1f3a93,0 6px 14px rgba(31,58,147,.25)}
+[data-keys=black] .kpop2{background:#232326;color:#f1ede4}
 @media (prefers-reduced-motion:reduce){.kpop{transition:none}}
 .kb.km .krow{gap:clamp(3px,.8vw,6px)}
 .k.space{font-size:14px;color:rgba(255,255,255,.85)}
@@ -890,6 +900,9 @@ function buildBars(){
     if(L.ext<=half&&L.maxY+sh*(lnd?1.4:.8)<=hmax)break;
   }
   if(!lay)lay=fb;
+  /* on the curve the outer ring of shift, space, delete and return comes close to the ring above near the sides: move it down a
+     little so the drawn heads never touch. Sizes stay as they are */
+  if(lay&&!S.flat){const last=rows.length-1;let d=0;lay.out.forEach(o=>{if(o.ri===last){o.y+=4;d=4}});lay.maxY+=d}
   if(!lay){ /* nothing fits at this moment (the page is mid-resize): keep the key set that works and try again shortly.
      Marking the set as gone used to stop the whip and the key labels for good, as nothing tried again */
     if(fan.childElementCount){fanW=prevW;fanKey=prevKey}else{fanW=0;fanKey=''}
@@ -941,7 +954,7 @@ function whip(ch){
   let c=ids.find(k=>headChar(k)===ch)||ids.find(k=>headChar(k)===f);
   if(!c&&!isPhone()){const M=barMap();c=ids.find(k=>M[k]&&M[k].includes(ch))||ids.find(k=>M[k]&&M[k].includes(f));
     if(!c&&S.lang==='km')c=ids.find(k=>EN[k]&&EN[k].includes(ch))}
-  const e=c&&barEl[c];if(!e)return;whipEl(e);
+  const e=c&&barEl[c];if(!e)return;whipEl(e);keyPop(e);
 }
 /* the whip itself, for any head */
 function whipEl(e){
@@ -1160,8 +1173,14 @@ const hidePop=()=>{clearTimeout(popH);popH=setTimeout(()=>kpop.classList.remove(
 const release=()=>{hidePop();clearTimeout(rep);kb.querySelectorAll('.k.down').forEach(k=>k.classList.remove('down'));};
 /* tap a type head to strike its letter; the shift, option, language, space, delete and return heads press in
    without whipping */
+/* the key just pressed pops up above itself, bigger, like a phone keyboard */
+function keyPop(bar){const sl=bar&&bar.querySelector('.slug');if(!sl||!sl.textContent.trim())return;
+  const r=sl.getBoundingClientRect(),d=device.getBoundingClientRect();let p=$('kpop2');
+  if(!p){p=document.createElement('div');p.id='kpop2';p.className='kpop2';p.setAttribute('aria-hidden','true');device.appendChild(p)}
+  p.textContent=sl.textContent.trim();p.style.left=(r.left-d.left+r.width/2)+'px';p.style.top=(r.top-d.top-6)+'px';
+  p.classList.remove('on');void p.offsetWidth;p.classList.add('on');clearTimeout(p._t);p._t=setTimeout(()=>p.classList.remove('on'),320)}
 $('fan').addEventListener('pointerdown',e=>{
-  const bar=e.target.closest('.tbar');if(!bar)return;e.preventDefault();const c=bar.dataset.c;
+  const bar=e.target.closest('.tbar');if(!bar)return;e.preventDefault();const c=bar.dataset.c;if(!c.startsWith('fn:'))keyPop(bar);
   if(c.startsWith('fn:')){
     const k=c.slice(3);audio();
     if(k==='alt'){altOn=altOn?0:1;paintBars()}
@@ -1273,7 +1292,7 @@ function predictList(){
 function renderPreds(){
   const el=$('preds');if(!el)return;el.classList.toggle('lnd',coarse&&innerWidth>innerHeight||isPhone()&&innerWidth>innerHeight);
   const fan=$('fan');if(fan)fan.querySelectorAll('.slug.hint').forEach(e=>e.classList.remove('hint'));
-  if(G){el.innerHTML='';predMap={};gameHint();return}
+  if(G){el.innerHTML='';predMap={};gameHint();autoChip();return}
   if(D){el.innerHTML='';predMap={};drillHint();return}
   if(!S.pred||!fanW||!headPos||(isPhone()&&mode==='123')){el.innerHTML='';predMap={};return}
   const {prefix,words}=predictList();sgPrefix=prefix;
@@ -1972,7 +1991,7 @@ function startGame(opts){
   gameSize();nextWave();if(les){G.bannerTxt=les.t[0];G.bannerSub=les.t[1]}else{G.bannerTxt='កម្រិត '+KD(1);G.bannerSub=SET_EN[G.th.set]+' · '+TIME_EN[G.th.time]}G.raf=requestAnimationFrame(gameTick);focusTa();gameHint();renderTools();setTimeout(()=>vox('start',1,true),350);
 }
 function exitGame(){
-  if(!G)return;cancelAnimationFrame(G.raf);if(G.prevLang&&G.prevLang!==S.lang)S.lang=G.prevLang;G=null;device.classList.remove('game','nokeys');
+  if(!G)return;{const ch=$('autochip');if(ch)ch.hidden=true}cancelAnimationFrame(G.raf);if(G.prevLang&&G.prevLang!==S.lang)S.lang=G.prevLang;G=null;device.classList.remove('game','nokeys');
   $('fan').querySelectorAll('.slug.hint').forEach(e=>e.classList.remove('hint'));
   ta.value=doc().text;ta.setSelectionRange(ta.value.length,ta.value.length);
   mode='abc';shift=0;buildKb();paintBars();layout();lastN=count();autoShift();focusTa();renderTools();
@@ -1983,7 +2002,7 @@ function gameSize(){
   g.dpr=Math.min(2,window.devicePixelRatio||1);g.W=w;g.H=h;g.cv.width=Math.round(w*g.dpr);g.cv.height=Math.round(h*g.dpr);
   g.s=gClamp(h/22.4,6,17);g.gy=h-Math.max(8,g.s*.7);g.ax=w/2;g.sp=h*(.1+.011*g.wave)*.8*.7*.75*gSpd();
   g.fs=Math.round(gClamp((S.size||18)*1.3,18,28));g.font='600 '+Math.round(g.fs*1.35)+'px "Noto Serif Khmer","Noto Serif",Georgia,serif'; /* the falling words: bigger, in Noto Serif Khmer */
-  g.row1=Math.round(g.fs*.72)+8;g.row2=g.row1+Math.round(g.fs*.62);g.row3=g.row2+Math.round(g.fs*.78);g.barH=g.row3+Math.round(g.fs*.5); /* the top bar's three rows */
+  g.row1=Math.round(g.fs*.6)+7;g.row2=g.row1+Math.round(g.fs*.6);g.row3=g.row2+Math.round(g.fs*.6);g.barH=g.row3+Math.round(g.fs*.36); /* 20% thinner than before */ /* the top bar's three rows */
   g.ink0=getComputedStyle(device).getPropertyValue('--ink').trim()||'#26211d';gApplyTheme();
   if(!g.aim.x){g.aim.x=g.ax+g.s*6;g.aim.y=g.gy-g.s*5}
 }
@@ -2011,7 +2030,7 @@ function spawnWord(){
   for(let k=0;k<12;k++){
     const x=w/2+10+Math.random()*Math.max(1,g.W-w-20);
     if(g.words.every(o=>o.y>g.fs*2.2||Math.abs(o.x-x)>(o.w+w)/2+10)){
-      let pu=null;if(!rep&&++g.sinceSpecial>=5&&Math.random()<.4){const L=['slow','heart','bomb','double'];if((g.review&&g.review.size)||(g.seen&&g.seen.length>=6))L.push('repeat','repeat');pu=L[Math.floor(Math.random()*L.length)];g.sinceSpecial=0}
+      let pu=null;if(!rep&&++g.sinceSpecial>=5&&Math.random()<.4){const L=['slow','heart','bomb','double','auto','shield'];if((g.review&&g.review.size)||(g.seen&&g.seen.length>=6))L.push('repeat','repeat');pu=L[Math.floor(Math.random()*L.length)];g.sinceSpecial=0}
       g.words.push({pu,rep,t,ch:[...t],n:0,x,y:(g.barH||0)+g.fs*1.3,vy:g.sp*(.85+Math.random()*.3),w,hit:false,err:0,shown:0,ox:0,vox:0,oy:0,voy:0,rot:0,vrot:0,stun:0,vib:0,jx:0,jy:0});if(!g.lock)gameHint();return true}}
   return false;
 }
@@ -2027,7 +2046,8 @@ function gameGroundBlast(w){
   g.blots.push({x:w.x,y:g.gy,r:w.w*.5,a:.85});gsound(T>=2?'boom':'break');
 }
 function gameHurt(l){ /* a letter of shrapnel hits the archer */
-  const g=G;g.hurt=1;g.recv+=170;g.shake=Math.max(g.shake,.22);
+  const g=G;if(g.shieldT>0){for(let i=0;i<5;i++)g.bits.push({x:l.x,y:l.y,vx:(Math.random()-.5)*200,vy:-60-Math.random()*90,r:1+Math.random()*1.4,a:1});gsound('pop');return} /* the shield turns it away */
+  g.hurt=1;g.recv+=170;g.shake=Math.max(g.shake,.22);
   for(let i=0;i<6;i++)g.bits.push({x:l.x,y:l.y,vx:(Math.random()-.5)*160,vy:-30-Math.random()*90,r:1+Math.random()*1.6,a:1});
   if(g.hurtCool<=0){g.floats.push({x:g.ax,y:g.gy-g.s*4.6,t:0,txt:'អូយ!',big:1});g.hurtCool=.6;gsound('hurt');haptic('heavy')}
 }
@@ -2057,12 +2077,14 @@ function gnote(txt){G.note={txt,t:0}}
 function gameTier(){const g=G,t=gTierOf(g.combo);if(t>g.tier){g.tier=t;vox('combo'+(1+Math.min(2,t-1)),1,true);gnote('ជាប់គ្នា ×'+KD(t+1));gsound('combo');g.shake=Math.max(g.shake,.08)}}
 function gameComboLost(){const g=G;if(g.combo>=6){gnote('បាត់ការជាប់គ្នា');gsound('lose')}g.combo=0;g.tier=0}
 /* power-ups: some words glow gold and carry one; destroy the word to get it */
-const PU={slow:'ភ្លៀងយឺត',heart:'+១ ជីវិត',bomb:'បាញ់ទាំងអស់!',double:'ពិន្ទុ ×២',repeat:'ហាត់ពាក្យម្ដងទៀត ×២'};
+const PU={auto:'ពាក្យពេញ ×៥',shield:'ខែលការពារ',slow:'ភ្លៀងយឺត',heart:'+១ ជីវិត',bomb:'បាញ់ទាំងអស់!',double:'ពិន្ទុ ×២',repeat:'ហាត់ពាក្យម្ដងទៀត ×២'};
 function gamePower(type){
   const g=G;gsound('power');gnote(PU[type]);
   if(type==='slow')g.slowT=6;
   else if(type==='double')g.dblT=8;
   else if(type==='repeat')g.repN=(g.repN||0)+6;
+  else if(type==='auto'){g.autoN=(g.autoN||0)+5;autoChip()}
+  else if(type==='shield')g.shieldT=10;
   else if(type==='heart'){if(g.lives<5)g.lives++;for(let i=0;i<8;i++)g.bits.push({x:g.W/2+(Math.random()-.5)*50,y:14,vx:(Math.random()-.5)*60,vy:-20-Math.random()*40,r:2+Math.random()*2,a:1})}
   else if(type==='bomb'){let i=0;for(const x of g.words){if(x.hit||x.boss)continue;x.hit=true;x.chained=true;x.n=x.ch.length;g.score+=x.ch.length*10;g.chain.push({sh:{kind:'hit',w:x,k:x.ch.length,last:true},at:g.t+.2+i*.15});i++}}
 }
@@ -2071,6 +2093,8 @@ function gIcon(c,type,x,y,r,col){
   if(type==='slow'){for(let k=0;k<3;k++){const a=k*1.0472;c.beginPath();c.moveTo(Math.cos(a)*r,Math.sin(a)*r);c.lineTo(-Math.cos(a)*r,-Math.sin(a)*r);c.stroke()}}
   else if(type==='heart'){c.beginPath();c.moveTo(0,r*.9);c.bezierCurveTo(-r*1.5,-r*.1,-r*.7,-r*1.1,0,-r*.35);c.bezierCurveTo(r*.7,-r*1.1,r*1.5,-r*.1,0,r*.9);c.fill()}
   else if(type==='bomb'){c.beginPath();c.arc(0,r*.2,r*.75,0,6.283);c.fill();c.beginPath();c.moveTo(r*.4,-r*.4);c.quadraticCurveTo(r*.8,-r*.9,r*1.1,-r*.7);c.stroke();c.beginPath();c.arc(r*1.15,-r*.8,r*.18,0,6.283);c.fill()}
+  else if(type==='auto'){c.beginPath();c.roundRect?c.roundRect(-r*1.2,-r*.7,r*2.4,r*1.4,r*.35):c.rect(-r*1.2,-r*.7,r*2.4,r*1.4);c.stroke();c.beginPath();c.moveTo(-r*.5,0);c.lineTo(r*.45,0);c.moveTo(r*.15,-r*.3);c.lineTo(r*.48,0);c.lineTo(r*.15,r*.3);c.stroke()}
+  else if(type==='shield'){c.beginPath();c.moveTo(0,-r);c.quadraticCurveTo(r*.9,-r*.8,r*.85,-r*.1);c.quadraticCurveTo(r*.7,r*.7,0,r);c.quadraticCurveTo(-r*.7,r*.7,-r*.85,-r*.1);c.quadraticCurveTo(-r*.9,-r*.8,0,-r);c.closePath();c.globalAlpha*=.35;c.fill();c.globalAlpha/= .35;c.stroke()}
   else if(type==='repeat'){c.beginPath();c.arc(0,0,r*.8,.5,5.6);c.stroke();c.beginPath();c.moveTo(r*.95,-r*.05);c.lineTo(r*.62,-r*.62);c.lineTo(r*1.25,-r*.6);c.closePath();c.fill()}
   else{c.font='800 '+Math.round(r*1.9)+'px system-ui,sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText('×2',0,0)}
   c.restore();
@@ -2144,7 +2168,7 @@ function gameOver(){
 }
 function gameStep(dt){
   const g=G;
-  g.hurt=Math.max(0,g.hurt-dt*1.4);g.hurtCool=Math.max(0,g.hurtCool-dt);g.slowT=Math.max(0,g.slowT-dt);g.dblT=Math.max(0,g.dblT-dt);if(g.note){g.note.t+=dt;if(g.note.t>1.4)g.note=null}
+  g.hurt=Math.max(0,g.hurt-dt*1.4);g.hurtCool=Math.max(0,g.hurtCool-dt);g.slowT=Math.max(0,g.slowT-dt);g.dblT=Math.max(0,g.dblT-dt);g.shieldT=Math.max(0,(g.shieldT||0)-dt);if(g.note){g.note.t+=dt;if(g.note.t>1.4)g.note=null}
   for(let i=0;i<g.chain.length;i++){if(g.t>=g.chain[i].at){gameFire(g.chain[i].sh);g.chain.splice(i,1);i--}}
   g.shake=Math.max(0,g.shake-dt);g.flash=Math.max(0,g.flash-dt*1.8);g.rel=Math.max(0,g.rel-dt);g.banner=Math.max(0,g.banner-dt);
   if(g.phase==='boss'&&!g.over)bossStep(dt);
@@ -2258,7 +2282,7 @@ function bossStep(dt){
   const g=G,b=g.boss;if(!b||b.done)return;b.t+=dt;
   for(const u of b.units){if(u.dead)continue;
     u.flash=Math.max(0,u.flash-dt);u.sf=Math.max(0,(u.sf||0)-dt);
-    if(b.type==='drones'){u.x=g.W*(.18+.64*u.i/Math.max(1,b.units.length-1))+Math.sin(b.t*.9+u.ph)*g.W*.09;u.y=g.H*(.15+.075*(u.i%2))+Math.sin(b.t*1.7+u.ph)*5-(1-Math.min(1,b.t/1.2))*g.H*.4}
+    if(b.type==='drones'){u.x=g.W*(.18+.64*u.i/Math.max(1,b.units.length-1))+Math.sin(b.t*.9+u.ph)*g.W*.09;u.y=(g.barH||0)+g.s*4+g.H*.075*(u.i%2)+Math.sin(b.t*1.7+u.ph)*5-(1-Math.min(1,b.t/1.2))*g.H*.4} /* drones fly below the top bar */
     else if(b.type==='robodog'){u.x-=(g.W*.04+g.level*2)*dt*(b.t<1.6?2.2:1);u.y=g.gy;u.run+=dt*9;
       if(u.x<g.ax+g.s*2.6){g.lives--;gameComboLost();g.hurt=1;g.recv+=170;g.shake=.3;g.floats.push({x:g.ax,y:g.gy-g.s*4.6,t:0,txt:'ត្រូវខាំ!',big:1});gsound('hurt');u.x=g.W*.98;if(g.lives<=0){gameOver();return}}}
     else{u.x+=(g.W*.77-u.x)*Math.min(1,dt*1.5);u.y=g.gy}
@@ -2365,6 +2389,7 @@ function gArrow(c,x,y,ang,len,s,ink){
   c.restore();
 }
 function gameArcher(c){
+  if(G.shieldT>0){const g=G,s=g.s,a=Math.min(1,g.shieldT/1.2)*(.55+.15*Math.sin(g.t*8));c.save();c.globalAlpha=a;c.strokeStyle=g.gold;c.lineWidth=2;c.beginPath();c.ellipse(g.ax,g.gy-s*2.2,s*2.6,s*3.2,0,0,6.283);c.stroke();c.globalAlpha=a*.12;c.fillStyle=g.gold;c.fill();c.restore()}
   const g=G,s=g.s,dir=g.aim.x<g.ax?-1:1,tx=Math.abs(g.aim.x-g.ax),ty=g.aim.y-g.gy,th=gClamp(Math.atan2(ty+2.9*s,Math.max(tx,.35*s)),-1.45,.25);
   c.save();c.translate(g.ax,g.gy);c.scale(dir,1);c.translate(-g.rec,0);c.rotate(-g.rec*.014);c.lineWidth=Math.max(1.6,s*.13);c.lineCap='round';c.lineJoin='round';c.strokeStyle=c.fillStyle=g.hurt>0&&Math.floor(g.t*18)%2?'#c0392b':g.ink;
   const L=(a,b,d,e)=>{c.beginPath();c.moveTo(a,b);c.lineTo(d,e);c.stroke()};
@@ -2527,18 +2552,18 @@ function gameDraw(){
   if(g.lives!==g.lLast){g.lPop=g.lLast!=null&&g.lives<g.lLast?1:0;g.lLast=g.lives}g.lPop=Math.max(0,(g.lPop||0)-.04);
   gTopBar(c,g);
   const fS=Math.round(g.fs*.7),fL=Math.round(g.fs*.48),row1=g.row1,row2=g.row2;
-  c.fillStyle=g.ink2;c.textAlign='left';c.font=fS+'px '+PENF;c.save();c.translate(58,row1);c.scale(1+.3*g.sPop,1+.3*g.sPop);gTxt(c,KD(g.score),0,0);c.restore();
-  c.globalAlpha=.7;c.fillStyle=g.ink;c.font=fL+'px '+PENF;gTxt(c,g.mode==='lesson'&&g.les?'មេរៀន '+KD(gCourse(g.les).lessons.indexOf(g.les)+1)+' · '+g.les.t[0]+' · វគ្គ '+KD(Math.max(1,g.lw))+'/'+KD(3):'កម្រិត '+KD(g.level)+(g.phase==='boss'?' · មេធំ':' · វគ្គ '+KD(Math.max(1,g.lw)))+(g.best?' · ល្អបំផុត '+KD(g.best):''),58,row2);c.globalAlpha=1;
-  for(let i=0;i<5;i++){const hr=Math.max(5,g.fs*.26),x=W-58-hr-i*(hr*2.6),y=row1-hr*.55+(i===g.lives&&g.lPop?Math.sin(g.lPop*40)*3*g.lPop:0),full=i<g.lives;
+  c.fillStyle=g.ink2;c.textAlign='right';c.font=fS+'px '+PENF;c.save();c.translate(W-58,row1); /* score at the top right */c.scale(1+.3*g.sPop,1+.3*g.sPop);gTxt(c,KD(g.score),0,0);c.restore();
+  c.globalAlpha=.7;c.fillStyle=g.ink;c.textAlign='left';c.font=fL+'px '+PENF;gTxt(c,g.mode==='lesson'&&g.les?'មេរៀន '+KD(gCourse(g.les).lessons.indexOf(g.les)+1)+' · '+g.les.t[0]+' · វគ្គ '+KD(Math.max(1,g.lw))+'/'+KD(3):'កម្រិត '+KD(g.level)+(g.phase==='boss'?' · មេធំ':' · វគ្គ '+KD(Math.max(1,g.lw)))+(g.best?' · ល្អបំផុត '+KD(g.best):''),58,row2);c.globalAlpha=1;
+  for(let i=0;i<5;i++){const hr=Math.max(7,g.fs*.36),x=58+hr+i*(hr*2.5), /* bigger hearts, at the top left */y=row1-hr*.85+(i===g.lives&&g.lPop?Math.sin(g.lPop*40)*3*g.lPop:0),full=i<g.lives;
     c.globalAlpha=full?1:.22;gIcon(c,'heart',x,y,hr,g.acc)}c.globalAlpha=1;
   const rowC=g.row3,rowP=g.row3-g.fs*.18; /* third row of the bar: combo on the left half, power-ups on the right */
   const mu=gMult();if(g.combo>=2&&!g.over){if(g.combo!==g.cLast){g.cPop=1;g.cLast=g.combo}g.cPop=Math.max(0,(g.cPop||0)-.08);
     c.textAlign='center';c.fillStyle=mu>=3?g.acc:g.ink2;c.font=Math.round(g.fs*.6)+'px '+PENF;const cx0=14,cy=g.gy-g.s*3.2;c.font=Math.round(g.fs*.8)+'px '+PENF;c.textAlign='left';c.save();c.translate(cx0,cy);c.rotate(Math.sin(g.t*3)*.04);c.scale(1+.35*g.cPop,1+.35*g.cPop);c.globalAlpha=.78;gTxt(c,'ជាប់គ្នា '+KD(g.combo)+(mu>1?'  ×'+KD(mu):''),0,0);c.restore();c.globalAlpha=1; /* the combo sits low in the play field, left of the archer, away from where new words appear */
     const tiers=[6,14,24],nx=tiers.find(t=>t>g.combo),pv=g.combo>=24?1:(g.combo-(tiers[tiers.indexOf(nx)-1]||0))/(nx-(tiers[tiers.indexOf(nx)-1]||0));
     c.globalAlpha=.25;c.fillRect(cx0,cy+7,90,3);c.globalAlpha=.8;c.fillRect(cx0,cy+7,90*pv,3);c.globalAlpha=1}else g.cLast=0;
-  const nP=(g.slowT>0)+(g.dblT>0)+(g.repN>0);let px=W/2-(nP-1)*32;c.textBaseline='middle';
+  const nP=(g.slowT>0)+(g.dblT>0)+(g.repN>0)+(g.shieldT>0)+(g.autoN>0);let px=W/2-(nP-1)*32;c.textBaseline='middle';
   const pr=(k,txt)=>{gIcon(c,k,px-12,rowP,g.fs*.28,g.gold);c.fillStyle=g.gold;c.textAlign='left';c.font=Math.round(g.fs*.5)+'px '+PENF;gTxt(c,txt,px,rowP+Math.sin(g.t*4+px)*1.5);px+=64};
-  if(g.slowT>0)pr('slow',KD(Math.ceil(g.slowT))+' វិ');if(g.dblT>0)pr('double',KD(Math.ceil(g.dblT))+' វិ');if(g.repN>0)pr('repeat','×'+KD(g.repN));
+  if(g.shieldT>0)pr('shield',KD(Math.ceil(g.shieldT))+' វិ');if(g.autoN>0)pr('auto','×'+KD(g.autoN));if(g.slowT>0)pr('slow',KD(Math.ceil(g.slowT))+' វិ');if(g.dblT>0)pr('double',KD(Math.ceil(g.dblT))+' វិ');if(g.repN>0)pr('repeat','×'+KD(g.repN));
   c.textBaseline='alphabetic';c.fillStyle=g.ink;
   if(g.note&&!g.over){const nt=g.note.t,k=Math.min(1,nt/.18);c.globalAlpha=Math.max(0,1-nt/1.4);c.fillStyle=g.gold;c.textAlign='center';c.font=Math.round(g.fs*.85)+'px '+PENF;
     c.save();c.translate(W/2,g.H*.32-nt*22);c.rotate(Math.sin(nt*7)*.05);c.scale(.5+.5*k,.5+.5*k);gTxt(c,g.note.txt,0,0);c.restore();c.globalAlpha=1;c.fillStyle=g.ink}
@@ -2575,9 +2600,18 @@ function gTopBar(c,g){
     c.globalAlpha=.3;c.lineWidth=1;for(let x=10;x<W;x+=26){c.beginPath();c.moveTo(x,h+6);c.lineTo(x+5,h+10);c.stroke()}}
   c.restore();
 }
+/* Whole-word power-up: a floating chip above the top row of keys shows the word to shoot; one tap types all of it */
+function autoChip(){let ch=$('autochip');const g=G,w=g&&g.autoN>0&&gameTarget();
+  if(!w||w.hit||!headPos){if(ch)ch.hidden=true;return}
+  if(!ch){ch=document.createElement('button');ch.id='autochip';ch.className='autochip';ch.type='button';
+    ch.addEventListener('pointerdown',e=>{e.preventDefault();const g=G,w=g&&gameTarget();if(!g||!w||!(g.autoN>0))return;audio();g.lock=w;
+      ta.value=w.ch.slice(w.n).join('');gameInput();g.autoN--;haptic('medium');autoChip();focusTa()});document.querySelector('.rail').appendChild(ch)}
+  const ys=Object.values(headPos).map(h=>h.y),py=parseFloat(getComputedStyle(device).getPropertyValue('--py'))||0;
+  ch.style.top=Math.max(4,py+Math.min(...ys)-(Object.values(headPos)[0].sh||30)-38)+'px';
+  ch.textContent='✨ '+w.ch.slice(w.n).join('')+'  ×'+KD(g.autoN);ch.hidden=false}
 function gameHint(){
   const fan=$('fan');if(!fan)return;fan.querySelectorAll('.slug.hint').forEach(e=>e.classList.remove('hint'));
-  const g=G;if(!g||g.over)return;const w=gameTarget();if(!w||w.n>=w.ch.length)return;
+  const g=G;autoChip();if(!g||g.over)return;const w=gameTarget();if(!w||w.n>=w.ch.length)return;
   fanHint(w.ch.slice(w.n).join(''));
 }
 /* light the typewriter key that types the start of rest, or the shift / number key that leads to it */
