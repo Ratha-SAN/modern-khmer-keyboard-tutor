@@ -685,8 +685,14 @@ function voxName(ch){if(!ch)return null;const c=[...ch][0];if(c>='\u1780'&&c<='\
   const l=c.toLowerCase();return l>='a'&&l<='z'?'en-'+l:null}
 function vox(name,vol=1,force){if(!name||!voxOn())return;const a=audio();if(!a)return;const now=a.currentTime;if(!force&&now<voxBusy)return;
   const go=b=>{const s=a.createBufferSource(),g=a.createGain();g.gain.value=.9*vol;s.buffer=b;s.connect(g);g.connect(a.destination);s.start();voxBusy=a.currentTime+Math.min(b.duration,.45)};
-  const v=VOX[name];if(v&&v.buf){go(v.buf);return}if(v)return;
-  VOX[name]={};fetch('voice/'+name+'.mp3?v=5').then(r=>r.ok?r.arrayBuffer():Promise.reject()).then(x=>a.decodeAudioData(x)).then(b=>{VOX[name].buf=b;if(G)go(b)}).catch(()=>{})}
+  if(!voxPre){voxPre=1;VSETS.forEach(st=>VNAMES.forEach(n=>voxLoad(a,st+'/'+n)))}
+  const ready=VSETS.map(st=>VOX[st+'/'+name]).filter(v=>v&&v.buf);
+  if(ready.length){go(ready[Math.random()*ready.length|0].buf);return}
+  const k=VSETS[Math.random()*VSETS.length|0]+'/'+name;voxLoad(a,k,b=>{if(G)go(b)})}
+/* four kid voice sets (each call picks one at random); all are fetched on the first call so later calls play at once */
+const VSETS=['k1','k1x','y1','y2'],VNAMES=['combo1','combo2','combo3','start','done','boss'];let voxPre=0;
+function voxLoad(a,k,cb){const v=VOX[k];if(v){if(v.buf&&cb)cb(v.buf);else if(cb)v.cb=cb;return}
+  const e=VOX[k]={cb};fetch('voice/'+k+'.mp3?v=6').then(r=>r.ok?r.arrayBuffer():Promise.reject()).then(x=>a.decodeAudioData(x)).then(b=>{e.buf=b;if(e.cb)e.cb(b);e.cb=null}).catch(()=>{})}
 /* background music for the games: three little loops made on the fly (no files), soft and quiet, on or off in Game settings */
 const TRACKS={happy:{n:'🎈 សប្បាយ · Happy',bpm:118,mel:[72,76,79,76,74,77,81,77,72,76,79,84,81,79,76,74],bass:[48,0,55,0,53,0,55,0,48,0,55,0,50,0,55,0],w:'triangle'},
   calm:{n:'🌙 ស្ងប់ · Calm',bpm:72,mel:[76,0,79,0,74,0,72,0,76,0,81,0,79,0,0,0],bass:[48,0,0,0,53,0,0,0,55,0,0,0,52,0,0,0],w:'sine'},
