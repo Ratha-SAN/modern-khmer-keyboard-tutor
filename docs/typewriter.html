@@ -1982,7 +1982,7 @@ function gameSize(){
   const g=G,pg=$('page'),w=pg.clientWidth,h=pg.clientHeight;if(!w||!h)return;
   g.dpr=Math.min(2,window.devicePixelRatio||1);g.W=w;g.H=h;g.cv.width=Math.round(w*g.dpr);g.cv.height=Math.round(h*g.dpr);
   g.s=gClamp(h/22.4,6,17);g.gy=h-Math.max(8,g.s*.7);g.ax=w/2;g.sp=h*(.1+.011*g.wave)*.8*.7*.75*gSpd();
-  g.fs=Math.round(gClamp((S.size||18)*1.3,18,28));g.font=g.fs+'px '+getComputedStyle(ta).fontFamily;
+  g.fs=Math.round(gClamp((S.size||18)*1.3,18,28));g.font='600 '+Math.round(g.fs*1.35)+'px "Noto Serif Khmer","Noto Serif",Georgia,serif'; /* the falling words: bigger, in Noto Serif Khmer */
   g.row1=Math.round(g.fs*.72)+8;g.row2=g.row1+Math.round(g.fs*.62);g.row3=g.row2+Math.round(g.fs*.78);g.barH=g.row3+Math.round(g.fs*.5); /* the top bar's three rows */
   g.ink0=getComputedStyle(device).getPropertyValue('--ink').trim()||'#26211d';gApplyTheme();
   if(!g.aim.x){g.aim.x=g.ax+g.s*6;g.aim.y=g.gy-g.s*5}
@@ -2012,7 +2012,7 @@ function spawnWord(){
     const x=w/2+10+Math.random()*Math.max(1,g.W-w-20);
     if(g.words.every(o=>o.y>g.fs*2.2||Math.abs(o.x-x)>(o.w+w)/2+10)){
       let pu=null;if(!rep&&++g.sinceSpecial>=5&&Math.random()<.4){const L=['slow','heart','bomb','double'];if((g.review&&g.review.size)||(g.seen&&g.seen.length>=6))L.push('repeat','repeat');pu=L[Math.floor(Math.random()*L.length)];g.sinceSpecial=0}
-      g.words.push({pu,rep,t,ch:[...t],n:0,x,y:(g.barH||0)+g.fs*.2,vy:g.sp*(.85+Math.random()*.3),w,hit:false,err:0,shown:0,ox:0,vox:0,oy:0,voy:0,rot:0,vrot:0,stun:0,vib:0,jx:0,jy:0});if(!g.lock)gameHint();return true}}
+      g.words.push({pu,rep,t,ch:[...t],n:0,x,y:(g.barH||0)+g.fs*1.3,vy:g.sp*(.85+Math.random()*.3),w,hit:false,err:0,shown:0,ox:0,vox:0,oy:0,voy:0,rot:0,vrot:0,stun:0,vib:0,jx:0,jy:0});if(!g.lock)gameHint();return true}}
   return false;
 }
 /* a word that reaches the ground explodes, and its letters fly at the archer as shrapnel */
@@ -2040,7 +2040,7 @@ function gameInput(){
   if(!w){let b=null;for(const x of g.words)if(!x.hit&&x.t.startsWith(s)&&(!b||x.y>b.y))b=x;if(b)w=g.lock=b}
   if(w&&w.ch.slice(w.n).join('').startsWith(s)){
     /* a right key: the archer shoots, and the arrow flies true to the word */
-    const k=[...s].length;w.n+=k;g.combo++;g.kOk=(g.kOk||0)+k;vox(voxName(s));const m=gMult();g.score+=10*k*m;gameTier();
+    const k=[...s].length;w.n+=k;g.combo++;g.kOk=(g.kOk||0)+k;const m=gMult();g.score+=10*k*m;gameTier();
     const last=w.n>=w.ch.length;if(last){w.hit=true;g.lock=null;g.score+=(w.ch.length*5+Math.min(g.combo,30))*m*(w.rep?2:1)} /* a repeated word counts double */
     gameQueue('hit',w,k,last);play('key')}
   else{
@@ -2197,7 +2197,7 @@ function gameStep(dt){
   const gx=t?t.x:g.ax+g.s*6,gy=t?t.y:g.gy-g.s*5; /* at rest the bow points forward and up */g.aim.x+=(gx-g.aim.x)*k;g.aim.y+=(gy-g.aim.y)*k;
 }
 function gameTick(now){
-  if(!G)return;const g=G,dt=Math.min(.05,(now-g.last)/1000);g.last=now;g.t+=dt;
+  if(!G)return;const g=G,dt=Math.max(0,Math.min(.05,(now-g.last)/1000)); /* never negative: a frame stamped a little before the last one would run effects backwards */g.last=now;g.t+=dt;
   if(g.cv.width!==Math.round($('page').clientWidth*g.dpr)||g.cv.height!==Math.round($('page').clientHeight*g.dpr))gameSize();
   if(g.W){gameStep(dt);gameDraw()}
   g.raf=requestAnimationFrame(gameTick);
@@ -2216,7 +2216,7 @@ const PAL={day:{ink:'#1f3a93',ink2:'#1c1c24',scene:'#8394c9',acc:'#c8232c',gold:
   kid:{ink:'#5a1fb0',ink2:'#ff2f7a',scene:'#2f86d6',acc:'#ff2f7a',gold:'#ff8a00',halo:'rgba(255,255,255,.95)',sky:['#6fcfff','#fff0fa'],ground:'#7ed957'},
   night:{ink:'#d3defc',ink2:'#f4efde',scene:'#7d8dbd',acc:'#ff8f8f',gold:'#9fe3b8',halo:'rgba(12,20,46,.9)',sky:['#0b1430','#243662']}};
 /* text in the game gets a thin outline in the paper's colour, so it never runs into the drawing behind it */
-function gTxt(c,t,x,y){c.save();c.lineJoin='round';c.lineWidth=Math.max(2,(parseFloat(c.font.replace(/^\D+/,''))||16)*.13);c.strokeStyle=(G&&G.halo)||'#f4efe2';c.strokeText(t,x,y);c.restore();c.fillText(t,x,y)}
+function gTxt(c,t,x,y){c.save();c.lineJoin='round';c.lineWidth=Math.max(2,(parseFloat((c.font.match(/([\d.]+)px/)||[])[1])||16)*.13); /* read the px size, not a weight such as 600 */c.strokeStyle=(G&&G.halo)||'#f4efe2';c.strokeText(t,x,y);c.restore();c.fillText(t,x,y)}
 const gTheme=L=>({set:SETTINGS[(L-1)%4],time:TIMES[(L-1)%3]});
 function gApplyTheme(){const g=G,th=gTheme(g.level),kid=S.gtheme==='kid';if(kid)th.time='day';const p=kid?PAL.kid:PAL[th.time];g.kid=kid;g.th=th;g.pal=p;g.ink=p.ink||g.ink0;g.ink2=p.ink2||g.ink;g.acc=p.acc;g.gold=p.gold;g.halo=p.halo}
 function gameWaveDone(){const g=G;if(g.mode==='lesson'&&g.lw>=3){lessonGameDone();return}if(g.lw>=3)startBoss();else nextWave()}
@@ -2512,7 +2512,7 @@ function gameDraw(){
     c.globalAlpha=1}
   if(g.slowT>0){c.fillStyle='rgba(110,160,200,'+(.09*Math.min(1,g.slowT)).toFixed(3)+')';c.fillRect(0,0,W,H)}
   /* shockwave rings with rays, for the bigger breaks */
-  for(const r of g.rings){if(r.delay>0)continue;const p=r.t/.5,e=1-Math.pow(1-p,3),rr=r.max*e;c.globalAlpha=(1-p)*.7;c.strokeStyle=g.ink;c.lineWidth=(1-p)*3+.6;
+  for(const r of g.rings){if(r.delay>0||r.t>=.5)continue;const p=Math.max(0,r.t/.5), /* a ring that has run its course is not drawn (a negative radius would stop the whole frame) */e=1-Math.pow(1-p,3),rr=r.max*e;c.globalAlpha=(1-p)*.7;c.strokeStyle=g.ink;c.lineWidth=(1-p)*3+.6;
     c.beginPath();c.arc(r.x,r.y,rr,0,6.283);c.stroke();
     for(let k=0;k<r.rays;k++){const an=k/r.rays*6.283+.2;c.beginPath();c.moveTo(r.x+Math.cos(an)*rr*.55,r.y+Math.sin(an)*rr*.55);c.lineTo(r.x+Math.cos(an)*rr*1.05,r.y+Math.sin(an)*rr*1.05);c.stroke()}}
   c.globalAlpha=1;
@@ -2533,10 +2533,10 @@ function gameDraw(){
     c.globalAlpha=full?1:.22;gIcon(c,'heart',x,y,hr,g.acc)}c.globalAlpha=1;
   const rowC=g.row3,rowP=g.row3-g.fs*.18; /* third row of the bar: combo on the left half, power-ups on the right */
   const mu=gMult();if(g.combo>=2&&!g.over){if(g.combo!==g.cLast){g.cPop=1;g.cLast=g.combo}g.cPop=Math.max(0,(g.cPop||0)-.08);
-    c.textAlign='center';c.fillStyle=mu>=3?g.acc:g.ink2;c.font=Math.round(g.fs*.6)+'px '+PENF;c.save();c.translate(W*.3,rowC);c.rotate(Math.sin(g.t*3)*.03);c.scale(1+.25*g.cPop,1+.25*g.cPop);gTxt(c,'ជាប់គ្នា '+KD(g.combo)+(mu>1?'  ×'+KD(mu):''),0,0);c.restore();
+    c.textAlign='center';c.fillStyle=mu>=3?g.acc:g.ink2;c.font=Math.round(g.fs*.6)+'px '+PENF;const cx0=14,cy=g.gy-g.s*3.2;c.font=Math.round(g.fs*.8)+'px '+PENF;c.textAlign='left';c.save();c.translate(cx0,cy);c.rotate(Math.sin(g.t*3)*.04);c.scale(1+.35*g.cPop,1+.35*g.cPop);c.globalAlpha=.78;gTxt(c,'ជាប់គ្នា '+KD(g.combo)+(mu>1?'  ×'+KD(mu):''),0,0);c.restore();c.globalAlpha=1; /* the combo sits low in the play field, left of the archer, away from where new words appear */
     const tiers=[6,14,24],nx=tiers.find(t=>t>g.combo),pv=g.combo>=24?1:(g.combo-(tiers[tiers.indexOf(nx)-1]||0))/(nx-(tiers[tiers.indexOf(nx)-1]||0));
-    c.globalAlpha=.25;c.fillRect(W*.3-40,rowC+5,80,2);c.globalAlpha=1;c.fillRect(W*.3-40,rowC+5,80*pv,2)}else g.cLast=0;
-  const nP=(g.slowT>0)+(g.dblT>0)+(g.repN>0);let px=W*.66-(nP-1)*30;c.textBaseline='middle';
+    c.globalAlpha=.25;c.fillRect(cx0,cy+7,90,3);c.globalAlpha=.8;c.fillRect(cx0,cy+7,90*pv,3);c.globalAlpha=1}else g.cLast=0;
+  const nP=(g.slowT>0)+(g.dblT>0)+(g.repN>0);let px=W/2-(nP-1)*32;c.textBaseline='middle';
   const pr=(k,txt)=>{gIcon(c,k,px-12,rowP,g.fs*.28,g.gold);c.fillStyle=g.gold;c.textAlign='left';c.font=Math.round(g.fs*.5)+'px '+PENF;gTxt(c,txt,px,rowP+Math.sin(g.t*4+px)*1.5);px+=64};
   if(g.slowT>0)pr('slow',KD(Math.ceil(g.slowT))+' វិ');if(g.dblT>0)pr('double',KD(Math.ceil(g.dblT))+' វិ');if(g.repN>0)pr('repeat','×'+KD(g.repN));
   c.textBaseline='alphabetic';c.fillStyle=g.ink;
