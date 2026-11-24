@@ -2033,6 +2033,7 @@ function showLearn(tab,asGame){
   if(tab)learnTab=tab;learnGame=!!asGame;
   learnEl.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('sel',b.dataset.tab===learnTab));
   learnBody.innerHTML=(learnGame&&learnTab!=='stats'?'<p class="lgnote">🏹 ជ្រើសមេរៀនដើម្បីលេង · Choose a lesson to play</p>':'')+(learnTab==='stats'?statsHtml():lessonsHtml());
+  if(learnGame&&G)gPause(true); /* the game waits behind the list */
   learnEl.classList.toggle('pick',learnGame);learnEl.classList.toggle('kid',learnGame&&S.gtheme==='kid');learnEl.hidden=false;
 }
 
@@ -2043,7 +2044,9 @@ learnEl.addEventListener('click',e=>{
   else if(t)showLearn(t.dataset.tab,learnGame);
   else if(r){if(!r.classList.contains('sure')){r.classList.add('sure');r.textContent='Erase all lesson results?';return}S.learn=null;save();showLearn()}
 });
-$('learnClose').addEventListener('click',()=>{learnEl.hidden=true;if(D)exitDrill(false);else focusTa()});
+$('learnClose').addEventListener('click',()=>{learnEl.hidden=true;if(D){exitDrill(false);return}
+  if(learnGame){if(G)gPause(false);else showMenu();return} /* back from the game's lesson list goes back to the game (or its start menu), not to the writing page */
+  focusTa()});
 
 /* ---------- Ink Archer: a typing game played on the page ----------
    The paper stays still. Words rain down in waves; typing a word draws the stick-figure archer's bow, and the last
