@@ -180,6 +180,9 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 [data-keys=black] .slug::before{background:#18181a}
 [data-keys=black] .slug::after{background:rgba(255,255,255,.28)}
 [data-keys=black] .slug b{color:#f1ede4}
+/* the small second letter in a key's corner (flick up to type it) */
+.slug i.hn{position:absolute;top:1px;right:2px;z-index:2;font:600 calc(var(--lf)*.42)/1 "Noto Sans Khmer","Noto Sans",var(--ui);font-style:normal;color:#2f2d2b;opacity:.62;pointer-events:none}
+[data-keys=black] .slug i.hn{color:#f1ede4}[data-keys=pen] .slug i.hn{color:#1f3a93}[data-keys=kid] .slug i.hn{color:#2b0f45}[data-keys=teen] .slug i.hn{color:#f2f6ff}
 [data-keys=black] .tbar.hot .slug{box-shadow:inset 0 0 0 .5px #000,0 1px 0 #55575b,0 2px 0 #1a1a1c}
 [data-keys=black] .slug.on{background:linear-gradient(90deg,#6e5424 0%,#f0d58a 30%,#c39a45 55%,#5e4619 100%)}
 [data-keys=black] .slug.on b{color:#2f2d2b}
@@ -875,6 +878,7 @@ const KMI={
   more:[[...'[]{}#%^*+='],[...'-_:;<>$£€•'],[...'.,\'?!']]};
 const kmL=()=>dev==='ios'?KMI:KM;
 const phoneBase=()=>S.lang==='km'?(mode==='123'?(moreOn?(dev==='ios'?KMI.more:MORE.km):kmL().num):kmL().base):(mode==='123'?(moreOn?MORE.en:ENP.num):ENP.base);
+function headHint(id){if(!isPhone()||S.lang!=='km'||mode==='123'||!/^p\d/.test(id))return '';return (barLayer()===1?KMH.shift:KMH.base)[headChar(id)]||''}
 function headChar(id){
   const m=/^p(\d+)_(\d+)$/.exec(id);
   if(m){const r=+m[1],c=+m[2];
@@ -885,7 +889,7 @@ const headRows=()=>isPhone()?phoneBase().map((r,ri)=>r.map((_,ci)=>['p'+ri+'_'+c
 /* the machine's own keys: no option key on a phone, or for English on Windows; a phone has a 123 key instead */
 function fnItems(){const a=[['fn:shift',1]];if(isPhone())a.push(['fn:num',1]);else if(dev==='mac'||S.lang==='km')a.push(['fn:alt',1]);
   /* on a Khmer phone keyboard the full stop ។ (៕ with shift) sits beside the space bar, where NiDA keeps it on the main layer */
-  const khanKey=dev==='android'&&S.lang==='km'&&mode!=='123';
+  const khanKey=dev==='android'&&S.lang==='km'&&mode!=='123'&&!kmL().base.some(r=>r.includes('។')); /* the Gboard layout has ។ among the letters */
   a.push(['fn:globe',1],['fn:space',khanKey?3:4]);if(khanKey)a.push(['fn:khan',1]);a.push(['fn:back',2],['fn:enter',1]);return a}
 function buildBars(){
   const fan=$('fan'),rail=fan&&fan.parentElement;if(!rail)return;
@@ -995,7 +999,9 @@ function buildBars(){
 }
 function paintBars(){
   if(!fanW)return;if(fanKey!==headKey()){buildBars();follow.n=0;follow(false);return} /* a page with a different number of rows changes the key set's height: size the rail to it */
-  for(const id in barEl){if(id.startsWith('fn:'))continue;const u=headChar(id);barEl[id].querySelector('b').textContent=u==='\u200b'?'ZW':/^\p{M}/u.test(u)?'◌'+u:u}
+  for(const id in barEl){if(id.startsWith('fn:'))continue;const u=headChar(id),b=barEl[id].querySelector('b');b.textContent=u==='\u200b'?'ZW':/^\p{M}/u.test(u)?'◌'+u:u;
+    const h=headHint(id);let i=b.parentNode.querySelector('i.hn');if(h&&!i){i=document.createElement('i');i.className='hn';i.setAttribute('aria-hidden','true');b.parentNode.appendChild(i)}
+    if(i){i.textContent=h?(/^\p{M}/u.test(h)?'◌'+h:h):'';i.hidden=!h}}
   const km=S.lang==='km',pn=isPhone()&&mode==='123',T={shift:pn?(moreOn?'123':'#+='):'⇧',alt:dev==='mac'?'⌥':'AltGr',num:mode==='123'?(km?'កខគ':'ABC'):(km?'១២៣':'123'),khan:barLayer()===1?'៕':'។',globe:km?'A':'ក',back:'⌫',enter:'↵',space:km?'ខ្មែរ':'English'};
   for(const k in T){const e=barEl['fn:'+k];if(!e)continue;const sl=e.firstElementChild.firstElementChild,b=sl.firstElementChild;
     if(k==='globe'){if(!b.querySelector('svg'))b.innerHTML=svg(IC.globe);b.style.fontSize='';b.parentNode.setAttribute('aria-label',km?'Switch to English':'ប្តូរទៅភាសាខ្មែរ');continue} /* the language key is a globe, the same in both languages */
@@ -1154,11 +1160,15 @@ let shift=0,mode='abc',rec=null;
 const EMOJI=['😀','😂','🥹','😊','😍','🤔','😴','😭','😡','👍','👏','🙏','💪','👀','🔥','✨','❤️','💔','🌙','☀️','🌧️','☕','📖','✍️','🕯️','🎉','💡'];
 function key(k,label,cls=''){return `<button class="k ${cls}" data-k="${k==='"'?'&quot;':k}" tabindex="-1" aria-label="${label&&label.aria||k}">${label&&label.html!==undefined?label.html:(label||k)}</button>`}
 /* Khmer layout follows the NiDA arrangement used by the iOS and Android Khmer keyboards */
+/* the Android (Gboard) Khmer keyboard: a Khmer number row, twelve keys across, ។ and ៊ in the bottom row */
 const KM={
-  base:[['ឆ','ឹ','េ','រ','ត','យ','ុ','ិ','ោ','ផ','ៀ'],['ា','ស','ដ','ថ','ង','ហ','្','ក','ល','ើ','់'],['ឋ','ខ','ច','វ','ប','ន','ម','ុំ','៊']],
-  shift:[['ឈ','ឺ','ែ','ឬ','ទ','ួ','ូ','ី','ៅ','ភ','ឿ'],['ាំ','ៃ','ឌ','ធ','អ','ះ','ញ','គ','ឡ','ោះ','៉'],['ឍ','ឃ','ជ','េះ','ព','ណ','ំ','ុះ','ៗ']],
+  base:[[...'១២៣៤៥៦៧៨៩០ឥឲ'],[...'ឆឹេរតយុិោផៀឪ'],[...'ាសដថងហ្កលើ់ឮ'],['ឋ','ខ','ច','វ','ប','ន','ម','ុំ','។','៊']],
+  shift:[[...'!ៗ"៛%៍័៏()៌៎'],[...'ឈឺែឬទួូីៅភឿឧ'],['ាំ','ៃ','ឌ','ធ','អ','ះ','ញ','គ','ឡ','ោះ','៉','ឯ'],['ឍ','ឃ','ជ','េះ','ព','ណ','ំ','ុះ','៕','?']],
   num:[['១','២','៣','៤','៥','៦','៧','៨','៩','០'],['-','/','៖','(',')','៛','&','@','"','៍'],['។','៕',',','?','!','ឥ','ឧ','ឪ','័']]
 };
+/* the second letter on a key, shown small in its corner: tap types the key, a flick up types the second letter (as on Gboard) */
+const KMH={base:{'១':'1','២':'2','៣':'3','៤':'4','៥':'5','៦':'6','៧':'7','៨':'8','៩':'9','០':'0','ឥ':'ឦ','ឲ':'ឱ','ឪ':'ឳ','ឮ':'ឭ','៊':'។ល។'},
+  shift:{'"':'៑','៛':'$','៍':'៙','័':'៚','៏':'៘','(':'{',')':'}','៌':'×','៎':'+','ឈ':'ៜ','ឺ':'៝','ឬ':'ឫ','ះ':'ៈ','គ':'ឝ','ព':'ឞ'}};
 const kmLabel=c=>{const u=c.charCodeAt(0);return (u>=0x17B6&&u<=0x17D3)||u===0x17DD?'◌'+c:c};
 const kmKey=c=>key(c,{html:kmLabel(c),aria:c});
 function buildKb(){
@@ -1249,7 +1259,12 @@ $('fan').addEventListener('pointerdown',e=>{
     paintBars();haptic(k==='space'||k==='enter'?'medium':'light');focusTa();return}
   const u=headChar(c);if(!u)return;
   const typeIt=()=>{audio();insert(u);if(shift===1){shift=0;paintShift()}if(altOn){altOn=0;paintBars()}haptic('light');focusTa();if(D)drillHint()};
-  const pw=predMap[c];
+  const hn=headHint(c),pw=hn?null:predMap[c];
+  if(hn){ /* a key with a second letter: a flick up types it */
+    const y0=e.clientY;let done=false;
+    const mv=ev=>{if(!done&&y0-ev.clientY>=16){done=true;audio();insert(hn);if(shift===1){shift=0;paintShift()}const p=$('kpop2');if(p)p.textContent=hn;haptic('medium');focusTa();if(D)drillHint()}};
+    const end=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',end);removeEventListener('pointercancel',end);if(!done)typeIt()};
+    addEventListener('pointermove',mv);addEventListener('pointerup',end);addEventListener('pointercancel',end);return}
   if(!pw){typeIt();return}
   /* this key carries a floating word: a flick up types the word, a tap types the letter */
   const y0=e.clientY;let done=false;
@@ -1485,7 +1500,9 @@ tools.addEventListener('click',e=>{
     if(!S.kidmode||S.kidmode==='off')S.kidPrev={keys:S.keys,gtheme:S.gtheme||'pen'};
     S.kidmode=nx;if(nx==='young'){S.keys='kid';S.gtheme='kid'}else if(nx==='older'){S.keys='teen';S.gtheme='pen'}else{const pv=S.kidPrev||{};S.keys=pv.keys||'ivory';S.gtheme=pv.gtheme||'pen';S.kidPrev=null}
     applyLook();save();closePanel();toast(nx==='young'?'ក្មេងតូច · Young kids':nx==='older'?'ក្មេងធំ · Older kids':'ក្មេង · Kids mode off');
-    if(G){const was=G.mode;exitGame();startGame({mode:was})}renderTools();return}
+    /* the mode changes the game too, not just the look: young kids get the kid lessons, older kids play, off goes back to the lessons */
+    if(G)exitGame();$('gmenu').hidden=true;device.classList.remove('menuon');setGameMode(nx==='young'?'young':nx==='older'?'older':'learn');
+    startGame(nx==='older'?{mode:'play'}:{mode:'lesson'});renderTools();return}
   else if(id==='gset'){openPanel==='gset'?closePanel():showPanel('gset');return}
   else if(id==='gspeed'){const old=gSpd();S.gspeed=S.gspeed==='fast'?'slow':'fast';const k=gSpd()/old;
     if(G){G.sp*=k;G.words.forEach(w=>{if(!w.boss)w.vy*=k});if(G.interval)G.interval/=k}
@@ -1830,6 +1847,7 @@ const getCourse=()=>(course&&course.plat===plat)?course:(course=buildCourse());
 
 /* what the on-screen keys can print; anything else is skipped over on touch screens */
 const oskSet=new Set([' ','។','៕']);[KM,KMI].forEach(M=>Object.values(M).forEach(l=>l.forEach(r=>r.forEach(k=>[...k].forEach(c=>oskSet.add(c))))));
+Object.values(KMH).forEach(m=>Object.values(m).forEach(h=>[...h].forEach(c=>oskSet.add(c)))); /* the flick-up letters can be typed too */
 const typable=c=>c<'\u0080'||oskSet.has(c)||(!coarse&&course&&c in course.where);
 const CLUSTER=/[\s\S](?:្[ក-ឳ]|[ា-៓៝‌‍])*/gu;
 
