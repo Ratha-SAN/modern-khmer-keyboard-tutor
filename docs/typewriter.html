@@ -2269,7 +2269,7 @@ function gameImpact(a){ /* a true arrow lands in its word: it sticks and wobbles
   if(ch)g.letters.push({ch,x:a.x,y:a.y-g.fs*.4,vx:-a.vx*.08+(Math.random()-.5)*90,vy:-150-Math.random()*80,r:0,vr:(Math.random()-.5)*10,t:0,life:.9,bounce:1,col:g.acc});
   for(let i=0;i<5;i++)g.bits.push({x:a.x,y:a.y,vx:(Math.random()-.5)*140-a.vx*.04,vy:-Math.random()*100,r:.8+Math.random()*1.4,a:1});
   g.shake=Math.max(g.shake,.06);gsound(a.last?['pop','break','boom','blast'][gTier(w)]:'hit');
-  if(a.last){gameBurst(w);if(w.pu&&!w.chained)gamePower(w.pu)}
+  if(a.last){gameBurst(w);if(w.proj)gBomb(w.x+w.ox,w.y+w.oy-g.fs*.3);if(w.pu&&!w.chained)gamePower(w.pu)}
 }
 /* words by theme: breaking one sends up a little shower of its own emoji */
 const EMO_CAT={
@@ -2361,6 +2361,8 @@ function gameStep(dt){
   g.letters=g.letters.filter(l=>l.t<l.life);
   for(const r of g.rings){if(r.delay>0)r.delay-=dt;else r.t+=dt}g.rings=g.rings.filter(r=>r.t<.5);
   for(const b of g.bits){b.vy+=320*dt;b.x+=b.vx*dt;b.y+=b.vy*dt;b.a-=dt*.9}g.bits=g.bits.filter(b=>b.a>0);
+  if(g.shards){for(const h of g.shards){h.vy+=420*dt;h.x+=h.vx*dt;h.y+=h.vy*dt;h.rot+=h.vr*dt;h.a-=dt*.7;if(h.y>g.gy-2){h.y=g.gy-2;h.vy*=-.3;h.vx*=.6;h.vr*=.5}}g.shards=g.shards.filter(h=>h.a>0)}
+  if(g.smoke){for(const m of g.smoke){m.y+=m.vy*dt;m.r+=dt*g.s*1.6;m.a-=dt*.45}g.smoke=g.smoke.filter(m=>m.a>0)}
   if(g.emo){for(const e of g.emo){e.t+=dt;e.vy+=170*dt;e.vx*=1-dt*.6;e.x+=e.vx*dt+Math.sin(e.t*5+e.r*9)*12*dt;e.y+=e.vy*dt;e.r+=e.vr*dt}g.emo=g.emo.filter(e=>e.t<e.life&&e.y<g.H+40)} /* emoji float up, drift and fall away */
   for(const b of g.blots)b.a-=dt*.22;g.blots=g.blots.filter(b=>b.a>0);
   for(const f of g.floats)f.t+=dt;g.floats=g.floats.filter(f=>f.t<1);
@@ -2454,8 +2456,17 @@ function bossDefeated(){
   gamePower('bomb'); /* everything still falling is shot down */
   vox('boss',1,true);gnote('ឈ្នះមេធំ!');g.floats.push({x:g.W/2,y:g.H*.3,t:0,txt:'+'+KD(250+g.level*50),big:3});
 }
+/* glass: shards round the barrier fly out spinning and fall, glinting; bomb: a flash, a double shockwave, flying debris and smoke */
+function gGlass(x,y,rx,ry){const g=G;(g.shards=g.shards||[]);for(let i=0;i<22;i++){const an=i/22*6.283+Math.random()*.2,px=x+Math.cos(an)*rx,py=y+Math.sin(an)*ry,sz=4+Math.random()*7;
+    g.shards.push({x:px,y:py,vx:Math.cos(an)*(80+Math.random()*160),vy:Math.sin(an)*(60+Math.random()*120)-80,rot:Math.random()*6,vr:(Math.random()-.5)*14,
+      p:[[-sz,-sz*.3],[sz*.6,-sz*.8],[sz*.4,sz*.7]],a:1})}
+  g.rings.push({x,y,t:0,max:rx+20,rays:12,delay:0});g.flash=Math.max(g.flash||0,.18);gsound('break')}
+function gBomb(x,y){const g=G;(g.smoke=g.smoke||[]);g.rings.push({x,y,t:0,max:g.s*7,rays:16,delay:0});g.rings.push({x,y,t:0,max:g.s*4.5,rays:0,delay:.08});
+  for(let i=0;i<26;i++){const an=Math.random()*6.283,sp=120+Math.random()*260;g.bits.push({x,y,vx:Math.cos(an)*sp,vy:Math.sin(an)*sp-90,r:1+Math.random()*2.4,a:1})}
+  for(let i=0;i<6;i++)g.smoke.push({x:x+(Math.random()-.5)*20,y:y+(Math.random()-.5)*14,r:g.s*(.8+Math.random()*.8),vy:-20-Math.random()*25,a:.45});
+  g.flash=Math.max(g.flash||0,.25);g.shake=Math.max(g.shake,.25);gsound('blast')}
 function gameBlocked(a,w){ /* the barrier takes the last arrow once and breaks; the word starts again */
-  const g=G,u=w.u;u.shield=false;u.sf=.5;a.state='fall';a.vx=-a.vx*.2;a.vy=-130;a.ang+=1.4;
+  const g=G,u=w.u;gGlass(w.x+w.ox,w.y+w.oy-g.fs*.3,w.w/2+16,g.fs*1.05);u.shield=false;u.sf=.5;a.state='fall';a.vx=-a.vx*.2;a.vy=-130;a.ang+=1.4;
   w.n=0;w.shown=0;w.hit=false;if(g.lock===w)g.lock=null;gameComboLost();
   g.floats.push({x:w.x,y:w.y-g.fs*1.4,t:0,txt:'ការពារបាន!',big:1});
   for(let i=0;i<10;i++)g.bits.push({x:a.x,y:a.y,vx:(Math.random()-.5)*220,vy:-Math.random()*140,r:1+Math.random()*1.8,a:1});
@@ -2719,6 +2730,9 @@ function gameDraw(){
     for(let k=0;k<r.rays;k++){const an=k/r.rays*6.283+.2;c.beginPath();c.moveTo(r.x+Math.cos(an)*rr*.55,r.y+Math.sin(an)*rr*.55);c.lineTo(r.x+Math.cos(an)*rr*1.05,r.y+Math.sin(an)*rr*1.05);c.stroke()}}
   c.globalAlpha=1;
   for(const b of g.bits){c.globalAlpha=Math.max(0,b.a);c.beginPath();c.arc(b.x,b.y,b.r,0,6.283);c.fill()}c.globalAlpha=1;
+  if(g.smoke){c.save();c.fillStyle=g.kid?'#b9a7d8':'#8c8c96';for(const m of g.smoke){c.globalAlpha=Math.max(0,m.a)*.32;c.beginPath();c.arc(m.x,m.y,m.r,0,6.283);c.fill()}c.restore()}
+  if(g.shards){c.save();const GL='rgba(60,120,200,.95)';c.strokeStyle=GL;c.lineWidth=1.2;for(const h of g.shards){c.globalAlpha=Math.max(0,h.a);c.save();c.translate(h.x,h.y);c.rotate(h.rot);c.beginPath();c.moveTo(...h.p[0]);c.lineTo(...h.p[1]);c.lineTo(...h.p[2]);c.closePath();
+    c.fillStyle='rgba(200,230,255,.55)';c.fill();c.stroke();if(Math.sin(g.t*20+h.rot*3)>.7){c.strokeStyle='#fff';c.beginPath();c.moveTo(...h.p[0]);c.lineTo(...h.p[1]);c.stroke();c.strokeStyle=GL}c.restore()}c.restore()}c.globalAlpha=1;
   if(g.emo&&g.emo.length){c.textAlign='center';c.textBaseline='middle';for(const e of g.emo){c.save();c.globalAlpha=.6*gClamp((e.life-e.t)/.5,0,1)*gClamp(e.t/.08,0,1);c.translate(e.x,e.y);c.rotate(e.r);
     const k=Math.min(1,e.t/.15);c.font=Math.round(e.sz*(.5+.5*k))+'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';c.fillText(e.e,0,0);c.restore()}c.textBaseline='alphabetic';c.textAlign='left'}
   for(const f of g.floats){c.globalAlpha=1-f.t;c.fillStyle=g.acc;c.font=Math.round(g.fs*(.62+(f.big||0)*.12))+'px '+PENF;c.textAlign='center';
@@ -2877,21 +2891,26 @@ function menuScene(cv){if(!cv)return;const c=cv.getContext('2d'),INK='#1f3a93',R
   const target=()=>{let b=null;for(const l of st.letters)if(!l.dead&&l.y>8&&(!b||l.y>b.y))b=l;return b};
   const frame=now=>{if(!cv.isConnected||$('gmenu').hidden)return;if(!W)size();const dt=Math.min(.05,(now-st.last)/1000);st.last=now;st.t+=dt;
     /* letters */
-    st.spawn-=dt;if(st.spawn<=0&&st.letters.length<5){st.letters.push({ch:L[Math.random()*L.length|0],x:W*(.35+Math.random()*.6),y:-14,vy:16+Math.random()*12,r:(Math.random()-.5)*.4,dead:0});st.spawn=.8+Math.random()*.7}
-    for(const l of st.letters){l.y+=l.vy*dt;if(l.dead)l.dead+=dt}st.letters=st.letters.filter(l=>l.y<H+20&&l.dead<.01||(l.dead&&l.dead<.01));
+    st.spawn-=dt;if(st.spawn<=0&&st.letters.length<2){st.letters.push({ch:L[Math.random()*L.length|0],x:W*(.35+Math.random()*.6),y:-14,vy:16+Math.random()*12,r:(Math.random()-.5)*.4,dead:0});st.spawn=1.8+Math.random()*1.4}
+    for(const l of st.letters){l.y+=l.vy*dt;if(!l.dead&&l.y>=H-16){l.dead=.001;st.pops.push({x:l.x,y:H-12,t:0,boom:1,ch:l.ch})}} /* a letter that reaches the ground explodes */
     /* the archer walks a little to line up, draws, and shoots */
     const tg=target(),gy=H-8,bx=st.ax,by=gy-30;
     if(tg){st.aim+=(Math.atan2(tg.y-by,tg.x-bx)-st.aim)*Math.min(1,dt*6);const want=Math.min(W*.3,Math.max(W*.08,tg.x-W*.45));st.ax+=(want-st.ax)*Math.min(1,dt*.8)}
     st.shoot-=dt;st.pull=tg?Math.min(1,st.pull+dt*1.6):Math.max(0,st.pull-dt*3);
-    if(tg&&st.shoot<=0&&st.pull>.9){const T=.42,px=tg.x,py=tg.y+tg.vy*T;st.arrows.push({x:bx,y:by,vx:(px-bx)/T,vy:(py-by)/T,t:0,tg});st.shoot=1.1+Math.random()*.5;st.pull=0}
-    for(const a of st.arrows){a.t+=dt;a.x+=a.vx*dt;a.y+=a.vy*dt;const l=a.tg;if(!l.dead&&Math.hypot(a.x-l.x,a.y-l.y)<13){l.dead=.001;a.hit=1;st.pops.push({x:l.x,y:l.y,t:0})}}
-    st.arrows=st.arrows.filter(a=>!a.hit&&a.t<1.2);st.letters=st.letters.filter(l=>!l.dead);for(const p of st.pops)p.t+=dt;st.pops=st.pops.filter(p=>p.t<.6);
+    if(tg&&st.shoot<=0&&st.pull>.9){const T=.42,miss=Math.random()<.4,off=miss?(Math.random()<.5?-1:1)*(26+Math.random()*16):0,px=tg.x+off,py=tg.y+tg.vy*T-Math.abs(off)*.4;st.arrows.push({x:bx,y:by,vx:(px-bx)/T,vy:(py-by)/T,t:0,tg,miss}); /* now and then it misses, and the letter lands and explodes */st.shoot=1.6+Math.random()*1.6;st.pull=0}
+    for(const a of st.arrows){a.t+=dt;a.x+=a.vx*dt;a.y+=a.vy*dt;const l=a.tg;if(!a.miss&&!l.dead&&Math.hypot(a.x-l.x,a.y-l.y)<13){l.dead=.001;a.hit=1;st.pops.push({x:l.x,y:l.y,t:0})}}
+    st.arrows=st.arrows.filter(a=>!a.hit&&a.t<1.2);st.letters=st.letters.filter(l=>!l.dead);for(const p of st.pops)p.t+=dt;st.pops=st.pops.filter(p=>p.t<(p.boom?.9:.6));
     /* draw */
     c.clearRect(0,0,W,H);c.lineCap='round';c.lineJoin='round';c.strokeStyle=c.fillStyle=INK;
     c.globalAlpha=.55;c.lineWidth=1.4;c.beginPath();for(let x=0;x<=W;x+=8)c.lineTo(x,gy+Math.sin(x*.07)*.8);c.stroke();c.globalAlpha=1;
     c.textAlign='center';c.textBaseline='middle';c.font='600 22px "Noto Serif Khmer","Noto Sans Khmer",serif';
     for(const l of st.letters){c.save();c.translate(l.x,l.y);c.rotate(l.r*Math.sin(st.t*2+l.x));c.fillText(l.ch,0,0);c.restore()}
-    for(const p of st.pops){c.globalAlpha=1-p.t/.6;for(let k=0;k<7;k++){const an=k*.9+p.x,rr=4+p.t*40;c.beginPath();c.arc(p.x+Math.cos(an)*rr,p.y+Math.sin(an)*rr,2.2*(1-p.t/.6)+.4,0,6.283);c.fill()}c.globalAlpha=1}
+    for(const p of st.pops){if(p.boom){const k=p.t/.9;c.globalAlpha=1-k; /* ground blast: a flash ring, flying ink, the letter's pieces and a puff */
+        c.strokeStyle=RED;c.lineWidth=2.4*(1-k)+.5;c.beginPath();c.arc(p.x,p.y,6+k*34,Math.PI,0);c.stroke();
+        c.fillStyle=INK;for(let q=0;q<10;q++){const an=Math.PI+q*.35+.1,rr=6+k*46,yy=p.y+Math.sin(an)*rr+k*k*30;c.beginPath();c.arc(p.x+Math.cos(an)*rr,yy,1.8*(1-k)+.5,0,6.283);c.fill()}
+        c.font='600 13px "Noto Serif Khmer",serif';for(let q=0;q<3;q++){c.save();c.translate(p.x+(q-1)*k*30,p.y-k*30*(1.4-q*.3)+k*k*40);c.rotate((q-1)*k*4);c.fillText(p.ch,0,0);c.restore()}
+        c.globalAlpha=(1-k)*.25;c.beginPath();c.arc(p.x,p.y-4-k*8,4+k*16,0,6.283);c.fill();c.strokeStyle=c.fillStyle=INK;c.globalAlpha=1;continue}
+      c.globalAlpha=1-p.t/.6;for(let k=0;k<7;k++){const an=k*.9+p.x,rr=4+p.t*40;c.beginPath();c.arc(p.x+Math.cos(an)*rr,p.y+Math.sin(an)*rr,2.2*(1-p.t/.6)+.4,0,6.283);c.fill()}c.globalAlpha=1}
     c.lineWidth=1.6;for(const a of st.arrows){const an=Math.atan2(a.vy,a.vx);c.save();c.translate(a.x,a.y);c.rotate(an);c.beginPath();c.moveTo(-16,0);c.lineTo(0,0);c.moveTo(-4,-3);c.lineTo(0,0);c.lineTo(-4,3);c.moveTo(-16,0);c.lineTo(-19,-3);c.moveTo(-16,0);c.lineTo(-19,3);c.stroke();c.restore()}
     /* the archer: krama first (behind), then the body and bow */
     const hx=bx-4,hy=gy-44;const fl=Math.sin(st.t*7)*3,fl2=Math.sin(st.t*7+1.3)*4;
