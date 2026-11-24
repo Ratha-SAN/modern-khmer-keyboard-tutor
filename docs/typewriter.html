@@ -390,6 +390,26 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 .prog{position:absolute;left:0;top:0;z-index:3;height:3px;width:calc(var(--pg,0)*100%);background:var(--accent);transition:width .15s}
 .drill .sg-row,.game .sg-row{visibility:hidden}
 #gcv{position:absolute;inset:0;width:100%;height:100%;z-index:2;display:none}
+/* the start menu: a sheet of paper drawn on in blue ballpoint */
+#gmenu{position:absolute;inset:0;z-index:6;display:flex;align-items:center;justify-content:center;padding:16px;background:#f7f2e3;color:#1f3a93;font-family:Fasthand,"Kantumruy Pro","Noto Sans Khmer",cursive;overflow:auto}
+#gmenu[hidden]{display:none}
+.menuon .page{transform:none!important}.menuon .scroll,.menuon .strike,.menuon .count{visibility:hidden}
+#gmenu .gm{position:relative;width:min(440px,100%);padding:22px 20px 18px;text-align:center}
+#gmenu .gm>svg.frame{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+#gmenu h2{margin:0 0 2px;font-size:clamp(30px,8vw,44px);font-weight:400;line-height:1.2}
+#gmenu .sub{margin:0 0 14px;font-size:15px;opacity:.75;font-family:Inter,"Noto Sans Khmer",sans-serif}
+#gmenu .hero{width:120px;height:86px;display:block;margin:0 auto 8px}
+#gmenu .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+#gmenu button{font:inherit;color:inherit;background:transparent;border:2.2px solid currentColor;border-radius:255px 18px 225px 18px/18px 225px 18px 255px;padding:10px 8px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:86px;justify-content:center;transition:transform .12s,background .12s}
+#gmenu button:nth-child(2n){border-radius:18px 225px 18px 255px/255px 18px 225px 18px}
+#gmenu button:hover,#gmenu button:focus-visible{background:rgba(31,58,147,.07);transform:rotate(-1deg) scale(1.02);outline:none}
+#gmenu button .i{font-size:26px;line-height:1}
+#gmenu button b{font-weight:400;font-size:24px;line-height:1.2}
+#gmenu button small{font-family:Inter,sans-serif;font-size:12px;opacity:.7}
+#gmenu button.main{background:rgba(31,58,147,.09);border-width:2.8px}
+#gmenu .cont{grid-column:1/-1;min-height:64px;flex-direction:row;gap:10px}
+#gmenu .cont small{display:block}
+#gmenu .young{color:#c8232c}#gmenu .older{color:#1d7a46}
 .game #gcv{display:block}
 .game .scroll,.game .strike{visibility:hidden}
 .game .count,.game #shareBtn,.game .clip,.drill .clip{display:none}
@@ -537,6 +557,7 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
     <div class="strike" id="strike"></div>
     <div class="prog" id="prog" hidden></div>
     <canvas id="gcv" aria-label="Ink Archer game"></canvas>
+    <div id="gmenu" hidden role="dialog" aria-label="Choose how to play"></div>
     <div class="scroll" id="scroll">
       <div class="sheet" id="sheet">
         <div class="grow">
@@ -1502,11 +1523,11 @@ panel.addEventListener('click',e=>{
   else if(a==='copy'){copyText();closePanel()}
   else if(a==='selall'){closePanel();ta.focus();ta.select()}
   else if(a==='gspd'){{const old=gSpd();S.gspeed=v;const k=gSpd()/old;if(G){G.sp*=k;G.words.forEach(w=>{if(!w.boss)w.vy*=k});if(G.interval)G.interval/=k}}save();showPanel('gset')}
-  else if(a==='keys'){S.keys=v;applyLook();save();showPanel('gset')}
+  else if(a==='keys'){if(v==='kid')setGameMode('young');else if(v==='teen')setGameMode('older');else{if(S.kidmode&&S.kidmode!=='off')setGameMode('play');S.keys=v;applyLook();save()}if(G){const was=G.mode;exitGame();startGame({mode:was})}showPanel('gset')}
   else if(a==='flat'){S.flat=v==='1';save();fanKey='';buildBars();follow.n=0;layout();if(G)gameHint();showPanel('gset')}
   else if(a==='voice'){S.voice=v==='1';save();if(S.voice)vox('combo1',1,true);showPanel('gset')}
   else if(a==='music'){S.music=v;save();audio();musicSync();showPanel('gset')}
-  else if(a==='gtheme'){S.gtheme=v;save();if(G)gApplyTheme();showPanel('gset')}
+  else if(a==='gtheme'){if(v==='kid')setGameMode('young');else if(S.kidmode==='young')setGameMode('play');else{S.gtheme=v;save()}if(G)gApplyTheme();showPanel('gset')}
   else if(a==='dl'){exportDocs([doc()],v)}
   else if(a==='size'){S.size=Math.max(14,Math.min(40,S.size+ +v));applyLook();layout();save();showPanel('look')}
 });
@@ -1704,7 +1725,7 @@ new ResizeObserver(()=>layout()).observe(scroll);
 applyLook();applyOsk();renderTools();buildKb();
 /* the page opens on the game; the writing page is one tap away (> then the pen) */
 S.more=false;renderTools();musicSync(); /* the toolbar always opens on its first page: the two games and the speed */
-setTimeout(()=>{if(!G&&!D&&pages.hidden&&learnEl.hidden)startGame({mode:'lesson'})},350);
+setTimeout(()=>{if(!G&&!D&&pages.hidden&&learnEl.hidden)showMenu()},350);
 ta.value=doc().text;ta.setSelectionRange(ta.value.length,ta.value.length);lastN=count();autoShift();
 fit();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(layout);
 /* fetch the Khmer faces up front so the first Khmer letter never waits on a download */
@@ -2007,12 +2028,13 @@ function startGame(opts){
   G={cv:$('gcv'),W:0,H:0,dpr:1,words:[],arrows:[],bits:[],blots:[],floats:[],wave:0,score:0,lives:5,lock:null,over:false,overT:0,t:0,last:performance.now(),
     shake:0,aim:{x:0,y:0},dr:0,rel:0,pool:gameWords(),best:(S.gbest||{})[S.lang]||0,newBest:false,combo:0,banner:0,raf:0,shots:[],letters:[],rings:[],flash:0,hurt:0,hurtCool:0,tier:0,slowT:0,dblT:0,chain:[],note:null,sinceSpecial:0,rec:0,recv:0,pull:0,lastShot:0,level:1,lw:0,phase:'waves',boss:null,fadeA:0,fadeDir:0,bannerTxt:'',bannerSub:'',clearT:0,stars:Array.from({length:46},()=>[Math.random(),Math.random(),.6+Math.random()*1.3,Math.random()*6])};
   G.cx=G.cv.getContext('2d');G.mode=gameOpts.mode;G.prevLang=prevLang;
+  {const r=gameOpts.resume;if(r){G.level=r.level||1;G.score=r.score||0;G.lives=r.lives||5;G.autoN=r.autoN||0;gameOpts=Object.assign({},gameOpts,{resume:null})}}
   if(les){G.les=les;G.lesWords=lessonWords(les);if(kidLetters())new Set(les.one?G.lesWords:G.lesWords.join('')).forEach(c=>voxLetter(c,1));G.kOk=0;G.kBad=0;G.lesT0=performance.now()}
   device.classList.add('game');device.classList.toggle('nokeys',!S.osk);shift=0;mode='abc';moreOn=false;ta.value='';buildKb();paintBars();
-  gameSize();nextWave();if(les){G.bannerTxt=les.t[0];G.bannerSub=les.t[1]}else{G.bannerTxt='កម្រិត '+KD(1);G.bannerSub=SET_EN[G.th.set]+' · '+TIME_EN[G.th.time]}G.raf=requestAnimationFrame(gameTick);focusTa();gameHint();renderTools();setTimeout(()=>vox('start',1,true),350);
+  gameSize();nextWave();if(les){G.bannerTxt=les.t[0];G.bannerSub=les.t[1]}else{G.bannerTxt='កម្រិត '+KD(G.level);G.bannerSub=SET_EN[G.th.set]+' · '+TIME_EN[G.th.time]}G.raf=requestAnimationFrame(gameTick);focusTa();gameHint();renderTools();setTimeout(()=>vox('start',1,true),350);
 }
 function exitGame(){
-  if(!G)return;{const ch=$('autochip');if(ch)ch.hidden=true}cancelAnimationFrame(G.raf);if(G.prevLang&&G.prevLang!==S.lang)S.lang=G.prevLang;G=null;device.classList.remove('game','nokeys');
+  if(!G)return;gSave();{const ch=$('autochip');if(ch)ch.hidden=true}cancelAnimationFrame(G.raf);if(G.prevLang&&G.prevLang!==S.lang)S.lang=G.prevLang;G=null;device.classList.remove('game','nokeys');
   $('fan').querySelectorAll('.slug.hint').forEach(e=>e.classList.remove('hint'));
   ta.value=doc().text;ta.setSelectionRange(ta.value.length,ta.value.length);
   mode='abc';shift=0;buildKb();paintBars();layout();lastN=count();autoShift();focusTa();renderTools();
@@ -2021,7 +2043,7 @@ function gameRestart(){if(!G)return;const raf=G.raf,pl=G.prevLang;cancelAnimatio
 function gameSize(){
   const g=G,pg=$('page'),w=pg.clientWidth,h=pg.clientHeight;if(!w||!h)return;
   g.dpr=Math.min(2,window.devicePixelRatio||1);g.W=w;g.H=h;g.cv.width=Math.round(w*g.dpr);g.cv.height=Math.round(h*g.dpr);
-  g.s=gClamp(h/22.4,6,17);g.gy=h-Math.max(8,g.s*.7);g.ax=w/2;g.sp=h*(.1+.011*g.wave)*.8*.7*.75*gSpd();
+  g.s=gClamp(h/22.4,6,17);g.gy=h-Math.max(8,g.s*.7);g.ax=g.ax>0&&g.ax<w?g.ax:w/2;g.sp=h*(.1+.011*g.wave)*.8*.7*.75*gSpd();
   g.fs=Math.round(gClamp((S.size||18)*1.3,18,28));g.font='600 '+Math.round(g.fs*1.35)+'px "Noto Serif Khmer","Noto Serif",Georgia,serif'; /* the falling words: bigger, in Noto Serif Khmer */
   g.row1=Math.round(g.fs*.6)+7;g.row2=g.row1+Math.round(g.fs*.6);g.row3=g.row2+Math.round(g.fs*.6);g.barH=g.row3+Math.round(g.fs*.36); /* 20% thinner than before */ /* the top bar's three rows */
   g.ink0=getComputedStyle(device).getPropertyValue('--ink').trim()||'#26211d';gApplyTheme();
@@ -2050,9 +2072,10 @@ function spawnWord(){
   const w=Math.ceil(cx.measureText(t).width);
   for(let k=0;k<12;k++){
     const x=w/2+10+Math.random()*Math.max(1,g.W-w-20);
-    if(g.words.every(o=>o.y>g.fs*2.2||Math.abs(o.x-x)>(o.w+w)/2+10)){
-      let pu=null;if(!rep&&++g.sinceSpecial>=5&&Math.random()<.4){const L=['slow','heart','bomb','double','auto','shield'];if((g.review&&g.review.size)||(g.seen&&g.seen.length>=6))L.push('repeat','repeat');pu=L[Math.floor(Math.random()*L.length)];g.sinceSpecial=0}
-      g.words.push({pu,rep,t,ch:[...t],n:0,x,y:(g.barH||0)+g.fs*1.3,vy:g.sp*(.85+Math.random()*.3),w,hit:false,err:0,shown:0,ox:0,vox:0,oy:0,voy:0,rot:0,vrot:0,stun:0,vib:0,jx:0,jy:0});if(!g.lock)gameHint();return true}}
+    const y0=(g.barH||0)+g.fs*1.3,near=o=>Math.abs(o.x-x)<=(o.w+w)/2+10; /* a word in the same lane must be well below the top */
+    if(g.words.every(o=>!near(o)||o.y>y0+g.fs*2.6)){
+      let pu=null;if(!rep&&++g.sinceSpecial>=5&&Math.random()<.4){const L=['slow','heart','bomb','double','auto','shield'];if((g.review&&g.review.size)||(g.seen&&g.seen.length>=6))L.push('repeat','repeat');pu=L[Math.floor(Math.random()*L.length)];if(pu==='auto'&&Math.random()<.3){const o=L.filter(x=>x!=='auto');pu=o[Math.floor(Math.random()*o.length)]}g.sinceSpecial=0}
+      g.words.push({pu,rep,t,ch:[...t],n:0,x,y:y0,vy:Math.min(g.sp*(.85+Math.random()*.3),...g.words.filter(o=>near(o)&&!o.boss&&!o.hit).map(o=>o.vy)),w,hit:false,err:0,shown:0,ox:0,vox:0,oy:0,voy:0,rot:0,vrot:0,stun:0,vib:0,jx:0,jy:0});if(!g.lock)gameHint();return true}}
   return false;
 }
 /* a word that reaches the ground explodes, and its letters fly at the archer as shrapnel */
@@ -2076,6 +2099,7 @@ function gameTarget(){const g=G;if(!g)return null;if(g.lock)return g.lock;let b=
 function gameInput(){
   const g=G,s=ta.value.replace(/[\n\t ]/g,'');ta.value='';ta.setSelectionRange(0,0);
   if(g.over){if(performance.now()-g.overT>700)gameRestart();return}
+  if(g.paused){gPause(false);return} /* the first key just wakes the game */
   if(!s)return;
   let w=g.lock;
   if(!w){let b=null;for(const x of g.words)if(!x.hit&&x.t.startsWith(s)&&(!b||x.y>b.y))b=x;if(b)w=g.lock=b}
@@ -2183,7 +2207,7 @@ function gameBow(){ /* where the arrow leaves the bow, in page pixels */
   const l=1.5*s,hx=Math.cos(th)*l,hy=-2.9*s+Math.sin(th)*l;return{x:g.ax+dir*(hx+Math.cos(th)*s*.9),y:g.gy+hy+Math.sin(th)*s*.9}
 }
 function gameOver(){
-  const g=G;g.over=true;g.overT=performance.now();g.lock=null;
+  const g=G;g.over=true;g.overT=performance.now();g.lock=null;if(S.gsave){S.gsave=null;save()}
   if(g.score>g.best){g.newBest=true;g.best=g.score;S.gbest=Object.assign({},S.gbest,{[S.lang]:g.score});save();try{localStorage.setItem('bestTwArcher_'+S.lang,String(g.score))}catch(e){}}
   play('bell');gameHint();
 }
@@ -2201,7 +2225,9 @@ function gameStep(dt){
       w.err=Math.max(0,w.err-dt);w.stun=Math.max(0,w.stun-dt*1.4);
       w.vib=Math.max(0,w.vib-dt*2.6);w.jx=Math.sin(g.t*95)*w.vib*3.4;w.jy=Math.cos(g.t*113)*w.vib*2.2; /* a struck word buzzes, fast and fading */
       w.voy+=(-90*w.oy-9*w.voy)*dt;w.oy+=w.voy*dt;w.vox+=(-70*w.ox-7*w.vox)*dt;w.ox+=w.vox*dt;w.vrot+=(-120*w.rot-8*w.vrot)*dt;w.rot+=w.vrot*dt;
-      if(w.hit||w.boss)continue;w.y+=w.vy*(1-w.stun*.7)*(g.slowT>0?.35:1)*dt;
+      if(w.hit||w.boss)continue;
+      for(const o of g.words)if(o!==w&&!o.hit&&!o.boss&&o.y>w.y&&o.y-w.y<g.fs*1.5&&Math.abs(o.x-w.x)<(o.w+w.w)/2+6)w.vy=Math.min(w.vy,o.vy); /* never run into the word below */
+      w.y+=w.vy*(1-w.stun*.7)*(g.slowT>0?.35:1)*dt;
       if(w.y>=g.gy-4){w.gone=true;g.lives--;gameComboLost();g.shake=.35;if(g.lock===w)g.lock=null;
         gameGroundBlast(w);haptic('heavy');
         if(g.lives<=0){gameOver();break}gameHint()}}
@@ -2239,12 +2265,13 @@ function gameStep(dt){
   for(const b of g.blots)b.a-=dt*.22;g.blots=g.blots.filter(b=>b.a>0);
   for(const f of g.floats)f.t+=dt;g.floats=g.floats.filter(f=>f.t<1);
   const t=gameTarget(),k=Math.min(1,dt*9);
-  const gx=t?t.x:g.ax+g.s*6,gy=t?t.y:g.gy-g.s*5; /* at rest the bow points forward and up */g.aim.x+=(gx-g.aim.x)*k;g.aim.y+=(gy-g.aim.y)*k;
+  gArcherMove(g,dt);
+  const gx=t?t.x:g.ax+(g.walk&&g.walk.v<0?-1:1)*g.s*6,gy=t?t.y:g.gy-g.s*5; /* at rest the bow points forward and up */g.aim.x+=(gx-g.aim.x)*k;g.aim.y+=(gy-g.aim.y)*k;
 }
 function gameTick(now){
   if(!G)return;const g=G,dt=Math.max(0,Math.min(.05,(now-g.last)/1000)); /* never negative: a frame stamped a little before the last one would run effects backwards */g.last=now;g.t+=dt;
   if(g.cv.width!==Math.round($('page').clientWidth*g.dpr)||g.cv.height!==Math.round($('page').clientHeight*g.dpr))gameSize();
-  if(g.W){gameStep(dt);gameDraw()}
+  if(g.W){if(!g.paused)gameStep(dt);gameDraw();if(g.paused)gPausedDraw(g)}
   g.raf=requestAnimationFrame(gameTick);
 }
 /* ---------- levels: the setting and the time of day change, and a boss ends each level ----------
@@ -2277,7 +2304,7 @@ function lessonGameDone(){
   const c=gCourse(les),i=c.lessons.findIndex(l=>l.id===les.id),next=c.lessons[i+1]||c.lessons[0];
   g.les=next;gameOpts={mode:'lesson',id:next.id};if(next.lang&&next.lang!==S.lang){S.lang=next.lang;buildKb();paintBars()}
   g.lesWords=lessonWords(next);g.kOk=0;g.kBad=0;g.lesT0=performance.now();
-  g.level++;g.lw=0;g.phase='waves';g.lives=Math.min(5,g.lives+1);gApplyTheme();
+  g.level++;g.lw=0;g.phase='waves';g.lives=Math.min(5,g.lives+1);g.autoN=Math.min(1,g.autoN||0);autoChip();gApplyTheme();gSave();
   g.words=[];g.chain=[];g.shots=[];g.arrows=g.arrows.filter(a=>a.state==='ground');
   nextWave();g.bannerTxt=next.t[0];g.bannerSub=next.t[1];g.banner=2.6;gameHint();
 }
@@ -2335,7 +2362,7 @@ function gameBlocked(a,w){ /* the barrier takes the last arrow once and breaks; 
   g.shake=Math.max(g.shake,.15);gsound('weak');gameHint();
 }
 function gameNextLevel(){
-  const g=G;g.level++;g.lw=0;g.phase='waves';g.boss=null;g.lives=Math.min(5,g.lives+1);gApplyTheme();
+  const g=G;g.level++;g.lw=0;g.phase='waves';g.boss=null;g.lives=Math.min(5,g.lives+1);g.autoN=Math.min(1,g.autoN||0);autoChip();gApplyTheme();gSave(); /* one complete-word charge carries over and keeps until used */
   g.words=[];g.chain=[];g.shots=[];g.arrows=g.arrows.filter(a=>a.state==='ground');
   vox('start',1,true);nextWave();const th=g.th;g.bannerTxt='កម្រិត '+KD(g.level);g.bannerSub=SET_EN[th.set]+' · '+TIME_EN[th.time];g.banner=2.4;gameHint();
 }
@@ -2409,12 +2436,41 @@ function gArrow(c,x,y,ang,len,s,ink){
   for(const sd of[1,-1]){c.beginPath();[[fl*.08,0],[0,sd*fw],[fl*.55,sd*fw],[fl,0]].forEach((q,i)=>{const p=P(q[0],q[1]);i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1])});c.closePath();c.fill();c.stroke()}
   c.restore();
 }
+/* the archer wanders: it picks a spot, walks or runs there, waits a moment, and stands still while drawing the bow */
+function gArcherMove(g,dt){const s=g.s,lo=g.W*.14,hi=g.W*.86;if(!g.walk)g.walk={to:g.ax,wait:1.5,v:0,ph:0};const m=g.walk;
+  if(g.pull>.03||g.rel>0||g.phase==='clear'){m.v=0;return}
+  if(m.wait>0){m.wait-=dt;m.v=0;if(m.wait<=0){m.to=lo+Math.random()*(hi-lo);m.run=Math.random()<.4}return}
+  const d=m.to-g.ax,sp=s*(m.run?7.5:3.2);if(Math.abs(d)<sp*dt*1.2){g.ax=m.to;m.wait=1+Math.random()*3;m.v=0;return}
+  m.v=Math.sign(d)*sp;g.ax+=m.v*dt;m.ph+=Math.abs(m.v)*dt/s*1.6}
+/* costumes, one per level, drawn in the same pen: plain, a girl with a dress, a Khmer palm-leaf hat, a gymnast with a ribbon,
+   a krama scarf, a cap, a cape, a crown */
+const COSTUMES=['plain','girl','palmhat','gym','krama','cap','cape','crown'];
+function gCostume(c,g,s,phase){const k=COSTUMES[(Math.max(1,g.level)-1)%COSTUMES.length],L=(a,b,d,e)=>{c.beginPath();c.moveTo(a,b);c.lineTo(d,e);c.stroke()},t=g.t,lw=c.lineWidth;
+  if(k==='plain')return;
+  c.save();c.lineWidth=Math.max(1.2,s*.09);
+  if(k==='girl'){c.beginPath();c.moveTo(-.38*s,-3.75*s);c.quadraticCurveTo(-.75*s,-3*s,-.55*s,-2.55*s);c.stroke();c.beginPath();c.moveTo(-.1*s,-3.92*s);c.quadraticCurveTo(-.55*s,-3.2*s,-.3*s,-2.6*s);c.stroke(); /* hair */
+    c.beginPath();c.moveTo(-.2*s,-3.95*s);c.lineTo(-.45*s,-4.15*s);c.lineTo(-.4*s,-3.8*s);c.closePath();c.stroke(); /* hair bow */
+    c.beginPath();c.moveTo(0,-2.2*s);c.lineTo(-.78*s,-.85*s);c.quadraticCurveTo(0,-.7*s,.78*s,-.85*s);c.closePath();c.globalAlpha=.25;c.fill();c.globalAlpha=1;c.stroke()} /* dress */
+  else if(k==='palmhat'){c.beginPath();c.moveTo(-1.15*s,-3.72*s);c.quadraticCurveTo(.05*s,-4.75*s,1.25*s,-3.72*s);c.quadraticCurveTo(.05*s,-3.95*s,-1.15*s,-3.72*s);c.globalAlpha=.22;c.fill();c.globalAlpha=1;c.stroke();
+    c.lineWidth=Math.max(.8,s*.05);for(let i=-3;i<=3;i++)L(.05*s,-4.4*s,.05*s+i*.33*s,-3.82*s+Math.abs(i)*.02*s); /* the woven ribs */
+    L(-.3*s,-3.6*s,.05*s,-3.05*s)}
+  else if(k==='gym'){L(-.42*s,-3.62*s,.5*s,-3.62*s); /* headband */
+    const bx=-.2*s,by=-2.8*s;c.lineWidth=Math.max(1,s*.07);c.beginPath();c.moveTo(bx,by);for(let i=1;i<=18;i++){const u=i/18;c.lineTo(bx-u*3.2*s,by-1.4*s*u+Math.sin(u*9+t*7)*.55*s*u)}c.globalAlpha=.85;c.strokeStyle=g.acc;c.stroke()} /* ribbon */
+  else if(k==='krama'){c.beginPath();c.moveTo(-.45*s,-2.95*s);c.lineTo(.5*s,-2.95*s);c.lineTo(.4*s,-2.7*s);c.lineTo(-.4*s,-2.7*s);c.closePath();c.stroke();
+    const w=Math.sin(t*6+phase)*.25*s;c.beginPath();c.moveTo(-.35*s,-2.8*s);c.lineTo(-1.3*s,-2.5*s+w);c.lineTo(-1.25*s,-2.2*s+w);c.lineTo(-.3*s,-2.65*s);c.stroke();
+    c.lineWidth=Math.max(.7,s*.04);for(let i=0;i<4;i++)L(-.5*s-i*.2*s,-2.75*s+w*i/4,-.45*s-i*.2*s,-2.45*s+w*i/4)} /* checked krama with a fluttering end */
+  else if(k==='cap'){c.beginPath();c.arc(.05*s,-3.55*s,.46*s,Math.PI,0);c.closePath();c.globalAlpha=.3;c.fill();c.globalAlpha=1;c.stroke();L(.4*s,-3.55*s,1*s,-3.5*s)}
+  else if(k==='cape'){const w=Math.sin(t*5+phase)*.3*s;c.beginPath();c.moveTo(-.1*s,-2.85*s);c.quadraticCurveTo(-1.2*s,-2*s+w,-1.5*s+w,-.6*s);c.lineTo(-.6*s,-.8*s);c.quadraticCurveTo(-.5*s,-2*s,-.1*s,-2.85*s);c.globalAlpha=.3;c.fillStyle=g.acc;c.fill();c.globalAlpha=1;c.stroke()}
+  else if(k==='crown'){c.beginPath();c.moveTo(-.38*s,-3.85*s);c.lineTo(-.4*s,-4.35*s);c.lineTo(-.15*s,-4.1*s);c.lineTo(.05*s,-4.45*s);c.lineTo(.25*s,-4.1*s);c.lineTo(.5*s,-4.35*s);c.lineTo(.48*s,-3.85*s);c.closePath();c.globalAlpha=.35;c.fillStyle=g.gold;c.fill();c.globalAlpha=1;c.stroke()}
+  c.restore();c.lineWidth=lw}
 function gameArcher(c){
   if(G.shieldT>0){const g=G,s=g.s,a=Math.min(1,g.shieldT/1.2)*(.55+.15*Math.sin(g.t*8));c.save();c.globalAlpha=a;c.strokeStyle=g.gold;c.lineWidth=2;c.beginPath();c.ellipse(g.ax,g.gy-s*2.2,s*2.6,s*3.2,0,0,6.283);c.stroke();c.globalAlpha=a*.12;c.fillStyle=g.gold;c.fill();c.restore()}
   const g=G,s=g.s,dir=g.aim.x<g.ax?-1:1,tx=Math.abs(g.aim.x-g.ax),ty=g.aim.y-g.gy,th=gClamp(Math.atan2(ty+2.9*s,Math.max(tx,.35*s)),-1.45,.25);
   c.save();c.translate(g.ax,g.gy);c.scale(dir,1);c.translate(-g.rec,0);c.rotate(-g.rec*.014);c.lineWidth=Math.max(1.6,s*.13);c.lineCap='round';c.lineJoin='round';c.strokeStyle=c.fillStyle=g.hurt>0&&Math.floor(g.t*18)%2?'#c0392b':g.ink;
   const L=(a,b,d,e)=>{c.beginPath();c.moveTo(a,b);c.lineTo(d,e);c.stroke()};
-  L(-.5*s,0,0,-1.6*s);L(.5*s,0,0,-1.6*s);L(0,-1.6*s,0,-2.9*s); /* legs, torso */
+  {const m=g.walk;if(m&&m.v){const k=Math.sin(m.ph)*(m.run?.8:.55)*s;L(k,-Math.max(0,k)*.25,0,-1.6*s);L(-k,-Math.max(0,-k)*.25,0,-1.6*s)}else{L(-.5*s,0,0,-1.6*s);L(.5*s,0,0,-1.6*s)}} /* legs: a stance, or swinging as it walks and runs */
+  L(0,-1.6*s,0,-2.9*s); /* torso */
+  gCostume(c,g,s,(g.walk&&g.walk.ph)||0);
   c.beginPath();c.arc(.05*s,-3.5*s,.42*s,0,6.283);c.stroke();
   const fx=Math.cos(th),fy=Math.sin(th),px=-fy,py=fx,l=1.5*s,hx=fx*l,hy=-2.9*s+fy*l,bulge=.4*s;
   const mx=hx-fx*bulge,my=hy-fy*bulge,e1=[mx+px*1.25*s,my+py*1.25*s],e2=[mx-px*1.25*s,my-py*1.25*s];
@@ -2656,7 +2712,39 @@ function fanHint(rest){
   if(barLayer()>0)lit(barLayer()===1?'fn:shift':'fn:alt');
 }
 $('gameKb').addEventListener('click',()=>{if(!G)return;setOsk(!S.osk);device.classList.toggle('nokeys',!S.osk);toast(S.osk?'Machine keys on':'Machine keys off · use your device keyboard');setTimeout(()=>{if(G){gameSize();focusTa()}},120)});
-$('gcv').addEventListener('click',()=>{if(G&&G.over&&performance.now()-G.overT>700)gameRestart();else focusTa()});
+$('gcv').addEventListener('click',()=>{if(G&&G.over){if(performance.now()-G.overT>700)gameRestart();return}if(G){gPause(!G.paused);haptic('light')}focusTa()});
+/* the saved game: mode, lesson, level, score, hearts and the look; it rides along with the rest of the settings (and the account when signed in) */
+/* four ways in: learn and play (grown-up look), young kids (kid theme and keys, kid lessons), kids (older-kid keys, play).
+   Picking one always sets the look that goes with it, so the mode and the theme never disagree */
+function setGameMode(m){const kid=m==='young'?'young':m==='older'?'older':'off';
+  if(kid!=='off'&&(!S.kidmode||S.kidmode==='off'))S.kidPrev={keys:S.keys,gtheme:S.gtheme||'pen'};
+  if(kid==='young'){S.keys='kid';S.gtheme='kid'}else if(kid==='older'){S.keys='teen';S.gtheme='pen'}
+  else if(S.kidmode&&S.kidmode!=='off'){const pv=S.kidPrev||{};S.keys=pv.keys&&pv.keys!=='kid'&&pv.keys!=='teen'?pv.keys:'ivory';S.gtheme='pen';S.kidPrev=null}
+  else if(S.gtheme==='kid')S.gtheme='pen';
+  S.kidmode=kid;applyLook();save();renderTools()}
+const signedIn=()=>{try{return localStorage.getItem('authOn')==='1'}catch(e){return false}};
+function showMenu(){const m=$('gmenu');if(G)exitGame();closePanel();
+  const sv=S.gsave&&S.gsave.level?S.gsave:null,me=signedIn(),modeName={learn:'រៀន',play:'លេង',young:'ក្មេងតូច',older:'ក្មេងធំ'};
+  const svMode=sv?(sv.kid==='young'?'young':sv.kid==='older'?'older':sv.mode==='lesson'?'learn':'play'):null;
+  const b=(id,i,km,en,cls='')=>`<button type="button" data-m="${id}" class="${cls}"><span class="i" aria-hidden="true">${i}</span><b>${km}</b><small>${en}</small></button>`;
+  m.innerHTML=`<div class="gm"><svg class="frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M2,3 C30,1 70,4 98,2 C99,30 97,70 99,97 C70,99 30,96 2,98 C1,70 3,30 2,3" fill="none" stroke="currentColor" stroke-width=".7" vector-effect="non-scaling-stroke"/><path d="M4,5 C34,4 66,6 96,4.5" fill="none" stroke="currentColor" stroke-width=".4" opacity=".5" vector-effect="non-scaling-stroke"/></svg>
+    <svg class="hero" viewBox="0 0 120 86" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M10 80 C40 78 80 81 112 79"/><circle cx="46" cy="22" r="7"/><path d="M46 29 L46 52 M46 52 L38 78 M46 52 L54 78 M46 36 L64 30 M46 36 L60 40"/><path d="M60 12 Q78 33 60 58" stroke-width="2.6"/><path d="M60 12 L58 35 L60 58" stroke-width="1"/><path d="M58 35 L104 14 M98 13 L104 14 L101 20" stroke-width="1.6"/><path d="M84 52 l6 -6 m-3 6 l6 -6" stroke-width="1.2" opacity=".6"/></svg>
+    <h2>ធ្នូទឹកខ្មៅ</h2><p class="sub">Ink Archer · ជ្រើសរបៀបលេង · Choose how to play</p>
+    <div class="grid">${sv?`<button type="button" data-m="continue" class="cont${me?' main':''}"><span class="i" aria-hidden="true">▶</span><span><b>បន្ត · Continue</b><small>${modeName[svMode]} · កម្រិត ${KD(sv.level)} · ${KD(sv.score)} ពិន្ទុ</small></span></button>`:''}
+      ${b('learn','📖','រៀន','Learn · lessons',sv&&me?'':'main')}${b('play','🏹','លេង','Play')}${b('young','🧸','ក្មេងតូច','Young kids','young')}${b('older','🎒','ក្មេងធំ','Kids','older')}</div></div>`;
+  m.hidden=false;device.classList.add('menuon');const f=m.querySelector('button.main')||m.querySelector('button');if(f)f.focus({preventScroll:true})}
+$('gmenu').addEventListener('click',e=>{const b=e.target.closest('button[data-m]');if(!b)return;audio();const id=b.dataset.m;$('gmenu').hidden=true;device.classList.remove('menuon');
+  if(id==='continue'){const sv=S.gsave;setGameMode(sv.kid==='young'?'young':sv.kid==='older'?'older':sv.mode==='lesson'?'learn':'play');if(sv.lang)S.lang=sv.lang;
+    startGame({mode:sv.mode,id:sv.les||undefined,resume:sv});return}
+  S.gsave=null;save();setGameMode(id);
+  if(id==='learn'||id==='young')showLearn('lessons',true);else startGame({mode:'play'})});
+function gSave(now){const g=G;if(!g||g.over)return;S.gsave={mode:g.mode,les:g.les?g.les.id:null,kid:S.kidmode||'off',lang:S.lang,level:g.level,score:g.score,lives:g.lives,autoN:Math.min(1,g.autoN||0),t:Date.now()};save();if(now){clearTimeout(saveT);try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}try{cloudSave()}catch(e){}}}
+addEventListener('pagehide',()=>gSave(true)); /* written at once: the page is going away */
+function gPause(on){const g=G;if(!g||g.over)return;g.paused=on;g.last=performance.now();if(on)gSave()}
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&G){gPause(true);gSave(true)}});
+function gPausedDraw(g){const c=g.cx;c.setTransform(g.dpr,0,0,g.dpr,0,0);c.save();c.fillStyle=g.kid?'rgba(255,250,240,.6)':'rgba(247,242,227,.62)';c.fillRect(0,0,g.W,g.H);
+  c.textAlign='center';c.fillStyle=g.ink;c.font=Math.round(g.fs*2)+'px '+PENF;gTxt(c,'⏸ ផ្អាក',g.W/2,g.H*.42);
+  c.font=Math.round(g.fs*.85)+'px '+PENF;c.globalAlpha=.8;gTxt(c,'ចុច ឬ វាយ ដើម្បីបន្ត',g.W/2,g.H*.42+g.fs*1.6);c.font=Math.round(g.fs*.6)+'px Inter,sans-serif';gTxt(c,'Tap or type to go on',g.W/2,g.H*.42+g.fs*2.6);c.restore()}
 ta.addEventListener('keydown',e=>{if(G&&(e.key==='Backspace'||e.key==='Escape')){G.lock=null;G.combo=0;e.preventDefault();gameHint()}});
 new ResizeObserver(()=>{if(G)gameSize()}).observe($('page'));
 
