@@ -459,7 +459,10 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 .gameonly{display:none}
 .game .gameonly{display:grid}
 .game #gameKb{opacity:.95}
-.hb.spdx{width:auto;min-width:40px;padding:0 8px;font:700 15px var(--ui);color:inherit;opacity:.9;border-radius:999px}.hb.spdx.on{background:rgba(31,58,147,.14);color:#1f3a93}.game.nokeys #gameKb{opacity:.45}
+.hb.spdx{width:auto;min-width:46px;height:34px;align-self:center;padding:0 10px;font:700 16px var(--ui);color:#1f3a93;opacity:1;background:rgba(251,248,239,.92);
+  border:2px solid currentColor;border-radius:255px 14px 225px 14px/14px 225px 14px 255px;box-shadow:1.5px 1.5px 0 rgba(31,58,147,.25)} /* drawn in pen, so it shows on the paper */
+.hb.spdx.on{background:#1f3a93;color:#fbf8ef}
+[data-keys=kid] .hb.spdx{color:#d6337c;box-shadow:0 2px 0 #f39ac0}[data-keys=kid] .hb.spdx.on{background:#ff7fb8;color:#fff;border-color:#d6337c}.game.nokeys #gameKb{opacity:.45}
 .game.nokeys .rail{display:none}
 .game .page{transform:none!important}
 /* in the game every light option is centred on the bow and arrow (--gx, --gy and the aim --gt are set every frame); room and lights off stay as they are */
@@ -2866,7 +2869,9 @@ $('gameSpd').addEventListener('click',()=>{const i=SPX.indexOf(S.gx||1);S.gx=SPX
 spdPaint();
 $('gameKb').addEventListener('click',()=>{if(!G)return;setOsk(!S.osk);device.classList.toggle('nokeys',!S.osk);toast(S.osk?'Machine keys on':'Machine keys off · use your device keyboard');setTimeout(()=>{if(G){gameSize();focusTa()}},120)});
 $('gcv').addEventListener('click',e=>{if(G&&G.over){const m=G.btnMenu,r=$('gcv').getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
-  if(m&&x>=m.x-6&&x<=m.x+m.w+6&&y>=m.y-6&&y<=m.y+m.h+6){showMenu();return}if(performance.now()-G.overT>700)gameRestart();return}if(G){gPause(!G.paused);haptic('light')}focusTa()});
+  if(m&&x>=m.x-6&&x<=m.x+m.w+6&&y>=m.y-6&&y<=m.y+m.h+6){showMenu();return}if(performance.now()-G.overT>700)gameRestart();return}if(G&&G.paused&&G.spdBtns){const r=$('gcv').getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,b=G.spdBtns.find(q=>x>=q.x-3&&x<=q.x+q.w+3&&y>=q.y-6&&y<=q.y+q.h+6);
+    if(b){S.gx=b.v;save();spdPaint();haptic('light');focusTa();return}} /* a speed button on the pause screen: set it and stay paused */
+  if(G){gPause(!G.paused);haptic('light')}focusTa()});
 /* the saved game: mode, lesson, level, score, hearts and the look; it rides along with the rest of the settings (and the account when signed in) */
 /* four ways in: learn and play (grown-up look), young kids (kid theme and keys, kid lessons), kids (older-kid keys, play).
    Picking one always sets the look that goes with it, so the mode and the theme never disagree */
@@ -2952,7 +2957,15 @@ function gPause(on){const g=G;if(!g||g.over)return;g.paused=on;g.last=performanc
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&G){gPause(true);gSave(true)}});
 function gPausedDraw(g){const c=g.cx;c.setTransform(g.dpr,0,0,g.dpr,0,0);c.save();c.fillStyle=g.kid?'rgba(255,250,240,.6)':'rgba(247,242,227,.62)';c.fillRect(0,0,g.W,g.H);
   c.textAlign='center';c.fillStyle=g.ink;c.font=Math.round(g.fs*2)+'px '+PENF;gTxt(c,'⏸ ផ្អាក',g.W/2,g.H*.42);
-  c.font=Math.round(g.fs*.85)+'px '+PENF;c.globalAlpha=.8;gTxt(c,'ចុច ឬ វាយ ដើម្បីបន្ត',g.W/2,g.H*.42+g.fs*1.6);c.font=Math.round(g.fs*.6)+'px Inter,sans-serif';gTxt(c,'Tap or type to go on',g.W/2,g.H*.42+g.fs*2.6);c.restore()}
+  c.font=Math.round(g.fs*.85)+'px '+PENF;c.globalAlpha=.8;gTxt(c,'ចុច ឬ វាយ ដើម្បីបន្ត',g.W/2,g.H*.42+g.fs*1.6);c.font=Math.round(g.fs*.6)+'px Inter,sans-serif';gTxt(c,'Tap or type to go on',g.W/2,g.H*.42+g.fs*2.6);
+  /* the speed, all five choices at once */
+  const n=SPX.length,gap=g.fs*.35,bw=Math.min(g.fs*2.7,(g.W-g.fs*2-gap*(n-1))/n),bh=g.fs*1.7,y=g.H*.42+g.fs*4.6,x0=g.W/2-(bw*n+gap*(n-1))/2,cur=S.gx||1;
+  c.font=Math.round(g.fs*.62)+'px '+PENF;c.globalAlpha=.85;gTxt(c,'ល្បឿន · Speed',g.W/2,y-g.fs*.55);c.globalAlpha=1;
+  g.spdBtns=[];c.textBaseline='middle';c.lineWidth=2;
+  SPX.forEach((v,i)=>{const x=x0+i*(bw+gap),on=v===cur;g.spdBtns.push({x,y,w:bw,h:bh,v});c.strokeStyle=g.ink;c.fillStyle=on?g.ink:'rgba(251,248,239,.9)';
+    c.beginPath();c.moveTo(x+3,y+1);c.lineTo(x+bw-1,y+3);c.lineTo(x+bw-2,y+bh-1);c.lineTo(x+1,y+bh-3);c.closePath();c.fill();c.stroke();
+    c.fillStyle=on?'#fbf8ef':g.ink;c.font='700 '+Math.round(g.fs*.7)+'px Inter,sans-serif';c.fillText(String(v).replace('.5','½')+'×',x+bw/2,y+bh/2+1)});
+  c.textBaseline='alphabetic';c.restore()}
 ta.addEventListener('keydown',e=>{if(G&&(e.key==='Backspace'||e.key==='Escape')){G.lock=null;G.combo=0;e.preventDefault();gameHint()}});
 new ResizeObserver(()=>{if(G)gameSize()}).observe($('page'));
 
