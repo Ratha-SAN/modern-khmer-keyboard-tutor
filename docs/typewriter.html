@@ -453,7 +453,8 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 .game .count,.game #shareBtn,.game .clip,.drill .clip{display:none}
 .gameonly{display:none}
 .game .gameonly{display:grid}
-.game #gameKb{opacity:.95}.game.nokeys #gameKb{opacity:.45}
+.game #gameKb{opacity:.95}
+.hb.spdx{width:auto;min-width:40px;padding:0 8px;font:700 15px var(--ui);color:inherit;opacity:.9;border-radius:999px}.hb.spdx.on{background:rgba(31,58,147,.14);color:#1f3a93}.game.nokeys #gameKb{opacity:.45}
 .game.nokeys .rail{display:none}
 .game .page{transform:none!important}
 /* in the game every light option is centred on the bow and arrow (--gx, --gy and the aim --gt are set every frame); room and lights off stay as they are */
@@ -641,6 +642,7 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
       <span class="clock" id="clock" hidden></span>
       <span class="khint" id="khint" hidden></span>
       <button class="count" id="count" aria-label="Progress toward goal. Switch between characters and words"></button>
+      <button class="hb gameonly spdx" id="gameSpd" aria-label="Game speed" title="Speed up">1×</button>
       <button class="hb gameonly" id="gameKb" aria-label="Show or hide the machine keys" title="Machine keys on / off"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M8 14h8"/></svg></button>
       <button class="hb clip" id="copyBtn" aria-label="Copy the text on this page" title="Copy text"><svg class="i" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5V5a1.5 1.5 0 00-1.5-1.5H5A1.5 1.5 0 003.5 5v9A1.5 1.5 0 005 15.5h3.5"/></svg></button>
       <button class="hb clip" id="pasteBtn" aria-label="Paste text onto the page" title="Paste"><svg class="i" viewBox="0 0 24 24"><rect x="5" y="4.5" width="14" height="16.5" rx="2"/><path d="M9 4.5V3.5h6v1M9 11h6M9 15h4"/></svg></button>
@@ -1301,17 +1303,21 @@ $('fan').addEventListener('pointerdown',e=>{
     paintBars();haptic(k==='space'||k==='enter'?'medium':'light');focusTa();return}
   const u=headChar(c);if(!u)return;
   const typeIt=()=>{audio();insert(u);if(shift===1){shift=0;paintShift()}if(altOn){altOn=0;paintBars()}haptic('light');focusTa();if(D)drillHint()};
+  /* a key types the moment it is pressed, so fast typing never waits for a finger to lift. A key with a second letter
+     (or a floating word) still takes a flick up: the letter just typed is swapped for the second letter (or the word) */
   const hn=headHint(c),pw=hn?null:predMap[c];
-  if(hn){ /* a key with a second letter: a flick up types it */
-    const y0=e.clientY;let done=false;
-    const mv=ev=>{if(!done&&y0-ev.clientY>=16){done=true;audio();insert(hn);if(shift===1){shift=0;paintShift()}const p=$('kpop2');if(p)p.textContent=hn;haptic('medium');focusTa();if(D)drillHint()}};
-    const end=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',end);removeEventListener('pointercancel',end);if(!done)typeIt()};
-    addEventListener('pointermove',mv);addEventListener('pointerup',end);addEventListener('pointercancel',end);return}
-  if(!pw){typeIt();return}
-  /* this key carries a floating word: a flick up types the word, a tap types the letter */
-  const y0=e.clientY;let done=false;
-  const mv=ev=>{if(!done&&y0-ev.clientY>=16){done=true;audio();pick(pw);haptic('medium');focusTa()}};
-  const end=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',end);removeEventListener('pointercancel',end);if(!done)typeIt()};
+  if(S.kidmode==='young'){const sl=bar.querySelector('.slug');if(sl&&sl.animate)sl.animate({scale:['1','.8 .74','1.14 1.18','.96','1']},{duration:380,easing:'ease-out'})} /* young kids: a bouncy key */
+  if(!hn&&!pw){typeIt();return}
+  let typed=false;
+  const want=G&&hn&&(()=>{const w=gameTarget();return w&&w.ch.slice(w.n).join('').startsWith(hn)})(); /* in the game, wait only when the second letter is the one wanted */
+  if(!want){typeIt();typed=true}
+  const y0=e.clientY,pid=e.pointerId;let done=false;
+  const mv=ev=>{if(ev.pointerId!==pid||done||y0-ev.clientY<16)return;done=true;
+    if(typed){if(G)return; /* the game took the letter already */
+      const e2=ta.selectionStart;if(ta.value.slice(e2-u.length,e2)!==u)return;ta.setRangeText('',e2-u.length,e2,'end');onChange('back')}
+    audio();if(hn){insert(hn);const p=$('kpop2');if(p)p.textContent=hn}else pick(pw);
+    if(shift===1){shift=0;paintShift()}haptic('medium');focusTa();if(D)drillHint()};
+  const end=ev=>{if(ev.pointerId!==pid)return;removeEventListener('pointermove',mv);removeEventListener('pointerup',end);removeEventListener('pointercancel',end);if(!done&&!typed)typeIt()};
   addEventListener('pointermove',mv);addEventListener('pointerup',end);addEventListener('pointercancel',end);
 });
 $('fan').addEventListener('mousedown',e=>e.preventDefault());
@@ -2128,7 +2134,8 @@ function gameRestart(){if(!G)return;const raf=G.raf,pl=G.prevLang;cancelAnimatio
 function gameSize(){
   const g=G,pg=$('page'),w=pg.clientWidth,h=pg.clientHeight;if(!w||!h)return;
   g.dpr=Math.min(2,window.devicePixelRatio||1);g.W=w;g.H=h;g.cv.width=Math.round(w*g.dpr);g.cv.height=Math.round(h*g.dpr);
-  g.s=gClamp(h/22.4,6,17);g.gy=h-Math.max(8,g.s*.7);g.ax=g.ax>0&&g.ax<w?g.ax:w/2;g.sp=h*(.1+.011*g.wave)*.8*.7*.75*gSpd();
+  g.s=gClamp(h/22.4,6,17);g.gy=h-Math.max(8,g.s*.7);g.ax=g.ax>0&&g.ax<w?g.ax:w/2;
+  {const pr=$('page').getBoundingClientRect();let L=pr.right;document.querySelectorAll('.hud .hb').forEach(b=>{if(!b.offsetParent)return;const r=b.getBoundingClientRect();if(r.width&&r.left>pr.left+pr.width/2)L=Math.min(L,r.left)});g.padR=Math.max(58,pr.right-L+10)}g.sp=h*(.1+.011*g.wave)*.8*.7*.75*gSpd();
   g.fs=Math.round(gClamp((S.size||18)*1.3,18,28));g.font='600 '+Math.round(g.fs*(S.kidmode==='young'?1.35:1))+'px "Noto Serif Khmer","Noto Serif",Georgia,serif'; /* the falling words in Noto Serif Khmer: big letters for young kids, the usual size for everyone else */
   g.row1=Math.round(g.fs*.6)+7;g.row2=g.row1+Math.round(g.fs*.6);g.row3=g.row2+Math.round(g.fs*.6);g.barH=g.row3+Math.round(g.fs*.36); /* 20% thinner than before */ /* the top bar's three rows */
   g.ink0=getComputedStyle(device).getPropertyValue('--ink').trim()||'#26211d';gApplyTheme();
@@ -2356,7 +2363,7 @@ function gameStep(dt){
 function gameTick(now){
   if(!G)return;const g=G,dt=Math.max(0,Math.min(.05,(now-g.last)/1000)); /* never negative: a frame stamped a little before the last one would run effects backwards */g.last=now;g.t+=dt;
   if(g.cv.width!==Math.round($('page').clientWidth*g.dpr)||g.cv.height!==Math.round($('page').clientHeight*g.dpr))gameSize();
-  if(g.W){if(!g.paused)gameStep(dt);gameDraw();if(g.paused)gPausedDraw(g)}
+  if(g.W){if(!g.paused){let t=dt*(S.gx||1);while(t>1e-6){const d=Math.min(.05,t);gameStep(d);t-=d;if(!G||G!==g)return}}gameDraw();if(g.paused)gPausedDraw(g)} /* sped up: several small steps, never one big one */
   g.raf=requestAnimationFrame(gameTick);
 }
 /* ---------- levels: the setting and the time of day change, and a boss ends each level ----------
@@ -2714,7 +2721,7 @@ function gameDraw(){
   if(g.lives!==g.lLast){g.lPop=g.lLast!=null&&g.lives<g.lLast?1:0;g.lLast=g.lives}g.lPop=Math.max(0,(g.lPop||0)-.04);
   gTopBar(c,g);
   const fS=Math.round(g.fs*.7),fL=Math.round(g.fs*.48),row1=g.row1,row2=g.row2;
-  c.fillStyle=g.ink2;c.textAlign='right';c.font=fS+'px '+PENF;c.save();c.translate(W-58,row1); /* score at the top right */c.scale(1+.3*g.sPop,1+.3*g.sPop);gTxt(c,KD(g.score),0,0);c.restore();
+  c.fillStyle=g.ink2;c.textAlign='right';c.font=fS+'px '+PENF;c.save();c.translate(W-(g.padR||58),row1); /* score at the top right, clear of the buttons */c.scale(1+.3*g.sPop,1+.3*g.sPop);gTxt(c,KD(g.score),0,0);c.restore();
   c.globalAlpha=.7;c.fillStyle=g.ink;c.textAlign='left';c.font=fL+'px '+PENF;gTxt(c,g.mode==='lesson'&&g.les?'មេរៀន '+KD(gCourse(g.les).lessons.indexOf(g.les)+1)+' · '+g.les.t[0]+' · វគ្គ '+KD(Math.max(1,g.lw))+'/'+KD(3):'កម្រិត '+KD(g.level)+(g.phase==='boss'?' · មេធំ':' · វគ្គ '+KD(Math.max(1,g.lw)))+(g.best?' · ល្អបំផុត '+KD(g.best):''),58,row2);c.globalAlpha=1;
   for(let i=0;i<5;i++){const hr=Math.max(7,g.fs*.36),x=58+hr+i*(hr*2.5), /* bigger hearts, at the top left */y=row1-hr*.85+(i===g.lives&&g.lPop?Math.sin(g.lPop*40)*3*g.lPop:0),full=i<g.lives;
     c.globalAlpha=full?1:.22;gIcon(c,'heart',x,y,hr,g.acc)}c.globalAlpha=1;
@@ -2830,6 +2837,11 @@ function fanHint(rest){
   for(const id in M){const L=M[id].findIndex(u=>u&&rest.startsWith(u));if(L>0){lit(L===1?'fn:shift':'fn:alt');return}}
   if(barLayer()>0)lit(barLayer()===1?'fn:shift':'fn:alt');
 }
+/* speed up the game: 1×, 1.5×, 2×, 2.5×, 3× and back to 1× */
+const SPX=[1,1.5,2,2.5,3];
+function spdPaint(){const b=$('gameSpd'),x=S.gx||1;b.textContent=String(x).replace('.5','½')+'×';b.classList.toggle('on',x>1);b.setAttribute('aria-label','Game speed '+x+' times')}
+$('gameSpd').addEventListener('click',()=>{const i=SPX.indexOf(S.gx||1);S.gx=SPX[(i+1)%SPX.length];save();spdPaint();toast('ល្បឿន · Speed '+S.gx+'×');if(G)G.last=performance.now();focusTa()});
+spdPaint();
 $('gameKb').addEventListener('click',()=>{if(!G)return;setOsk(!S.osk);device.classList.toggle('nokeys',!S.osk);toast(S.osk?'Machine keys on':'Machine keys off · use your device keyboard');setTimeout(()=>{if(G){gameSize();focusTa()}},120)});
 $('gcv').addEventListener('click',e=>{if(G&&G.over){const m=G.btnMenu,r=$('gcv').getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
   if(m&&x>=m.x-6&&x<=m.x+m.w+6&&y>=m.y-6&&y<=m.y+m.h+6){showMenu();return}if(performance.now()-G.overT>700)gameRestart();return}if(G){gPause(!G.paused);haptic('light')}focusTa()});
