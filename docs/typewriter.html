@@ -1874,7 +1874,7 @@ function buildCourse(){
   };
   if(Object.keys(K).length){
     units.push({id:1,icon:'⌨️',t:['មូលដ្ឋានក្ដារចុច','Keyboard basics']});
-    KB.forEach((l,i)=>lessons.push({id:'k'+i,unit:1,lang:'km',t:l.t,make:()=>kmItems(i).join(' ')}));
+    KB.forEach((l,i)=>lessons.push({id:'k'+i,unit:1,lang:'km',t:l.t,make:()=>fewerKd(kmItems(i)).join(' ')}));
   }
   (window.TEXT_UNITS||[]).forEach(u=>units.push({id:u.id,icon:u.icon,t:u.t}));
   (window.TEXTS||[]).forEach(x=>lessons.push({id:'t'+x.id,unit:x.unit,lang:'km',icon:x.icon,t:x.t,make:()=>x.text}));
@@ -2071,7 +2071,10 @@ $('learnClose').addEventListener('click',()=>{learnEl.hidden=true;if(D){exitDril
    The paper stays still. Words rain down in waves; typing a word draws the stick-figure archer's bow, and the last
    letter looses the arrow. The key that types the next letter glows on the machine. */
 const EN_GW='ink page type key word bell paper letter ribbon shoot arrow bow string rain storm cloud river forest mountain village garden bridge lantern candle window morning evening silver golden quiet gentle swift stone feather whisper thunder meadow harbor journey castle shadow ember willow moon star night light dream sleep water fire wind leaf rose snow sand wave hill road gate tower story song smile heart brave'.split(' ');
-const gameWords=()=>S.lang==='km'?KMW.filter(w=>[...w].every(c=>typable(c))):EN_GW;
+/* ក្ដ turns up far too often in the word lists (សេចក្ដី, ក្ដី, សក្ដិ …): keep at most one such word in a lesson, and only a quarter of them in play */
+const KD_RE=/ក្ដ/;
+function fewerKd(items){let n=0;return items.filter(w=>!KD_RE.test(w)||(n++<1&&Math.random()<.5))}
+const gameWords=()=>S.lang==='km'?KMW.filter(w=>[...w].every(c=>typable(c))&&(!KD_RE.test(w)||Math.random()<.25)):EN_GW;
 const gClamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 let gameOpts={mode:'lesson'};
 /* kids theme: a course that goes one keyboard row at a time. Each row starts with a lesson of single letters (any letter of
