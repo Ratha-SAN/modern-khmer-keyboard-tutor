@@ -223,6 +223,27 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 [data-keys=teen] .tbar[data-r="3"]{--nc:#3df0ff}[data-keys=teen] .tbar[data-r="4"]{--nc:#a98bff}[data-keys=teen] .tbar[data-r="5"]{--nc:#ff7a59}
 [data-keys=teen] .tbar.hot .slug{background:#2f3555;box-shadow:inset 0 0 0 2px var(--nc),0 0 16px 2px var(--nc)}
 [data-keys=teen] .slug.on{background:var(--nc,#3df0ff)}[data-keys=teen] .slug.on b{color:#121421;text-shadow:none}
+/* the toolbar wears the same look as the keys: blue pen on paper, a sunny candy bar for young kids, neon on slate for older kids */
+[data-keys=pen] .chassis{background:#f3eee0;--tool:rgba(31,58,147,.72);--tool-on:#1f3a93}
+[data-keys=pen] .tools{background:#fbf8ef;box-shadow:inset 0 0 0 1.5px #1f3a93,1.5px 1.5px 0 -.3px rgba(31,58,147,.3);border-radius:255px 22px 225px 22px/22px 225px 22px 255px}
+[data-keys=pen] .tools .div{background:rgba(31,58,147,.35)}
+[data-keys=pen] .tb.on{filter:none}[data-keys=pen] .tb.main.on{background:rgba(31,58,147,.1);box-shadow:inset 0 0 0 1.3px #1f3a93}
+[data-keys=pen] .tb.open{background:rgba(31,58,147,.12)}[data-keys=pen] .tb.spd{border-color:rgba(31,58,147,.45)}
+[data-keys=pen] .tb.main{font-family:Fasthand,"Noto Sans Khmer",cursive;font-weight:400;font-size:16px}
+[data-keys=kid] .chassis{background:radial-gradient(circle,#ffc21a 0 2.4px,transparent 3px) 0 0/22px 22px,radial-gradient(circle,#4fb8ff 0 2.4px,transparent 3px) 11px 11px/22px 22px,#fff1c9;--tool:#7446d8;--tool-on:#d6337c}
+[data-keys=kid] .tools{background:#fff;box-shadow:0 3px 0 #f39ac0,inset 0 0 0 2px #ff7fb8}
+[data-keys=kid] .tools .div{background:#ffd1e3}
+[data-keys=kid] .tb.on{filter:none}[data-keys=kid] .tb.main{font-weight:800}
+[data-keys=kid] .tb.main.on{background:#ff7fb8;color:#fff;box-shadow:0 3px 0 #d6337c}
+[data-keys=kid] .tb.kidb.on{background:#ffd02e;color:#2b0f45;box-shadow:0 3px 0 #d99a00}
+[data-keys=kid] .tb.open{background:#ffe3ef}[data-keys=kid] .tb.spd{border-color:#b48cff}
+[data-keys=teen] .chassis{background:linear-gradient(rgba(61,240,255,.06) 1px,transparent 1px) 0 0/18px 18px,linear-gradient(90deg,rgba(61,240,255,.06) 1px,transparent 1px) 0 0/18px 18px,#121421;--tool:#a9b4d6;--tool-on:#3df0ff}
+[data-keys=teen] .tools{background:#1a1d2e;box-shadow:inset 0 0 0 1.5px #3df0ff,0 0 12px -2px #3df0ff}
+[data-keys=teen] .tools .div{background:rgba(61,240,255,.3)}
+[data-keys=teen] .tb.on{filter:drop-shadow(0 0 5px #3df0ff)}
+[data-keys=teen] .tb.main.on{background:rgba(61,240,255,.12);box-shadow:inset 0 0 0 1.5px #3df0ff;filter:none;text-shadow:0 0 6px #3df0ff}
+[data-keys=teen] .tb.kidb.on{color:#7dff6b;box-shadow:inset 0 0 0 1.5px #7dff6b;background:rgba(125,255,107,.1);text-shadow:0 0 6px #7dff6b}
+[data-keys=teen] .tb.open{background:rgba(61,240,255,.12)}[data-keys=teen] .tb.spd{border-color:rgba(61,240,255,.4)}
 [data-keys=teen] .arm::before{width:1.4px;background:#3df0ff;opacity:.35;box-shadow:0 0 4px #3df0ff}
 [data-keys=teen] .fan svg path[stroke="#0b0a09"]{stroke:#3df0ff;opacity:.05}
 [data-keys=teen] .platen{background:linear-gradient(#2a2f4a,#161827);box-shadow:inset 0 0 0 1.4px #3df0ff,0 0 10px rgba(61,240,255,.35)}
