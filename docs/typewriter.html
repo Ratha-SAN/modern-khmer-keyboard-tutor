@@ -929,7 +929,7 @@ function headChar(id){
   return (barMap()[id]||[])[barLayer()]||''}
 const headRows=()=>isPhone()?phoneBase().map((r,ri)=>r.map((_,ci)=>['p'+ri+'_'+ci,1])):KROWS.map(r=>r.map(c=>[c,1]));
 /* the machine's own keys: no option key on a phone, or for English on Windows; a phone has a 123 key instead */
-function fnItems(){const wide=dev==='android'?1.6:1,a=[['fn:shift',wide]]; /* Android: a wider shift and return, as on Gboard */if(isPhone())a.push(['fn:num',1]);else if(dev==='mac'||S.lang==='km')a.push(['fn:alt',1]);
+function fnItems(){const wide=isPhone()?1.6:1,a=[['fn:shift',wide]]; /* phones (Android and iPhone/iPad): a wider shift and return */if(isPhone())a.push(['fn:num',1]);else if(dev==='mac'||S.lang==='km')a.push(['fn:alt',1]);
   /* on a Khmer phone keyboard the full stop ។ (៕ with shift) sits beside the space bar, where NiDA keeps it on the main layer */
   const khanKey=dev==='android'&&S.lang==='km'&&mode!=='123'&&!kmL().base.some(r=>r.includes('។')); /* the Gboard layout has ។ among the letters */
   a.push(['fn:globe',1],['fn:space',khanKey?3:4]);if(khanKey)a.push(['fn:khan',1]);a.push(['fn:back',2],['fn:enter',wide]);return a}
