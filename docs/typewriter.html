@@ -412,10 +412,11 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 .drill .sg-row,.game .sg-row{visibility:hidden}
 #gcv{position:absolute;inset:0;width:100%;height:100%;z-index:2;display:none}
 /* the start menu: a sheet of paper drawn on in blue ballpoint */
-#gmenu{position:absolute;inset:0;z-index:6;display:flex;align-items:center;justify-content:center;padding:16px;background:#f7f2e3;color:#1f3a93;font-family:Fasthand,"Kantumruy Pro","Noto Sans Khmer",cursive;overflow:auto}
+#gmenu{position:absolute;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(18,16,14,.42);-webkit-backdrop-filter:blur(2.5px);backdrop-filter:blur(2.5px);color:#1f3a93;font-family:Fasthand,"Kantumruy Pro","Noto Sans Khmer",cursive;overflow:auto}
 #gmenu[hidden]{display:none}
 .menuon .page{transform:none!important}.menuon .scroll,.menuon .strike,.menuon .count{visibility:hidden}
-#gmenu .gm{position:relative;width:min(440px,100%);padding:22px 20px 18px;text-align:center}
+#gmenu .gm{position:relative;width:min(440px,100%);max-height:100%;overflow:auto;padding:22px 20px 18px;text-align:center;background:#f7f2e3;border-radius:6px 10px 7px 12px;box-shadow:0 18px 50px rgba(0,0,0,.45),0 2px 0 rgba(31,58,147,.25);animation:gmIn .28s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes gmIn{from{transform:translateY(24px) scale(.96);opacity:0}to{transform:none;opacity:1}}
 #gmenu .gm>svg.frame{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
 #gmenu h2{margin:0 0 2px;font-size:clamp(30px,8vw,44px);font-weight:400;line-height:1.2}
 #gmenu .sub{margin:0 0 14px;font-size:15px;opacity:.75;font-family:Inter,"Noto Sans Khmer",sans-serif}
@@ -572,13 +573,13 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
   </filter>
 </svg>
 <div class="device" id="device">
+  <div id="gmenu" hidden role="dialog" aria-modal="true" aria-label="Choose how to play"></div>
   <div class="paper" id="paper">
     <div class="page" id="page">
     <div class="light"></div>
     <div class="strike" id="strike"></div>
     <div class="prog" id="prog" hidden></div>
     <canvas id="gcv" aria-label="Ink Archer game"></canvas>
-    <div id="gmenu" hidden role="dialog" aria-label="Choose how to play"></div>
     <div class="scroll" id="scroll">
       <div class="sheet" id="sheet">
         <div class="grow">
@@ -2065,7 +2066,7 @@ function gameSize(){
   const g=G,pg=$('page'),w=pg.clientWidth,h=pg.clientHeight;if(!w||!h)return;
   g.dpr=Math.min(2,window.devicePixelRatio||1);g.W=w;g.H=h;g.cv.width=Math.round(w*g.dpr);g.cv.height=Math.round(h*g.dpr);
   g.s=gClamp(h/22.4,6,17);g.gy=h-Math.max(8,g.s*.7);g.ax=g.ax>0&&g.ax<w?g.ax:w/2;g.sp=h*(.1+.011*g.wave)*.8*.7*.75*gSpd();
-  g.fs=Math.round(gClamp((S.size||18)*1.3,18,28));g.font='600 '+Math.round(g.fs*1.35)+'px "Noto Serif Khmer","Noto Serif",Georgia,serif'; /* the falling words: bigger, in Noto Serif Khmer */
+  g.fs=Math.round(gClamp((S.size||18)*1.3,18,28));g.font='600 '+Math.round(g.fs*(S.kidmode==='young'?1.35:1))+'px "Noto Serif Khmer","Noto Serif",Georgia,serif'; /* the falling words in Noto Serif Khmer: big letters for young kids, the usual size for everyone else */
   g.row1=Math.round(g.fs*.6)+7;g.row2=g.row1+Math.round(g.fs*.6);g.row3=g.row2+Math.round(g.fs*.6);g.barH=g.row3+Math.round(g.fs*.36); /* 20% thinner than before */ /* the top bar's three rows */
   g.ink0=getComputedStyle(device).getPropertyValue('--ink').trim()||'#26211d';gApplyTheme();
   if(!g.aim.x){g.aim.x=g.ax+g.s*6;g.aim.y=g.gy-g.s*5}
@@ -2744,7 +2745,7 @@ function setGameMode(m){const kid=m==='young'?'young':m==='older'?'older':'off';
   else if(S.gtheme==='kid')S.gtheme='pen';
   S.kidmode=kid;applyLook();save();renderTools()}
 const signedIn=()=>{try{return localStorage.getItem('authOn')==='1'}catch(e){return false}};
-function showMenu(){const m=$('gmenu');if(G)exitGame();closePanel();
+function showMenu(){const m=$('gmenu');if(m.parentNode!==device)device.appendChild(m); /* floats over the whole machine, keyboard included */if(G)exitGame();closePanel();
   const sv=S.gsave&&S.gsave.level?S.gsave:null,me=signedIn(),modeName={learn:'រៀន',play:'លេង',young:'ក្មេងតូច',older:'ក្មេងធំ'};
   const svMode=sv?(sv.kid==='young'?'young':sv.kid==='older'?'older':sv.mode==='lesson'?'learn':'play'):null;
   const b=(id,i,km,en,cls='')=>`<button type="button" data-m="${id}" class="${cls}"><span class="i" aria-hidden="true">${i}</span><b>${km}</b><small>${en}</small></button>`;
