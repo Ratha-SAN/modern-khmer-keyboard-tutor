@@ -447,6 +447,7 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 #gmenu h2{font-size:clamp(34px,9vw,50px)}
 #gmenu .sub{font-weight:600;opacity:.8}
 #gmenu .hero{width:132px;height:94px}
+#gmenu canvas.scene{width:100%;height:130px;margin:-6px 0 4px}
 #gmenu button{border-width:2.4px;box-shadow:2px 2px 0 rgba(31,58,147,.18);background:rgba(251,248,239,.85)}
 #gmenu button.main{border-width:3px;background:rgba(31,58,147,.1)}
 #gmenu button b{font-size:26px}
@@ -2867,17 +2868,59 @@ function acctBtn(){const A=window.Auth,u=A&&A.user;if(!A)return '';
   if(u){const nm=esc(u.displayName||u.email||'');return `<button type="button" data-m="acct" class="acct">${u.photoURL?`<img class="av" src="${esc(u.photoURL)}" alt="" referrerpolicy="no-referrer">`:'<span class="i" aria-hidden="true">👤</span>'}<span class="t"><b>${nm||'គណនី'}</b><small>រក្សាទុកក្នុងគណនី · Progress saved to your account</small></span></button>`}
   return `<button type="button" data-m="acct" class="acct"><span class="i" aria-hidden="true">👤</span><span class="t"><b>ចូលគណនី · Sign in</b><small>រក្សាទុកវឌ្ឍនភាព · Keep your progress on every device</small></span></button>`}
 window.addEventListener('authchange',()=>{if(!$('gmenu').hidden)showMenu()});
+/* the start menu's little scene, in the same blue pen: letters drift down and the archer (red krama flying) walks to
+   line up and shoots them; a hit bursts into an ink splash */
+function menuScene(cv){if(!cv)return;const c=cv.getContext('2d'),INK='#1f3a93',RED='#d7262f',L=[...'កខគឃងចឆជឈញដឋឌណតថទធនបផពភមយរលវសហឡអ'];
+  const st={t:0,last:performance.now(),letters:[],arrows:[],pops:[],spawn:.2,shoot:1,ax:0,aim:-.9,pull:0};let W=0,H=0;
+  const still=matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const size=()=>{const r=cv.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1);W=r.width;H=r.height;cv.width=Math.round(W*d);cv.height=Math.round(H*d);c.setTransform(d,0,0,d,0,0);if(!st.ax)st.ax=W*.2};
+  const target=()=>{let b=null;for(const l of st.letters)if(!l.dead&&l.y>8&&(!b||l.y>b.y))b=l;return b};
+  const frame=now=>{if(!cv.isConnected||$('gmenu').hidden)return;if(!W)size();const dt=Math.min(.05,(now-st.last)/1000);st.last=now;st.t+=dt;
+    /* letters */
+    st.spawn-=dt;if(st.spawn<=0&&st.letters.length<5){st.letters.push({ch:L[Math.random()*L.length|0],x:W*(.35+Math.random()*.6),y:-14,vy:16+Math.random()*12,r:(Math.random()-.5)*.4,dead:0});st.spawn=.8+Math.random()*.7}
+    for(const l of st.letters){l.y+=l.vy*dt;if(l.dead)l.dead+=dt}st.letters=st.letters.filter(l=>l.y<H+20&&l.dead<.01||(l.dead&&l.dead<.01));
+    /* the archer walks a little to line up, draws, and shoots */
+    const tg=target(),gy=H-8,bx=st.ax,by=gy-30;
+    if(tg){st.aim+=(Math.atan2(tg.y-by,tg.x-bx)-st.aim)*Math.min(1,dt*6);const want=Math.min(W*.3,Math.max(W*.08,tg.x-W*.45));st.ax+=(want-st.ax)*Math.min(1,dt*.8)}
+    st.shoot-=dt;st.pull=tg?Math.min(1,st.pull+dt*1.6):Math.max(0,st.pull-dt*3);
+    if(tg&&st.shoot<=0&&st.pull>.9){const T=.42,px=tg.x,py=tg.y+tg.vy*T;st.arrows.push({x:bx,y:by,vx:(px-bx)/T,vy:(py-by)/T,t:0,tg});st.shoot=1.1+Math.random()*.5;st.pull=0}
+    for(const a of st.arrows){a.t+=dt;a.x+=a.vx*dt;a.y+=a.vy*dt;const l=a.tg;if(!l.dead&&Math.hypot(a.x-l.x,a.y-l.y)<13){l.dead=.001;a.hit=1;st.pops.push({x:l.x,y:l.y,t:0})}}
+    st.arrows=st.arrows.filter(a=>!a.hit&&a.t<1.2);st.letters=st.letters.filter(l=>!l.dead);for(const p of st.pops)p.t+=dt;st.pops=st.pops.filter(p=>p.t<.6);
+    /* draw */
+    c.clearRect(0,0,W,H);c.lineCap='round';c.lineJoin='round';c.strokeStyle=c.fillStyle=INK;
+    c.globalAlpha=.55;c.lineWidth=1.4;c.beginPath();for(let x=0;x<=W;x+=8)c.lineTo(x,gy+Math.sin(x*.07)*.8);c.stroke();c.globalAlpha=1;
+    c.textAlign='center';c.textBaseline='middle';c.font='600 22px "Noto Serif Khmer","Noto Sans Khmer",serif';
+    for(const l of st.letters){c.save();c.translate(l.x,l.y);c.rotate(l.r*Math.sin(st.t*2+l.x));c.fillText(l.ch,0,0);c.restore()}
+    for(const p of st.pops){c.globalAlpha=1-p.t/.6;for(let k=0;k<7;k++){const an=k*.9+p.x,rr=4+p.t*40;c.beginPath();c.arc(p.x+Math.cos(an)*rr,p.y+Math.sin(an)*rr,2.2*(1-p.t/.6)+.4,0,6.283);c.fill()}c.globalAlpha=1}
+    c.lineWidth=1.6;for(const a of st.arrows){const an=Math.atan2(a.vy,a.vx);c.save();c.translate(a.x,a.y);c.rotate(an);c.beginPath();c.moveTo(-16,0);c.lineTo(0,0);c.moveTo(-4,-3);c.lineTo(0,0);c.lineTo(-4,3);c.moveTo(-16,0);c.lineTo(-19,-3);c.moveTo(-16,0);c.lineTo(-19,3);c.stroke();c.restore()}
+    /* the archer: krama first (behind), then the body and bow */
+    const hx=bx-4,hy=gy-44;const fl=Math.sin(st.t*7)*3,fl2=Math.sin(st.t*7+1.3)*4;
+    c.fillStyle=RED;c.strokeStyle=RED;c.beginPath();c.moveTo(hx-2,hy+9);c.quadraticCurveTo(hx-12,hy+7+fl,hx-22,hy+9+fl2);c.lineTo(hx-21,hy+14+fl2);c.quadraticCurveTo(hx-11,hy+13+fl,hx-2,hy+13);c.closePath();c.fill();
+    c.lineWidth=1;for(let k=0;k<3;k++){c.beginPath();c.moveTo(hx-21,hy+10+k*1.8+fl2);c.lineTo(hx-25,hy+9+k*2.6+fl2);c.stroke()}
+    c.lineWidth=3;c.beginPath();c.moveTo(hx-5,hy+9);c.quadraticCurveTo(hx,hy+12,hx+5,hy+9);c.stroke();
+    c.strokeStyle=c.fillStyle=INK;c.lineWidth=2.2;
+    const walk=Math.sin(st.t*9)*Math.min(1,Math.abs(st.ax-(st.px||st.ax))*30);st.px=st.ax;
+    c.beginPath();c.arc(hx,hy,6,0,6.283);c.stroke();
+    c.beginPath();c.moveTo(hx,hy+6);c.lineTo(hx,gy-14);c.moveTo(hx,gy-14);c.lineTo(hx-5-walk*4,gy);c.moveTo(hx,gy-14);c.lineTo(hx+5+walk*4,gy);c.stroke();
+    const an=st.aim,fx=Math.cos(an),fy=Math.sin(an),ex=hx+fx*14,ey=hy+12+fy*14,px=-fy,py=fx;
+    c.beginPath();c.moveTo(hx,hy+12);c.lineTo(ex,ey);c.stroke(); /* front arm */
+    c.lineWidth=2.4;c.beginPath();c.moveTo(ex+px*13,ey+py*13);c.quadraticCurveTo(ex+fx*8,ey+fy*8,ex-px*13,ey-py*13);c.stroke(); /* bow */
+    const nx=ex-fx*(4+st.pull*8),ny=ey-fy*(4+st.pull*8);c.lineWidth=1;c.beginPath();c.moveTo(ex+px*13,ey+py*13);c.lineTo(nx,ny);c.lineTo(ex-px*13,ey-py*13);c.stroke();
+    c.lineWidth=2.2;c.beginPath();c.moveTo(hx,hy+12);c.lineTo(nx,ny);c.stroke(); /* drawing arm */
+    if(st.pull>.15){c.lineWidth=1.4;c.beginPath();c.moveTo(nx,ny);c.lineTo(nx+fx*20,ny+fy*20);c.stroke()}
+    if(!still)requestAnimationFrame(frame)};
+  requestAnimationFrame(t=>{size();frame(t)})}
 function showMenu(){const m=$('gmenu');if(m.parentNode!==device)device.appendChild(m); /* floats over the whole machine, keyboard included */if(G)exitGame();closePanel();
   const sv=S.gsave&&S.gsave.level?S.gsave:null,me=signedIn(),modeName={learn:'រៀន',play:'លេង',young:'ក្មេងតូច',older:'ក្មេងធំ'};
   const svMode=sv?(sv.kid==='young'?'young':sv.kid==='older'?'older':sv.mode==='lesson'?'learn':'play'):null;
   const b=(id,i,km,en,cls='')=>`<button type="button" data-m="${id}" class="${cls}"><span class="i" aria-hidden="true">${i}</span><b>${km}</b><small>${en}</small></button>`;
   m.innerHTML=`<div class="gm"><svg class="frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M2,3 C30,1 70,4 98,2 C99,30 97,70 99,97 C70,99 30,96 2,98 C1,70 3,30 2,3" fill="none" stroke="currentColor" stroke-width="2.4" vector-effect="non-scaling-stroke"/><path d="M3,4.5 C31,3 69,5.5 97,3.5 C98,31 96,69 98,96 C69,98 31,95 3,97 C2,69 4,31 3,4.5" fill="none" stroke="currentColor" stroke-width="1.3" opacity=".45" vector-effect="non-scaling-stroke"/></svg>
-    <svg class="hero" viewBox="0 0 120 86" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><defs><pattern id="kramaChk" width="5" height="5" patternUnits="userSpaceOnUse"><rect width="5" height="5" fill="#d7262f"/><rect width="2.5" height="2.5" fill="#9b141c"/><rect x="2.5" y="2.5" width="2.5" height="2.5" fill="#9b141c"/><rect y="4.4" width="5" height=".6" fill="#ffe3e3"/></pattern></defs><path d="M10 80 C40 78 80 81 112 79"/><path class="krama" fill="url(#kramaChk)" stroke-width="1.8" d="M43 30 C35 29 28 33 19 30 L18 36 C27 39 35 35 43 35 Z"><animate attributeName="d" dur="1.6s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1" keyTimes="0;.33;.66;1" values="M43 30 C35 29 28 33 19 30 L18 36 C27 39 35 35 43 35 Z;M43 30 C35 26 28 29 20 24 L20 30 C28 34 35 32 43 35 Z;M43 30 C35 32 28 38 19 35 L17 41 C26 42 35 37 43 35 Z;M43 30 C35 29 28 33 19 30 L18 36 C27 39 35 35 43 35 Z"/></path><path d="M18 31 l-4 -1 M18 33 l-4 1 M18 35 l-4 2" stroke="#d7262f" stroke-width="1.3"><animateTransform attributeName="transform" type="translate" dur="1.6s" repeatCount="indefinite" values="0 0;1 -6;-1 5;0 0" keyTimes="0;.33;.66;1"/></path><path d="M40 30 Q46 34 52 30" stroke="#d7262f" stroke-width="3.6"/><circle cx="46" cy="22" r="7"/><path d="M46 29 L46 52 M46 52 L38 78 M46 52 L54 78 M46 36 L64 30 M46 36 L60 40"/><path d="M60 12 Q78 33 60 58" stroke-width="2.6"/><path d="M60 12 L58 35 L60 58" stroke-width="1"/><path d="M58 35 L104 14 M98 13 L104 14 L101 20" stroke-width="1.6"/><path d="M84 52 l6 -6 m-3 6 l6 -6" stroke-width="1.2" opacity=".6"/></svg>
+    <canvas class="hero scene" aria-hidden="true"></canvas>
     <h2>ធ្នូទឹកខ្មៅ</h2><p class="sub">Ink Archer · ជ្រើសរបៀបលេង · Choose how to play</p>
     <div class="grid">${sv?`<button type="button" data-m="continue" class="cont${me?' main':''}"><span class="i" aria-hidden="true">▶</span><span><b>បន្ត · Continue</b><small>${modeName[svMode]} · កម្រិត ${KD(sv.level)} · ${KD(sv.score)} ពិន្ទុ</small></span></button>`:''}
       ${b('learn','📖','រៀន','Learn · lessons',sv&&me?'':'main')}${b('play','🏹','លេង','Play')}${b('young','🧸','ក្មេងតូច','Young kids','young')}${b('older','🎒','ក្មេងធំ','Kids','older')}
       ${acctBtn()}</div></div>`;
-  m.hidden=false;device.classList.add('menuon');const f=m.querySelector('button.main')||m.querySelector('button');if(f)f.focus({preventScroll:true})}
+  m.hidden=false;device.classList.add('menuon');menuScene(m.querySelector('canvas.scene'));const f=m.querySelector('button.main')||m.querySelector('button');if(f)f.focus({preventScroll:true})}
 $('gmenu').addEventListener('click',e=>{const b=e.target.closest('button[data-m]');if(!b)return;audio();const id=b.dataset.m;
   if(id==='acct'){if(window.Auth&&Auth.open)Auth.open();return} /* the menu stays; the account sheet opens on top */$('gmenu').hidden=true;device.classList.remove('menuon');
   if(id==='continue'){const sv=S.gsave;setGameMode(sv.kid==='young'?'young':sv.kid==='older'?'older':sv.mode==='lesson'?'learn':'play');if(sv.lang)S.lang=sv.lang;
