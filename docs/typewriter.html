@@ -681,7 +681,7 @@ const kidSnd=()=>S.kidmode==='young'||S.gtheme==='kid';
 /* the game's voice: six short cheers and calls in Khmer, spoken by Microsoft's Khmer female voice (Sreymom), made once
    and kept as small files in voice/. Loaded on first use, played through the same audio as the sounds */
 const VOX={},voxOn=()=>S.voice!==false&&S.sound!==false;let voxBusy=0;
-function voxName(ch){if(!ch)return null;const c=[...ch][0];if(c>='\u1780'&&c<='\u17A2'&&c!=='\u179d'&&c!=='\u179e')return 'km-'+c.codePointAt(0).toString(16).padStart(4,'0');
+function voxName(ch){if(!ch)return null;if([...ch].length>1||!/[\u1780-\u17a2a-zA-Z]/.test(ch))return 'u-'+[...ch].map(c=>c.codePointAt(0).toString(16).padStart(c.codePointAt(0)>127?4:2,'0')).join('_');const c=[...ch][0];if(c>='\u1780'&&c<='\u17A2'&&c!=='\u179d'&&c!=='\u179e')return 'km-'+c.codePointAt(0).toString(16).padStart(4,'0');
   const l=c.toLowerCase();return l>='a'&&l<='z'?'en-'+l:null}
 function vox(name,vol=1,force){if(!name||!voxOn())return;const a=audio();if(!a)return;const now=a.currentTime;if(!force&&now<voxBusy)return;
   const go=b=>{const s=a.createBufferSource(),g=a.createGain();g.gain.value=.9*vol;s.buffer=b;s.connect(g);g.connect(a.destination);s.start();voxBusy=a.currentTime+Math.min(b.duration,.45)};
@@ -692,11 +692,13 @@ function vox(name,vol=1,force){if(!name||!voxOn())return;const a=audio();if(!a)r
 /* four kid voice sets and a kid crowd (each call picks one at random); all are fetched on the first call so later calls play at once */
 const VSETS=['k1','k1x','y1','y2','crowd'],VNAMES=['combo1','combo2','combo3','start','done','boss'];let voxPre=0;
 function voxLoad(a,k,cb){const v=VOX[k];if(v){if(v.buf&&cb)cb(v.buf);else if(cb)v.cb=cb;return}
-  const e=VOX[k]={cb};fetch('voice/'+k+'.mp3?v=9').then(r=>r.ok?r.arrayBuffer():Promise.reject()).then(x=>a.decodeAudioData(x)).then(b=>{e.buf=b;if(e.cb)e.cb(b);e.cb=null}).catch(()=>{})}
+  const e=VOX[k]={cb};fetch('voice/'+k+'.mp3?v=10').then(r=>r.ok?r.arrayBuffer():Promise.reject()).then(x=>a.decodeAudioData(x)).then(b=>{e.buf=b;if(e.cb)e.cb(b);e.cb=null}).catch(()=>{})}
 /* young kids' letter lessons: the K1 kid voice says each letter as it is hit (voice/letters/km-xxxx, en-x) */
 const kidLetters=()=>G&&G.les&&String(G.les.id).startsWith('kl-');
 function voxLetter(ch,pre){const n=voxName(ch);if(!n||!voxOn())return;const a=audio();if(!a)return;
-  voxLoad(a,'letters/'+n,pre?null:b=>{if(!G)return;const s=a.createBufferSource(),g=a.createGain();g.gain.value=.95;s.buffer=b;s.connect(g);g.connect(a.destination);s.start();voxBusy=a.currentTime+Math.min(b.duration,.45)})}
+  const VALT={'u-17c8':1,'u-17da':1}; /* signs with two names: either one, at random */
+  if(pre&&VALT[n])voxLoad(a,'letters/'+n+'-2');const k=VALT[n]&&!pre&&Math.random()<.5?n+'-2':n;
+  voxLoad(a,'letters/'+k,pre?null:b=>{if(!G)return;const s=a.createBufferSource(),g=a.createGain();g.gain.value=.95;s.buffer=b;s.connect(g);g.connect(a.destination);s.start();voxBusy=a.currentTime+Math.min(b.duration,.45)})}
 /* background music for the games: three little loops made on the fly (no files), soft and quiet, on or off in Game settings */
 const TRACKS={happy:{n:'🎈 សប្បាយ · Happy',bpm:118,mel:[72,76,79,76,74,77,81,77,72,76,79,84,81,79,76,74],bass:[48,0,55,0,53,0,55,0,48,0,55,0,50,0,55,0],w:'triangle'},
   calm:{n:'🌙 ស្ងប់ · Calm',bpm:72,mel:[76,0,79,0,74,0,72,0,76,0,81,0,79,0,0,0],bass:[48,0,0,0,53,0,0,0,55,0,0,0,52,0,0,0],w:'sine'},
@@ -1970,13 +1972,22 @@ const kidCourse=()=>{if(kidC)return kidC;
   const km=rowSets.map(([ri,a,b])=>({id:'kr'+ri,t:[a,b],L:KR[ri].map(c=>KMP[c]&&KMP[c][0]).filter(c=>c&&isK(c))}));
   const seen=new Set(km.flatMap(u=>u.L));
   km.push({id:'krs',t:['អក្សរ Shift','Shift letters'],L:[2,1,3,0].flatMap(ri=>KR[ri].map(c=>KMP[c]&&KMP[c][1])).filter(c=>c&&isK(c)&&!seen.has(c))});
+  /* vowels, full vowels, numbers and signs: one key at a time, each said by the kid voice (two lessons when the set is long) */
+  const sp=s=>s.split(' ');
+  km.push({id:'kv',t:['ស្រៈ','Vowels'],L:sp('ា ិ ី ឹ ឺ ុ ូ ួ ើ ឿ ៀ េ ែ ៃ ោ ៅ ុំ ំ ាំ ះ ុះ េះ ោះ'),one:1},
+    {id:'kf',t:['ស្រៈពេញតួ','Full vowels'],L:sp('ឥ ឦ ឧ ឩ ឪ ឫ ឬ ឭ ឮ ឯ ឰ ឱ ឳ'),one:1},
+    {id:'kn',t:['លេខ','Numbers'],L:sp('០ ១ ២ ៣ ៤ ៥ ៦ ៧ ៨ ៩'),one:1},
+    {id:'ks',t:['សញ្ញា','Signs'],L:sp('៉ ៊ ់ ៌ ៎ ៏ ័ ៑ ្ ៈ ។ ៕ ៖ ៗ ៙ ៚ ៛'),one:1});
   const en=[['asdfghjkl','ជួរកណ្ដាល (អង់គ្លេស)','Home row (English)'],['qwertyuiop','ជួរលើ (អង់គ្លេស)','Top row (English)'],['zxcvbnm','ជួរក្រោម (អង់គ្លេស)','Bottom row (English)']]
     .map(([w,a,b],i)=>({id:'ke'+i,t:[a,b],L:w.split(''),en:1}));
+  en.push({id:'kp',t:['សញ្ញាបរទេស','Foreign signs'],L:sp('? ! ( ) [ ] + - * /'),en:1,one:1});
   const pick=A=>A[Math.floor(Math.random()*A.length)];
   const mixes=(A,n,k)=>Array.from({length:k},()=>{let w='';for(let i=0;i<n;i++)w+=pick(A);return w}).join(' ');
   let learned=[];
   for(const u of km.concat(en)){if(!u.L.length)continue;const lang=u.en?'en':'km';
-    units.push({id:u.id,icon:u.en?'🔡':'🔤',t:u.t});
+    units.push({id:u.id,icon:u.one?(u.id==='kn'?'🔢':u.id==='kv'||u.id==='kf'?'🅰️':'✳️'):u.en?'🔡':'🔤',t:u.t});
+    if(u.one){const L=u.L.filter(x=>[...x].every(c=>typable(c))),parts=L.length>14?[L.slice(0,Math.ceil(L.length/2)),L.slice(Math.ceil(L.length/2))]:[L];
+      parts.forEach((P,pi)=>lessons.push({id:'kl-'+u.id+'-'+(pi+1),unit:u.id,icon:'',one:1,t:[u.t[0]+(parts.length>1?' '+KD(pi+1):''),u.t[1]+(parts.length>1?' '+(pi+1):'')],lang,make:()=>mixes(P,1,16)}));continue}
     const row=u.L.slice(),pool=learned.concat(row);
     /* first lesson of a row: single letters, any letter of the row, one key at a time */
     lessons.push({id:'kl-'+u.id+'-1',unit:u.id,icon:'',t:['អក្សរម្ដងមួយ · '+u.t[0],'One letter at a time · '+u.t[1]],lang,make:()=>mixes(row,1,16)});
@@ -1996,7 +2007,7 @@ function startGame(opts){
   G={cv:$('gcv'),W:0,H:0,dpr:1,words:[],arrows:[],bits:[],blots:[],floats:[],wave:0,score:0,lives:5,lock:null,over:false,overT:0,t:0,last:performance.now(),
     shake:0,aim:{x:0,y:0},dr:0,rel:0,pool:gameWords(),best:(S.gbest||{})[S.lang]||0,newBest:false,combo:0,banner:0,raf:0,shots:[],letters:[],rings:[],flash:0,hurt:0,hurtCool:0,tier:0,slowT:0,dblT:0,chain:[],note:null,sinceSpecial:0,rec:0,recv:0,pull:0,lastShot:0,level:1,lw:0,phase:'waves',boss:null,fadeA:0,fadeDir:0,bannerTxt:'',bannerSub:'',clearT:0,stars:Array.from({length:46},()=>[Math.random(),Math.random(),.6+Math.random()*1.3,Math.random()*6])};
   G.cx=G.cv.getContext('2d');G.mode=gameOpts.mode;G.prevLang=prevLang;
-  if(les){G.les=les;G.lesWords=lessonWords(les);if(kidLetters())new Set(G.lesWords.join('')).forEach(c=>voxLetter(c,1));G.kOk=0;G.kBad=0;G.lesT0=performance.now()}
+  if(les){G.les=les;G.lesWords=lessonWords(les);if(kidLetters())new Set(les.one?G.lesWords:G.lesWords.join('')).forEach(c=>voxLetter(c,1));G.kOk=0;G.kBad=0;G.lesT0=performance.now()}
   device.classList.add('game');device.classList.toggle('nokeys',!S.osk);shift=0;mode='abc';moreOn=false;ta.value='';buildKb();paintBars();
   gameSize();nextWave();if(les){G.bannerTxt=les.t[0];G.bannerSub=les.t[1]}else{G.bannerTxt='កម្រិត '+KD(1);G.bannerSub=SET_EN[G.th.set]+' · '+TIME_EN[G.th.time]}G.raf=requestAnimationFrame(gameTick);focusTa();gameHint();renderTools();setTimeout(()=>vox('start',1,true),350);
 }
