@@ -435,6 +435,19 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 #gmenu .cont{grid-column:1/-1;min-height:64px;flex-direction:row;gap:10px}
 #gmenu .cont small{display:block}
 #gmenu .young{color:#c8232c}#gmenu .older{color:#1d7a46}
+/* the same notebook sheet as the game-over card: ruled lines, a red margin, a tilt and a shadow, with a heavier pen */
+#gmenu .gm{transform:rotate(-1.2deg);border-radius:2px;padding:26px 22px 20px 34px;
+  background:linear-gradient(90deg,transparent 22px,rgba(200,35,44,.4) 22px 24px,transparent 24px),repeating-linear-gradient(transparent 0 31px,rgba(31,58,147,.16) 31px 32px) 0 14px,#fbf8ef;
+  box-shadow:7px 8px 0 rgba(31,58,147,.16),0 18px 50px rgba(0,0,0,.4)}
+#gmenu h2,#gmenu button b{-webkit-text-stroke:1.1px currentColor;paint-order:stroke fill;letter-spacing:.01em}
+#gmenu h2{font-size:clamp(34px,9vw,50px)}
+#gmenu .sub{font-weight:600;opacity:.8}
+#gmenu .hero{width:132px;height:94px}
+#gmenu button{border-width:3.2px;box-shadow:2px 2px 0 rgba(31,58,147,.22);background:rgba(251,248,239,.85)}
+#gmenu button.main{border-width:4px;background:rgba(31,58,147,.1)}
+#gmenu button b{font-size:26px}
+#gmenu button small{font-weight:600;opacity:.8}
+#gmenu button:hover,#gmenu button:focus-visible{background:rgba(31,58,147,.12)}
 .game #gcv{display:block}
 .game .scroll,.game .strike{visibility:hidden}
 .game .count,.game #shareBtn,.game .clip,.drill .clip{display:none}
@@ -2834,8 +2847,8 @@ function showMenu(){const m=$('gmenu');if(m.parentNode!==device)device.appendChi
   const sv=S.gsave&&S.gsave.level?S.gsave:null,me=signedIn(),modeName={learn:'រៀន',play:'លេង',young:'ក្មេងតូច',older:'ក្មេងធំ'};
   const svMode=sv?(sv.kid==='young'?'young':sv.kid==='older'?'older':sv.mode==='lesson'?'learn':'play'):null;
   const b=(id,i,km,en,cls='')=>`<button type="button" data-m="${id}" class="${cls}"><span class="i" aria-hidden="true">${i}</span><b>${km}</b><small>${en}</small></button>`;
-  m.innerHTML=`<div class="gm"><svg class="frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M2,3 C30,1 70,4 98,2 C99,30 97,70 99,97 C70,99 30,96 2,98 C1,70 3,30 2,3" fill="none" stroke="currentColor" stroke-width=".7" vector-effect="non-scaling-stroke"/><path d="M4,5 C34,4 66,6 96,4.5" fill="none" stroke="currentColor" stroke-width=".4" opacity=".5" vector-effect="non-scaling-stroke"/></svg>
-    <svg class="hero" viewBox="0 0 120 86" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M10 80 C40 78 80 81 112 79"/><circle cx="46" cy="22" r="7"/><path d="M46 29 L46 52 M46 52 L38 78 M46 52 L54 78 M46 36 L64 30 M46 36 L60 40"/><path d="M60 12 Q78 33 60 58" stroke-width="2.6"/><path d="M60 12 L58 35 L60 58" stroke-width="1"/><path d="M58 35 L104 14 M98 13 L104 14 L101 20" stroke-width="1.6"/><path d="M84 52 l6 -6 m-3 6 l6 -6" stroke-width="1.2" opacity=".6"/></svg>
+  m.innerHTML=`<div class="gm"><svg class="frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M2,3 C30,1 70,4 98,2 C99,30 97,70 99,97 C70,99 30,96 2,98 C1,70 3,30 2,3" fill="none" stroke="currentColor" stroke-width="3" vector-effect="non-scaling-stroke"/><path d="M3,4.5 C31,3 69,5.5 97,3.5 C98,31 96,69 98,96 C69,98 31,95 3,97 C2,69 4,31 3,4.5" fill="none" stroke="currentColor" stroke-width="1.3" opacity=".45" vector-effect="non-scaling-stroke"/></svg>
+    <svg class="hero" viewBox="0 0 120 86" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 80 C40 78 80 81 112 79"/><circle cx="46" cy="22" r="7"/><path d="M46 29 L46 52 M46 52 L38 78 M46 52 L54 78 M46 36 L64 30 M46 36 L60 40"/><path d="M60 12 Q78 33 60 58" stroke-width="2.6"/><path d="M60 12 L58 35 L60 58" stroke-width="1"/><path d="M58 35 L104 14 M98 13 L104 14 L101 20" stroke-width="1.6"/><path d="M84 52 l6 -6 m-3 6 l6 -6" stroke-width="1.2" opacity=".6"/></svg>
     <h2>ធ្នូទឹកខ្មៅ</h2><p class="sub">Ink Archer · ជ្រើសរបៀបលេង · Choose how to play</p>
     <div class="grid">${sv?`<button type="button" data-m="continue" class="cont${me?' main':''}"><span class="i" aria-hidden="true">▶</span><span><b>បន្ត · Continue</b><small>${modeName[svMode]} · កម្រិត ${KD(sv.level)} · ${KD(sv.score)} ពិន្ទុ</small></span></button>`:''}
       ${b('learn','📖','រៀន','Learn · lessons',sv&&me?'':'main')}${b('play','🏹','លេង','Play')}${b('young','🧸','ក្មេងតូច','Young kids','young')}${b('older','🎒','ក្មេងធំ','Kids','older')}</div></div>`;
