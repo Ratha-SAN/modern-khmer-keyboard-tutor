@@ -2472,7 +2472,8 @@ function bossStep(dt){
     if(u.w){const w=u.w;w.x=u.x;w.y=b.type==='drones'?u.y+g.fs*2.5:b.type==='robodog'?g.gy-g.s*5.2:g.gy-g.s*9.9}
   }
   b.shieldT-=dt;
-  if(b.shieldT<=0){const alive=b.units.filter(u=>!u.dead&&!u.dying&&!u.shield);if(alive.length){alive[Math.floor(Math.random()*alive.length)].shield=true;gsound('power')}b.shieldT=b.type==='humanoid'?6.5:8}
+  for(const u of b.units)u.guardCD=Math.max(0,(u.guardCD||0)-dt);
+  if(b.shieldT<=0){const alive=b.units.filter(u=>!u.dead&&!u.dying&&!u.shield&&u.w&&!u.w.guarded&&!(u.guardCD>0)); /* a word is guarded at most once */if(alive.length){const u=alive[Math.floor(Math.random()*alive.length)];u.shield=true;u.w.guarded=true;gsound('power')}b.shieldT=b.type==='humanoid'?6.5:8}
   b.projT-=dt;
   if(b.projT<=0&&b.t>1.8){const alive=b.units.filter(u=>!u.dead&&!u.dying);if(alive.length){const u=alive[Math.floor(Math.random()*alive.length)];for(let i=0;i<(b.type==='humanoid'?2:1);i++)spawnProj(u);gsound('weak')}b.projT=Math.max(1.4,(b.type==='drones'?2.4:3.0)-g.level*.1)}
 }
@@ -2513,7 +2514,8 @@ function gInk(x,y,r){const g=G;for(let i=0;i<5;i++)g.blots.push({x:x+(Math.rando
 function gameBlocked(a,w){ /* the barrier takes the last arrow once and breaks; the word starts again */
   const g=G,u=w.u,bx=w.x+w.ox,by=w.y+w.oy-g.fs*.3,how=Math.floor(Math.random()*3); /* glass, a blast or a splash of ink, at random */
   if(how===0)gGlass(bx,by,w.w/2+16,g.fs*1.05);else if(how===1){gBomb(bx,by);gGlass(bx,by,w.w/2+16,g.fs*1.05)}else gInk(bx,by,w.w/2+16);u.shield=false;u.sf=.5;a.state='fall';a.vx=-a.vx*.2;a.vy=-130;a.ang+=1.4;
-  w.n=0;w.shown=0;w.hit=false;if(g.lock===w)g.lock=null;gameComboLost();
+  w.n=0;w.shown=0;w.hit=false;if(g.lock===w)g.lock=null;gameComboLost();u.guardCD=10;
+  for(const o of g.arrows)if(o.state==='stuck'&&o.w===w){o.state='fall';o.vx=(Math.random()-.5)*90;o.vy=-60-Math.random()*60} /* the stuck arrows are knocked out */
   g.floats.push({x:w.x,y:w.y-g.fs*1.4,t:0,txt:'ការពារបាន!',big:1});
   for(let i=0;i<10;i++)g.bits.push({x:a.x,y:a.y,vx:(Math.random()-.5)*220,vy:-Math.random()*140,r:1+Math.random()*1.8,a:1});
   g.shake=Math.max(g.shake,.15);gsound('weak');gameHint();
