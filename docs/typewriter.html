@@ -506,6 +506,35 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 .unit .rows{display:flex;flex-direction:column;gap:8px;padding:2px 0 10px}
 .pg .st{flex:none;align-self:center;padding:0 12px;color:var(--accent);letter-spacing:2px;font-size:15px}
 .st .off{opacity:.22}
+/* the lesson picker for the games, drawn in ballpoint on ruled notebook paper (purple and pink pen on a sunny page for young kids) */
+#learn.pick{--pi:#1f3a93;--pp:#fbf8ef;--pa:#c8232c;--pg:#1d7a46;--pl:rgba(31,58,147,.13);
+  --panel-text:var(--pi);--panel-mute:color-mix(in srgb,var(--pi) 62%,transparent);--panel-line:var(--pi);--head:var(--pi);--accent:var(--pa);
+  color:var(--pi);background:repeating-linear-gradient(transparent 0 33px,var(--pl) 33px 34px) 0 6px,linear-gradient(90deg,transparent 22px,rgba(200,35,44,.28) 22px 23.5px,transparent 23.5px),#f7f2e3}
+#learn.pick.kid{--pi:#6a3fd0;--pp:#ffffff;--pa:#ff4f9a;--pg:#2f9e2b;--pl:rgba(255,127,184,.16);
+  background:radial-gradient(circle,rgba(255,194,26,.35) 0 2px,transparent 2.6px) 0 0/26px 26px,radial-gradient(circle,rgba(79,184,255,.3) 0 2px,transparent 2.6px) 13px 13px/26px 26px,#fff6dc}
+#learn.pick header{background:transparent;border-bottom:2px solid var(--pi)}
+#learn.pick h2{font:400 30px/1 Fasthand,"Noto Sans Khmer",cursive;color:var(--pi)}
+#learn.pick .hb{color:var(--pi)}
+#learn.pick .chip{background:transparent;border:1.6px solid var(--pi);color:var(--pi);border-radius:255px 14px 225px 14px/14px 225px 14px 255px}
+#learn.pick .chip.sel{background:color-mix(in srgb,var(--pi) 12%,transparent)}
+#learn.pick .lgnote{background:var(--pp);border:1.6px dashed var(--pi);border-radius:6px 12px 8px 14px;font:400 17px/1.4 Fasthand,"Noto Sans Khmer",cursive;color:var(--pi)}
+#learn.pick .lhero{background:var(--pp);border:2px solid var(--pi);border-radius:18px 6px 20px 8px/8px 20px 6px 18px;box-shadow:3px 3px 0 var(--pl)}
+#learn.pick .lgo .lt,#learn.pick .unit summary .ut b,#learn.pick .lrow .t{font-family:Fasthand,"Noto Sans Khmer",cursive;font-weight:400}
+#learn.pick .lrow .t{font-size:20px;line-height:1.25}
+#learn.pick .lplay{background:var(--pi);color:var(--pp);box-shadow:2px 2px 0 var(--pl)}
+#learn.pick .lsum div{background:transparent;border:1.4px solid var(--pl)}
+#learn.pick .lbar{background:var(--pl)}#learn.pick .lbar>i{background:var(--pi)}
+#learn.pick .unit summary .ui{background:var(--pp);border:1.6px solid var(--pi);border-radius:10px 4px 12px 5px}
+#learn.pick .unit.full .ui{border-color:var(--pg);background:color-mix(in srgb,var(--pg) 12%,var(--pp))}
+#learn.pick .unit summary::after{border-color:var(--pi)}
+#learn.pick .lrow{background:var(--pp);border:1.7px solid var(--pi);border-radius:255px 16px 225px 16px/16px 225px 16px 255px;box-shadow:2px 2px 0 var(--pl);transition:transform .12s}
+#learn.pick .lrow:nth-child(2n){border-radius:16px 225px 16px 255px/255px 16px 225px 16px}
+#learn.pick .lrow:hover{transform:rotate(-.6deg)}
+#learn.pick .lrow .ln{background:transparent;border:1.6px solid var(--pi);color:var(--pi);font:400 17px Fasthand,var(--ui);border-radius:50% 46% 52% 48%}
+#learn.pick .lrow.ok .ln{border-color:var(--pg);color:var(--pg);background:color-mix(in srgb,var(--pg) 10%,transparent)}
+#learn.pick .lrow.next{border-width:2.6px;background:color-mix(in srgb,var(--pi) 7%,var(--pp))}
+#learn.pick .lrow.next .ln{background:var(--pi);color:var(--pp)}
+#learn.pick .lrow .st{color:var(--pa)}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px}
 .tile{background:#2e2b29;border:1px solid var(--panel-line);border-radius:12px;padding:10px 8px;text-align:center;min-width:0}
 .tile b{display:block;font:400 22px var(--face);font-variant-numeric:tabular-nums}
@@ -887,10 +916,10 @@ function headChar(id){
   return (barMap()[id]||[])[barLayer()]||''}
 const headRows=()=>isPhone()?phoneBase().map((r,ri)=>r.map((_,ci)=>['p'+ri+'_'+ci,1])):KROWS.map(r=>r.map(c=>[c,1]));
 /* the machine's own keys: no option key on a phone, or for English on Windows; a phone has a 123 key instead */
-function fnItems(){const a=[['fn:shift',1]];if(isPhone())a.push(['fn:num',1]);else if(dev==='mac'||S.lang==='km')a.push(['fn:alt',1]);
+function fnItems(){const wide=dev==='android'?1.6:1,a=[['fn:shift',wide]]; /* Android: a wider shift and return, as on Gboard */if(isPhone())a.push(['fn:num',1]);else if(dev==='mac'||S.lang==='km')a.push(['fn:alt',1]);
   /* on a Khmer phone keyboard the full stop ។ (៕ with shift) sits beside the space bar, where NiDA keeps it on the main layer */
   const khanKey=dev==='android'&&S.lang==='km'&&mode!=='123'&&!kmL().base.some(r=>r.includes('។')); /* the Gboard layout has ។ among the letters */
-  a.push(['fn:globe',1],['fn:space',khanKey?3:4]);if(khanKey)a.push(['fn:khan',1]);a.push(['fn:back',2],['fn:enter',1]);return a}
+  a.push(['fn:globe',1],['fn:space',khanKey?3:4]);if(khanKey)a.push(['fn:khan',1]);a.push(['fn:back',2],['fn:enter',wide]);return a}
 function buildBars(){
   const fan=$('fan'),rail=fan&&fan.parentElement;if(!rail)return;
   const W=rail.clientWidth;if(!W||Math.abs(W-fanW)<2&&fan.childElementCount&&fanKey===headKey())return;const prevW=fanW,prevKey=fanKey;fanW=W;fanKey=headKey();
@@ -2004,7 +2033,7 @@ function showLearn(tab,asGame){
   if(tab)learnTab=tab;learnGame=!!asGame;
   learnEl.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('sel',b.dataset.tab===learnTab));
   learnBody.innerHTML=(learnGame&&learnTab!=='stats'?'<p class="lgnote">🏹 ជ្រើសមេរៀនដើម្បីលេង · Choose a lesson to play</p>':'')+(learnTab==='stats'?statsHtml():lessonsHtml());
-  learnEl.classList.toggle('pick',learnGame);learnEl.hidden=false;
+  learnEl.classList.toggle('pick',learnGame);learnEl.classList.toggle('kid',learnGame&&S.gtheme==='kid');learnEl.hidden=false;
 }
 
 learnEl.addEventListener('click',e=>{
@@ -2691,15 +2720,49 @@ function gameDraw(){
   c.restore();
   if(g.fadeA>0){c.fillStyle='rgba(8,10,18,'+g.fadeA.toFixed(3)+')';c.fillRect(0,0,W,H)}
   if(g.flash>0){c.fillStyle='rgba(20,12,4,'+(g.flash*.5).toFixed(3)+')';c.fillRect(0,0,W,H)}
-  if(g.over){
-    c.fillStyle='rgba(0,0,0,.18)';c.fillRect(0,0,W,H);c.fillStyle=g.ink;c.textAlign='center';
-    c.font=Math.round(g.fs*1.15)+'px '+PENF;gTxt(c,'ក្រដាសពេញហើយ',W/2,H*.36);
-    c.font=Math.round(g.fs*.7)+'px '+PENF;gTxt(c,'ពិន្ទុ '+KD(g.score)+(g.newBest?' · កំណត់ត្រាថ្មី!':' · ល្អបំផុត '+KD(g.best)),W/2,H*.36+g.fs*1.8);
-    const bw=g.fs*9,bh=g.fs*2.5,bx=W/2-bw/2,by=H*.36+g.fs*4.2;g.btn={x:bx,y:by,w:bw,h:bh};
-    c.fillStyle=g.ink;c.beginPath();c.roundRect?c.roundRect(bx,by,bw,bh,bh/2):c.rect(bx,by,bw,bh);c.fill();
-    c.fillStyle='#f2ecdc';c.font=Math.round(g.fs*.8)+'px '+PENF;c.textBaseline='middle';gTxt(c,'លេងម្ដងទៀត',W/2,by+bh/2+1);c.textBaseline='alphabetic';
-    c.fillStyle=g.ink;c.globalAlpha=.6;c.font=Math.round(g.fs*.58)+'px '+PENF;gTxt(c,'ឬចុចគ្រាប់ចុចណាមួយ',W/2,by+bh+g.fs*1.3);c.globalAlpha=1}
+  if(g.over)gOverCard(c,g);
 }
+/* game over, drawn in ballpoint: a tilted sheet of ruled notebook paper with a wobbly double pen outline, a cracked
+   heart doodle, the score written in, and two pen-drawn buttons (play again, menu) */
+function gPenPath(c,pts,seed,closed){ /* a hand-drawn line through the points: small steady wobbles, two passes of the pen */
+  for(let pass=0;pass<2;pass++){c.beginPath();const P=closed?pts.concat([pts[0]]):pts;let first=true;
+    for(let i=0;i<P.length-1;i++){const [x0,y0]=P[i],[x1,y1]=P[i+1],n=Math.max(2,Math.round(Math.hypot(x1-x0,y1-y0)/14));
+      for(let k=0;k<=n;k++){const t=k/n,j=Math.sin((i*7+k)*1.9+seed+pass*2.3)*(pass?1.1:.7);const x=x0+(x1-x0)*t+j*(y1!==y0?1:.3),y=y0+(y1-y0)*t+j*(x1!==x0?1:.3);first?(c.moveTo(x,y),first=false):c.lineTo(x,y)}}
+    c.globalAlpha=pass?.45:1;c.lineWidth=pass?.9:1.7;c.stroke()}c.globalAlpha=1}
+function gOverCard(c,g){const W=g.W,H=g.H,top=(g.barH||0)+8,room=Math.max(80,g.gy-top-6),fs=Math.min(g.fs,room/12.4),ink=g.kid?'#7446d8':'#1f3a93',red=g.kid?'#ff4f9a':'#c8232c',paper=g.kid?'#ffffff':'#fbf8ef';
+  const k=Math.min(1,(performance.now()-g.overT)/350),ease=1-Math.pow(1-k,3);
+  c.save();c.fillStyle=g.kid?'rgba(255,241,201,.55)':'rgba(247,242,227,.6)';c.fillRect(0,0,W,H);
+  const cw=Math.min(W*.9,fs*15),ch=fs*12.4,cx=W/2,cy=top+room/2+(1-ease)*40; /* fits between the top bar and the ground */
+  c.translate(cx,cy);c.rotate(-.02);c.globalAlpha=ease;
+  c.fillStyle='rgba(31,58,147,.12)';c.fillRect(-cw/2+5,-ch/2+6,cw,ch); /* shadow */
+  c.fillStyle=paper;c.fillRect(-cw/2,-ch/2,cw,ch);
+  c.strokeStyle=ink;c.globalAlpha=.16*ease;c.lineWidth=1;for(let y=-ch/2+fs*2.4;y<ch/2-4;y+=fs*1.05){c.beginPath();c.moveTo(-cw/2+4,y);c.lineTo(cw/2-4,y);c.stroke()} /* ruled lines */
+  c.strokeStyle=red;c.globalAlpha=.35*ease;c.beginPath();c.moveTo(-cw/2+fs*1.6,-ch/2+3);c.lineTo(-cw/2+fs*1.6,ch/2-3);c.stroke(); /* margin */
+  c.globalAlpha=ease;c.strokeStyle=ink;gPenPath(c,[[-cw/2,-ch/2],[cw/2,-ch/2],[cw/2,ch/2],[-cw/2,ch/2]],3,true);
+  /* a cracked heart beside the title */
+  const fit=(t,px,max,font)=>{c.font=px+'px '+(font||PENF);const w=c.measureText(t).width;if(w>max){px=Math.floor(px*max/w);c.font=px+'px '+(font||PENF)}return px}; /* text never runs past the sheet */
+  const tpx=fit('ក្រដាសពេញហើយ',Math.round(fs*1.25),cw-fs*4.2);const tw=c.measureText('ក្រដាសពេញហើយ').width,r=fs*.5,hy=-ch/2+fs*1.6,hx=fs*.6-tw/2-r*2.2;c.strokeStyle=red;c.lineWidth=1.8;c.beginPath();c.moveTo(hx,hy+r*.9);c.bezierCurveTo(hx-r*1.6,hy-r*.2,hx-r*.7,hy-r*1.4,hx,hy-r*.45);c.bezierCurveTo(hx+r*.7,hy-r*1.4,hx+r*1.6,hy-r*.2,hx,hy+r*.9);c.stroke();
+  c.beginPath();c.moveTo(hx,hy-r*.45);c.lineTo(hx-r*.25,hy);c.lineTo(hx+r*.2,hy+r*.2);c.lineTo(hx,hy+r*.9);c.stroke();
+  c.fillStyle=ink;c.strokeStyle=ink;c.textAlign='center';c.textBaseline='alphabetic';
+  c.font=tpx+'px '+PENF;c.fillText('ក្រដាសពេញហើយ',fs*.6,-ch/2+fs*2.1);
+  c.font=Math.round(fs*.55)+'px Inter,sans-serif';c.globalAlpha=.7*ease;c.fillText('Game over · the page is full',fs*.6,-ch/2+fs*2.9);c.globalAlpha=ease;
+  /* the score, written in, with a scribbled underline */
+  c.font=Math.round(fs*2.1)+'px '+PENF;c.fillText(KD(g.score),0,-ch/2+fs*5.4);
+  c.lineWidth=1.4;c.beginPath();const uw=Math.min(cw*.5,fs*(1.4+String(g.score).length*.9));for(let i=0;i<=24;i++){const x=-uw/2+uw*i/24,y=-ch/2+fs*5.85+Math.sin(i*1.3)*2;i?c.lineTo(x,y):c.moveTo(x,y)}c.stroke();
+  c.font=Math.round(fs*.72)+'px '+PENF;
+  if(g.newBest){c.fillStyle=red;c.fillText('★ កំណត់ត្រាថ្មី! · New best',0,-ch/2+fs*7)}else c.fillText('ពិន្ទុ · ល្អបំផុត '+KD(g.best),0,-ch/2+fs*7);
+  c.fillStyle=ink;c.font=Math.round(fs*.6)+'px '+PENF;c.globalAlpha=.75*ease;c.fillText('កម្រិត '+KD(g.level),0,-ch/2+fs*7.9);c.globalAlpha=ease;
+  /* two pen-drawn buttons: play again (main), menu */
+  const bw=Math.min(cw*.56,fs*8.6),bh=fs*2.1,by=ch/2-fs*4,mw=Math.min(cw*.34,fs*4.6);
+  const box=(x,y,w,h,seed,main)=>{if(main){c.fillStyle=ink;c.globalAlpha=.1*ease;c.fillRect(x,y,w,h);c.globalAlpha=ease}c.strokeStyle=ink;gPenPath(c,[[x,y],[x+w,y],[x+w,y+h],[x,y+h]],seed,true)};
+  const tot=Math.min(cw-fs*1.2,bw+fs*.6+mw),bx=-tot/2,mx=bx+bw+fs*.6;
+  box(bx,by,bw,bh,7,true);box(mx,by,mw,bh,11,false);
+  c.fillStyle=ink;c.textBaseline='middle';fit('លេងម្ដងទៀត',Math.round(fs*.85),bw-fs*.8);c.fillText('លេងម្ដងទៀត',bx+bw/2,by+bh/2+1);
+  fit('ម៉ឺនុយ',Math.round(fs*.75),mw-fs*.6);c.fillText('ម៉ឺនុយ',mx+mw/2,by+bh/2+1);c.textBaseline='alphabetic';
+  c.globalAlpha=.6*ease;fit('ឬចុចគ្រាប់ចុចណាមួយ ដើម្បីលេងម្ដងទៀត',Math.round(fs*.55),cw-fs*2);c.fillText('ឬចុចគ្រាប់ចុចណាមួយ ដើម្បីលេងម្ដងទៀត',0,by+bh+fs*1.05);
+  /* where the buttons are on screen (the card is turned a little; near enough for a finger) */
+  g.btn={x:cx+bx,y:cy+by,w:bw,h:bh};g.btnMenu={x:cx+mx,y:cy+by,w:mw,h:bh};
+  c.restore()}
 /* the top bar the stats live in, drawn to match the game: a strip of paper with a wobbly double pen line (ballpoint),
    a white strip hung with coloured bunting (kids), or a dark ink strip at night */
 function gTopBar(c,g){
@@ -2752,7 +2815,8 @@ function fanHint(rest){
   if(barLayer()>0)lit(barLayer()===1?'fn:shift':'fn:alt');
 }
 $('gameKb').addEventListener('click',()=>{if(!G)return;setOsk(!S.osk);device.classList.toggle('nokeys',!S.osk);toast(S.osk?'Machine keys on':'Machine keys off · use your device keyboard');setTimeout(()=>{if(G){gameSize();focusTa()}},120)});
-$('gcv').addEventListener('click',()=>{if(G&&G.over){if(performance.now()-G.overT>700)gameRestart();return}if(G){gPause(!G.paused);haptic('light')}focusTa()});
+$('gcv').addEventListener('click',e=>{if(G&&G.over){const m=G.btnMenu,r=$('gcv').getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  if(m&&x>=m.x-6&&x<=m.x+m.w+6&&y>=m.y-6&&y<=m.y+m.h+6){showMenu();return}if(performance.now()-G.overT>700)gameRestart();return}if(G){gPause(!G.paused);haptic('light')}focusTa()});
 /* the saved game: mode, lesson, level, score, hearts and the look; it rides along with the rest of the settings (and the account when signed in) */
 /* four ways in: learn and play (grown-up look), young kids (kid theme and keys, kid lessons), kids (older-kid keys, play).
    Picking one always sets the look that goes with it, so the mode and the theme never disagree */
