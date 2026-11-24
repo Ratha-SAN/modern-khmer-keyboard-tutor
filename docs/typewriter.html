@@ -692,7 +692,7 @@ function vox(name,vol=1,force){if(!name||!voxOn())return;const a=audio();if(!a)r
 /* four kid voice sets and a kid crowd (each call picks one at random); all are fetched on the first call so later calls play at once */
 const VSETS=['k1','k1x','y1','y2','crowd'],VNAMES=['combo1','combo2','combo3','start','done','boss'];let voxPre=0;
 function voxLoad(a,k,cb){const v=VOX[k];if(v){if(v.buf&&cb)cb(v.buf);else if(cb)v.cb=cb;return}
-  const e=VOX[k]={cb};fetch('voice/'+k+'.mp3?v=8').then(r=>r.ok?r.arrayBuffer():Promise.reject()).then(x=>a.decodeAudioData(x)).then(b=>{e.buf=b;if(e.cb)e.cb(b);e.cb=null}).catch(()=>{})}
+  const e=VOX[k]={cb};fetch('voice/'+k+'.mp3?v=9').then(r=>r.ok?r.arrayBuffer():Promise.reject()).then(x=>a.decodeAudioData(x)).then(b=>{e.buf=b;if(e.cb)e.cb(b);e.cb=null}).catch(()=>{})}
 /* young kids' letter lessons: the K1 kid voice says each letter as it is hit (voice/letters/km-xxxx, en-x) */
 const kidLetters=()=>G&&G.les&&String(G.les.id).startsWith('kl-');
 function voxLetter(ch,pre){const n=voxName(ch);if(!n||!voxOn())return;const a=audio();if(!a)return;
