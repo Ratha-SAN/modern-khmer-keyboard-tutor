@@ -6,7 +6,7 @@
 "use strict";
 var SDK="https://www.gstatic.com/firebasejs/10.12.2/";
 var HOME="https://typing.bykhmer.com/";
-var PROG=/^(nida_|rain_|archer_|best)/;
+var PROG=/^(nida_|rain_|archer_|best|kids_)/;
 var S={
  account:["គណនី","Account"],
  signIn:["ចូលគណនី","Sign in"],
