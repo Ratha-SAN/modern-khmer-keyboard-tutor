@@ -105,6 +105,7 @@ section[id]{scroll-margin-top:70px}
 .gcard[data-g=sprint]{background:linear-gradient(150deg,#eef4ff,#d9e6ff)}
 .gcard[data-g=archer]{background:linear-gradient(150deg,#f6edff,#e5d3ff)}
 .gcard[data-g=rain]{background:linear-gradient(150deg,#e9f7f1,#cdeedf)}
+.gcard[data-g=kids]{background:linear-gradient(150deg,#f6f0e2,#e9dfc8);color:inherit;text-decoration:none}
 /* ---- play (focus mode) ---- */
 body.playing .hero,body.playing #learn,body.playing #games,body.playing footer{display:none}
 #play{padding-block:18px 28px}
@@ -599,11 +600,14 @@ function renderMenus(){
   var gg=$("gameGrid");
   GAMES.forEach(function(gm){
     var b=gg.querySelector('[data-g="'+gm.id+'"]');
+    if(!b&&gm.href){ // a game on its own page: a link card with an ink drawing instead of a live preview
+      b=document.createElement("a");b.className="lcard gcard";b.href=gm.href;b.dataset.g=gm.id;
+      b.innerHTML=KIDS_ART+'<h3></h3><span class="pill"></span>';gg.appendChild(b)}
     if(!b){b=document.createElement("button");b.className="lcard gcard";b.type="button";b.dataset.g=gm.id;
       b.innerHTML='<canvas class="gprev"></canvas><h3></h3><span class="pill"></span>';
       b.onclick=function(){open({type:gm.id})};gg.appendChild(b);
       if(window.Vis)Vis.preview(b.children[0],gm.id)}
-    var best=store("nida_"+plat+"_g_"+gm.id);
+    var best=gm.href?kidsStars():store("nida_"+plat+"_g_"+gm.id);
     b.children[1].textContent=gm.t[lang==="km"?0:1];b.children[2].textContent=best?"★ "+best:"";b.children[2].hidden=!best;
     b.title=gm.d[lang==="km"?0:1];
   });
@@ -612,8 +616,12 @@ var GAMES=[
  {id:"hunt",icon:"ក?",t:["ស្វែងរកគ្រាប់ចុច","Key Hunt"],d:["អក្សរលេចឡើង រកគ្រាប់ចុចឱ្យបានលឿន ក្នុង ៦០ វិនាទី។ អាចលាក់អក្សរលើគ្រាប់ចុច ដើម្បីហាត់ចងចាំ។","A letter appears; find its key fast. 60 seconds. Hide the key labels to train your memory."]},
  {id:"sprint",icon:"⏱",t:["ប្រណាំង ៦០ វិនាទី","60-second Sprint"],d:["វាយពាក្យឱ្យបានច្រើនបំផុត ក្នុងមួយនាទី។","Type as many words as you can in one minute."]},
  {id:"archer",icon:"🏹",t:["អ្នកបាញ់ព្រួញ","Archer"],d:["បាញ់អក្សរដែលធ្លាក់ មុនវាផ្ទុះលើអ្នកបាញ់។ ជាប់ៗ និងព្យាបាល។","Shoot the falling letters before they explode on the archer. Combos and healing."]},
- {id:"rain",icon:"☔",t:["ពាក្យធ្លាក់","Word Rain"],d:["វាយពាក្យដែលធ្លាក់ មុនវាដល់ដី។ មានជីវិត ៣។","Type falling words before they land. Three lives."]}
+ {id:"rain",icon:"☔",t:["ពាក្យធ្លាក់","Word Rain"],d:["វាយពាក្យដែលធ្លាក់ មុនវាដល់ដី។ មានជីវិត ៣។","Type falling words before they land. Three lives."]},
+ {id:"kids",href:"kids.html",t:["ចម្រៀងអក្សរ (ក្មេង)","Letter Song (kids)"],d:["សម្រាប់ក្មេងតូច៖ វាយអក្សរដែលធ្លាក់ តាមចង្វាក់ភ្លេង លើក្ដារចុចទូរស័ព្ទ។","For young kids: type the falling letters to the music on a phone keyboard."]}
 ];
+// the Letter Song card: three ink lanes with letters falling onto a brush line
+var KIDS_ART='<svg class="gprev" viewBox="0 0 220 110" aria-hidden="true" style="width:100%;height:auto;display:block;background:#f3ecdc"><g fill="none" stroke="#1d1a17" stroke-linecap="round"><path d="M84 4L40 92M110 4v88M136 4l44 88" stroke-width="1.4" opacity=".5"/><path d="M26 90c50-3 120-4 170-1" stroke-width="5"/></g><g fill="#1d1a17"><circle cx="72" cy="66" r="13"/><circle cx="110" cy="34" r="10"/><circle cx="148" cy="78" r="14"/></g><g fill="#f3ecdc" font-family="Noto Serif Khmer,serif" font-weight="600" text-anchor="middle"><text x="72" y="72" font-size="15">ក</text><text x="110" y="39" font-size="12">ខ</text><text x="148" y="84" font-size="16">គ</text></g><circle cx="148" cy="90" r="20" fill="none" stroke="#b3262e" stroke-width="2.5" opacity=".7"/></svg>';
+function kidsStars(){var n=0;for(var i=1;i<=10;i++)n+=+store("kids_"+i)||0;return n?n+" / 30":""}
 
 // ---------- run area ----------
 var active=null;
