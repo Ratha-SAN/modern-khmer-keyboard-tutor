@@ -636,7 +636,7 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
     <div class="light"></div>
     <div class="strike" id="strike"></div>
     <div class="prog" id="prog" hidden></div>
-    <canvas id="gcv" aria-label="Ink Archer game"></canvas>
+    <canvas id="gcv" aria-label="InkBow game"></canvas>
     <div class="scroll" id="scroll">
       <div class="sheet" id="sheet">
         <div class="grow">
@@ -748,7 +748,7 @@ const LIGHTS={spot:'Spotlight',flash:'Flashlight',beam:'Projector beam',candle:'
 if(!LIGHTS[S.light])S.light=S.lamp===false?'room':'spot';
 let saveT;const save=()=>{S.sv=Date.now();clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}cloudSave()},300)};
 let cloudSave=()=>{},haptic=()=>{};
-let D=null,G=null; /* G: the Ink Archer game in progress, if any */ /* the typing lesson in progress, if any */
+let D=null,G=null; /* G: the InkBow game in progress, if any */ /* the typing lesson in progress, if any */
 const doc=()=>S.docs.find(d=>d.id===S.cur)||S.docs[0];
 /* a computer with a real keyboard starts without the phone keys, until someone turns them on themselves */
 if(!coarse&&!S.oskChosen)S.osk=true;
@@ -1531,7 +1531,7 @@ function renderTools(){
   const gm=G&&G.mode;
   tools.innerHTML=`<button class="tb chev${S.more?' on':''}" data-t="chev" aria-label="${S.more?'Back to the games':'More: writing page and tools'}" title="${S.more?'Games':'More'}">${svg(IC.chev)}</button>`+
     `<button class="tb main${gm==='lesson'?' on':''}" data-t="glearn" aria-label="Lesson games" title="Play the lessons as a game">${svg(IC.learn)}<span>មេរៀន</span></button>`+
-    `<button class="tb main${gm==='play'?' on':''}" data-t="gplay" aria-label="Play Ink Archer" title="Play">${svg(IC.game)}<span>លេង</span></button>`+
+    `<button class="tb main${gm==='play'?' on':''}" data-t="gplay" aria-label="Play InkBow" title="Play">${svg(IC.game)}<span>លេង</span></button>`+
     `<button class="tb main kidb${S.kidmode==='young'||S.kidmode==='older'?' on':''}" data-t="kid" aria-label="Kids mode: ${S.kidmode==='young'?'young kids':S.kidmode==='older'?'older kids':'off'}. Tap to change" title="Kids mode">${S.kidmode==='young'?'ក្មេងតូច':S.kidmode==='older'?'ក្មេងធំ':'ក្មេង'}</button>`+
     `<button class="tb main${openPanel==='gset'?' open':''}" data-t="gset" aria-label="Game settings: speed, keys, layout and theme" title="Game settings">${svg(IC.set)}</button>`+
     `<button class="tb fold${!G&&!D?' on':''}" data-t="write" aria-label="Writing page" title="Writing page">${svg(IC.write)}</button><span class="div fold"></span>`+
@@ -1564,9 +1564,9 @@ window.__twStats=()=>{ /* read by auth.js for the account sheet */
     ['Lessons done',f(best.length),n?'of '+f(n)+' · ★ '+f(best.reduce((a,b)=>a+(b.s||0),0)):'',n?best.length/n:null],
     ['Practice time',tm,f(h.length)+' sessions'],
     ['Words written',f(words),f(chars)+' characters · '+f(S.docs.length)+' pages'],
-    ['Ink Archer best',f(Math.max((S.gbest||{}).km||0,(S.gbest||{}).en||0)),'points']]};
+    ['InkBow best',f(Math.max((S.gbest||{}).km||0,(S.gbest||{}).en||0)),'points']]};
 };
-window.addEventListener('progresssync',()=>{ /* Ink Archer bests from the account */
+window.addEventListener('progresssync',()=>{ /* InkBow bests from the account */
   let ch=false;const gb=Object.assign({},S.gbest);
   for(const l of ['km','en']){let v=0;try{v=parseInt(localStorage.getItem('bestTwArcher_'+l),10)||0}catch(e){}if(v>(gb[l]||0)){gb[l]=v;ch=true}}
   if(ch){S.gbest=gb;save()}
@@ -1843,7 +1843,7 @@ new ResizeObserver(()=>layout()).observe(scroll);
 applyLook();applyOsk();renderTools();buildKb();
 /* the page opens on the game; the writing page is one tap away (> then the pen) */
 S.more=false;renderTools();musicSync(); /* the toolbar always opens on its first page: the two games and the speed */
-queueMicrotask(()=>{if(!G&&!D&&pages.hidden&&learnEl.hidden)showMenu()}); /* as soon as the script has run, before the first paint, so the page behind never flashes */
+queueMicrotask(()=>{if(!G&&!D&&(location.hash==='#archer'||pages.hidden&&learnEl.hidden))showMenu()}); /* typewriter.html#archer (the home page's InkBow card) always opens the game's start menu */ /* as soon as the script has run, before the first paint, so the page behind never flashes */
 ta.value=doc().text;ta.setSelectionRange(ta.value.length,ta.value.length);lastN=count();autoShift();
 fit();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(layout);
 /* fetch the Khmer faces up front so the first Khmer letter never waits on a download */
@@ -2038,7 +2038,7 @@ function lessonsHtml(){
     '<div class="lgo done"><span class="lk">Course complete</span><span class="lt">Every lesson done 🎉</span><span class="ls">Replay any lesson to beat your best speed</span></div>')+
     '<div class="lsum"><div><b>'+pct+'%</b><span>course</span></div><div><b>'+nDone+'</b><span>of '+N+' lessons</span></div><div><b>★ '+stars+'</b><span>of '+N*3+'</span></div></div>'+
     '<i class="lbar"><i style="width:'+pct+'%"></i></i></div>';
-  if(!learnGame)h+='<button class="lgame" data-game="archer"><span class="lgi" aria-hidden="true">🏹</span><span class="lgt"><b>Ink Archer</b><span>Shoot the raining words by typing them</span></span>'+((S.gbest||{})[S.lang]?'<span class="lgb"><b>'+S.gbest[S.lang]+'</b>best</span>':'')+'</button>';
+  if(!learnGame)h+='<button class="lgame" data-game="archer"><span class="lgi" aria-hidden="true">🏹</span><span class="lgt"><b>InkBow</b><span>Shoot the raining words by typing them</span></span>'+((S.gbest||{})[S.lang]?'<span class="lgb"><b>'+S.gbest[S.lang]+'</b>best</span>':'')+'</button>';
   let n=0;
   c.units.forEach(u=>{
     const ls=c.lessons.filter(l=>l.unit===u.id);if(!ls.length)return;
@@ -2098,7 +2098,7 @@ $('learnClose').addEventListener('click',()=>{learnEl.hidden=true;if(D){exitDril
   if(learnGame){if(G)gPause(false);else showMenu();return} /* back from the game's lesson list goes back to the game (or its start menu), not to the writing page */
   focusTa()});
 
-/* ---------- Ink Archer: a typing game played on the page ----------
+/* ---------- InkBow: a typing game played on the page ----------
    The paper stays still. Words rain down in waves; typing a word draws the stick-figure archer's bow, and the last
    letter looses the arrow. The key that types the next letter glows on the machine. */
 const EN_GW='ink page type key word bell paper letter ribbon shoot arrow bow string rain storm cloud river forest mountain village garden bridge lantern candle window morning evening silver golden quiet gentle swift stone feather whisper thunder meadow harbor journey castle shadow ember willow moon star night light dream sleep water fire wind leaf rose snow sand wave hill road gate tower story song smile heart brave'.split(' ');
@@ -3000,7 +3000,7 @@ function showMenu(){const m=$('gmenu');if(m.parentNode!==device)device.appendChi
   const b=(id,i,km,en,cls='')=>`<button type="button" data-m="${id}" class="${cls}"><span class="i" aria-hidden="true">${i}</span><b>${km}</b><small>${en}</small></button>`;
   m.innerHTML=`<div class="gm"><svg class="frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M2,3 C30,1 70,4 98,2 C99,30 97,70 99,97 C70,99 30,96 2,98 C1,70 3,30 2,3" fill="none" stroke="currentColor" stroke-width="2.4" vector-effect="non-scaling-stroke"/><path d="M3,4.5 C31,3 69,5.5 97,3.5 C98,31 96,69 98,96 C69,98 31,95 3,97 C2,69 4,31 3,4.5" fill="none" stroke="currentColor" stroke-width="1.3" opacity=".45" vector-effect="non-scaling-stroke"/></svg>
     <canvas class="hero scene" aria-hidden="true"></canvas>
-    <h2>ធ្នូទឹកខ្មៅ</h2><p class="sub">Ink Archer · ជ្រើសរបៀបលេង · Choose how to play</p>
+    <h2>ធ្នូទឹកខ្មៅ</h2><p class="sub">InkBow · ជ្រើសរបៀបលេង · Choose how to play</p>
     <div class="grid">${sv?`<button type="button" data-m="continue" class="cont${me?' main':''}"><span class="i" aria-hidden="true">▶</span><span><b>បន្ត · Continue</b><small>${modeName[svMode]} · កម្រិត ${KD(sv.level)} · ${KD(sv.score)} ពិន្ទុ</small></span></button>`:''}
       ${b('learn','📖','រៀន','Learn · lessons',sv&&me?'':'main')}${b('play','🏹','លេង','Play')}${b('young','🧸','ក្មេងតូច','Young kids','young')}${b('older','🎒','ក្មេងធំ','Kids','older')}
       ${acctBtn()}</div></div>`;
