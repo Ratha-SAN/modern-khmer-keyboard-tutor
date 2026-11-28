@@ -93,6 +93,10 @@ The passages live in `docs/texts-km.js`. They are **original drafts written for 
 - Every letter key is the same in both maps. They differ in 10 rarely used AltGr/Option symbols.
 - Not verified: Windows' plain "Khmer" keyboard (KBDKHMR) and Apple's built-in "Khmer" layout may differ from NiDA. The setup guide on the page says so.
 
+## InkBow (ធ្នូទឹកខ្មៅ)
+
+InkBow is the Typewriter page's game: a stick-figure archer drawn in blue ballpoint shoots the raining words as you type them, with lessons and modes for young and older kids. The home page's Games section has an InkBow card that opens `typewriter.html#archer`, which always lands on the game's start menu; the card shows the best score saved by the Typewriter page.
+
 ## Letter Song (kids)
 
 `docs/kids.html` is a rhythm game for children aged about 4–6, made for phones. Ink-drawn letters fall down three or four lanes onto a brush-stroke line, and the child types each letter as it lands. It reads the phone's own Khmer keyboard (the page shows how to add it on iPhone), so the layout is always the real one; "Tap the circles" mode turns the letter circles into buttons for phones without a Khmer keyboard. On a computer, physical keys are mapped through the NiDA layout. "Wait for me" (on by default) holds each note at the line until it is typed, with no fail state. Ten songs teach the 33 consonants a few at a time; the music is generated in the browser. Stars are stored as `kids_<song>` and sync with the account like other progress.
