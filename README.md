@@ -97,7 +97,7 @@ The passages live in `docs/texts-km.js`. They are **original drafts written for 
 
 **InkBow (ធ្នូទឹកខ្មៅ)**, the ballpoint stick-figure archer game that used to be built into the Typewriter page,
 and **Letter Song (ចម្រៀងអក្សរ)**, the kids' ink rhythm game, now live in their own repository,
-[Ratha-SAN/typinggames](https://github.com/Ratha-SAN/typinggames), served at https://typingames.bykhmer.com/.
+[Ratha-SAN/typinggames](https://github.com/Ratha-SAN/typinggames), served at https://typinggames.bykhmer.com/.
 The home page's game cards, the Typewriter's Games button and its lesson list link there, and old
 `typewriter.html#archer` links redirect there. The Typewriter page is now the writing page and its typing lessons only.
 

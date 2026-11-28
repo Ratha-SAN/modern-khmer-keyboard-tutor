@@ -702,7 +702,7 @@ const LIGHTS={spot:'Spotlight',flash:'Flashlight',beam:'Projector beam',candle:'
 if(!LIGHTS[S.light])S.light=S.lamp===false?'room':'spot';
 let saveT;const save=()=>{S.sv=Date.now();clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}cloudSave()},300)};
 let cloudSave=()=>{},haptic=()=>{};
-let D=null,G=null; /* G stays null: InkBow, the game, moved to typingames.bykhmer.com; the old checks on it are inert */ /* the typing lesson in progress, if any */
+let D=null,G=null; /* G stays null: InkBow, the game, moved to typinggames.bykhmer.com; the old checks on it are inert */ /* the typing lesson in progress, if any */
 const doc=()=>S.docs.find(d=>d.id===S.cur)||S.docs[0];
 /* a computer with a real keyboard starts without the phone keys, until someone turns them on themselves */
 if(!coarse&&!S.oskChosen)S.osk=true;
@@ -1448,7 +1448,7 @@ function renderTools(){
     `<button class="tb fold" data-t="tutor" aria-label="Keyboard tutor (ហាត់វាយ)" title="Keyboard tutor">${svg(IC.tutor)}</button>`+
     TOOLS.map(t=>!t?'<span class="div fold"></span>':`<button class="tb fold${(t.toggle&&S[t.toggle])||(t.id==='timer'&&timerEnd)||(t.id==='sound'&&(S.sound||S.bell))||(t.id==='acct'&&window.Auth&&Auth.user)?' on':''}${openPanel===t.id?' open':''}" data-t="${t.id}" aria-label="${t.label}" title="${t.label}"${t.toggle?` aria-pressed="${!!S[t.toggle]}"`:''}>${svg(IC[t.id])}</button>`).join('')+
     `<span class="gap"></span>`+(S.osk?'':`<button class="tb" data-t="keys" aria-label="Show on-screen keys" title="Show on-screen keys">${svg(IC.keys)}</button>`);
-  tools.classList.add('more'); /* one page of tools: the games moved to https://typingames.bykhmer.com/ */
+  tools.classList.add('more'); /* one page of tools: the games moved to https://typinggames.bykhmer.com/ */
 }
 function applyLook(){
   device.dataset.light=S.light;device.dataset.keys=S.keys;device.classList.toggle('focus',S.focus);
@@ -1476,7 +1476,7 @@ window.__twStats=()=>{ /* read by auth.js for the account sheet */
     ['Words written',f(words),f(chars)+' characters · '+f(S.docs.length)+' pages']]};
 };
 
-const GAMES_URL='https://typingames.bykhmer.com/';
+const GAMES_URL='https://typinggames.bykhmer.com/';
 tools.addEventListener('click',e=>{
   const b=e.target.closest('.tb');if(!b)return;const id=b.dataset.t,t=TOOLS.find(x=>x&&x.id===id);audio();
   if(id==='games'){closePanel();location.href=GAMES_URL+'inkbow.html';return}
@@ -1917,7 +1917,7 @@ function lessonsHtml(){
     '<div class="lgo done"><span class="lk">Course complete</span><span class="lt">Every lesson done 🎉</span><span class="ls">Replay any lesson to beat your best speed</span></div>')+
     '<div class="lsum"><div><b>'+pct+'%</b><span>course</span></div><div><b>'+nDone+'</b><span>of '+N+' lessons</span></div><div><b>★ '+stars+'</b><span>of '+N*3+'</span></div></div>'+
     '<i class="lbar"><i style="width:'+pct+'%"></i></i></div>';
-  h+='<a class="lgame" href="https://typingames.bykhmer.com/inkbow.html"><span class="lgi" aria-hidden="true">🏹</span><span class="lgt"><b>InkBow</b><span>Shoot the raining words by typing them · on the games site</span></span></a>';
+  h+='<a class="lgame" href="https://typinggames.bykhmer.com/inkbow.html"><span class="lgi" aria-hidden="true">🏹</span><span class="lgt"><b>InkBow</b><span>Shoot the raining words by typing them · on the games site</span></span></a>';
   let n=0;
   c.units.forEach(u=>{
     const ls=c.lessons.filter(l=>l.unit===u.id);if(!ls.length)return;
@@ -1975,7 +1975,7 @@ $('learnClose').addEventListener('click',()=>{learnEl.hidden=true;if(D){exitDril
   focusTa()});
 
 /* ---------- helpers shared with the typing lessons ----------
-   (InkBow, the game that used to live here, moved to its own site: https://typingames.bykhmer.com/) */
+   (InkBow, the game that used to live here, moved to its own site: https://typinggames.bykhmer.com/) */
 const KD_RE=/ក្ដ/;
 function fewerKd(items){let n=0;return items.filter(w=>!KD_RE.test(w)||(n++<1&&Math.random()<.5))}
 function fanHint(rest){
