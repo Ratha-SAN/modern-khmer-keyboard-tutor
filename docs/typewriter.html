@@ -86,7 +86,6 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 .scroll::-webkit-scrollbar{display:none}
 /* a faint paper grain that belongs to the sheet, so a line feed reads as the paper itself rolling up */
 .scroll{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='1' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .25 0 0 0 0 .18 0 0 0 .55 -.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px 200px;background-attachment:local}
-.game .scroll{background-image:none}
 .focus .scroll{
   -webkit-mask-image:linear-gradient(to bottom,transparent 0,rgba(0,0,0,.14) 60px,rgba(0,0,0,.14) calc(var(--anchor) - 5.2em),#000 calc(var(--anchor) - 2.4em));
   mask-image:linear-gradient(to bottom,transparent 0,rgba(0,0,0,.14) 60px,rgba(0,0,0,.14) calc(var(--anchor) - 5.2em),#000 calc(var(--anchor) - 2.4em))}
@@ -277,13 +276,10 @@ textarea.txt::selection{background:rgba(240,162,58,.45);color:transparent}
 .tb.on{color:var(--tool-on);filter:drop-shadow(0 0 5px rgba(255,236,190,.55))}
 .tb.open{background:rgba(0,0,0,.25);color:var(--tool-on)}
 .tb.chev.on{filter:none}
-.tools.more .tb.chev{transform:rotate(180deg)}
 .tools{justify-content:center}
 .tools .gap{flex:none;width:0} /* the tools sit centred in the bar, most visibly in landscape */
 .tb svg.i{width:26px;height:26px}
 .tools .div{flex:none;width:1px;height:26px;background:rgba(255,255,255,.16);margin:0 3px}
-.tools:not(.more) .fold{display:none}
-.tools.more .main{display:none} /* page one: the two games; page two, after >: writing and the other tools */
 .tb.main{flex:0 1 auto;max-width:none;width:auto;display:inline-flex;align-items:center;gap:7px;padding:0 16px;margin:0 3px;border-radius:999px;font:600 14px var(--ui),"Noto Sans Khmer";white-space:nowrap}
 .tb.main.on{background:rgba(255,236,190,.14);filter:none}
 .tb.kidb{font-size:13px}
@@ -336,9 +332,6 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 .kpop.km{font-size:28px}
 .kpop2{position:absolute;z-index:9;pointer-events:none;transform:translate(-50%,-100%) scale(.6);opacity:0;min-width:1.9em;padding:.15em .45em .3em;border-radius:14px;
   text-align:center;font:600 34px/1.25 "Noto Sans Khmer","Noto Sans",var(--ui);background:#fbf8ef;color:#1d1b19;box-shadow:0 8px 18px rgba(0,0,0,.35);transition:transform .12s,opacity .2s}
-.autochip[hidden]{display:none}
-.autochip{position:absolute;left:50%;transform:translateX(-50%);z-index:7;padding:7px 16px;border-radius:999px;border:0;font:600 18px "Noto Sans Khmer",var(--ui);
-  background:#ffd23f;color:#2b0f45;box-shadow:0 4px 0 #d99a00,0 6px 14px rgba(0,0,0,.3);animation:gpulse .7s ease-in-out infinite alternate;cursor:pointer;white-space:nowrap}
 .kpop2.on{transform:translate(-50%,-100%) scale(1);opacity:1}
 [data-keys=kid] .kpop2{background:#fff;color:#2b0f45;box-shadow:0 0 0 3px #ff7fb8,0 8px 18px rgba(120,40,120,.35)}
 [data-keys=teen] .kpop2{background:#1a1d2e;color:#f2f6ff;box-shadow:0 0 0 2px #3df0ff,0 0 18px rgba(61,240,255,.6)}
@@ -412,29 +405,9 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 .cu{color:color-mix(in srgb,var(--ink) var(--c,34%),transparent);box-shadow:0 2px 0 #8e2420}
 .cu.err{color:#c0281e;box-shadow:0 2px 0 #c0281e}
 .prog{position:absolute;left:0;top:0;z-index:3;height:3px;width:calc(var(--pg,0)*100%);background:var(--accent);transition:width .15s}
-.drill .sg-row,.game .sg-row{visibility:hidden}
-.game .scroll,.game .strike{visibility:hidden}
-.game .count,.game #shareBtn,.game .clip,.drill .clip{display:none}
-.gameonly{display:none}
-.game .gameonly{display:grid}
-.game #gameKb{opacity:.95}
-.hb.spdx{width:auto;min-width:46px;height:34px;align-self:center;padding:0 10px;font:700 16px var(--ui);color:#1f3a93;opacity:1;background:rgba(251,248,239,.92);
-  border:2px solid currentColor;border-radius:255px 14px 225px 14px/14px 225px 14px 255px;box-shadow:1.5px 1.5px 0 rgba(31,58,147,.25)} /* drawn in pen, so it shows on the paper */
-.hb.spdx.on{background:#1f3a93;color:#fbf8ef}
-[data-keys=kid] .hb.spdx{color:#d6337c;box-shadow:0 2px 0 #f39ac0}[data-keys=kid] .hb.spdx.on{background:#ff7fb8;color:#fff;border-color:#d6337c}.game.nokeys #gameKb{opacity:.45}
-.game.nokeys .rail{display:none}
-.game .page{transform:none!important}
-/* in the game every light option is centred on the bow and arrow (--gx, --gy and the aim --gt are set every frame); room and lights off stay as they are */
-.device.game[data-light=spot] .page{background:color-mix(in srgb,var(--paper-dim) 82%,#000)}
-.device.game[data-light=spot] .light{background:radial-gradient(circle farthest-corner at var(--gx,50%) var(--gy,70%),var(--paper-lit) 0%,var(--paper-lit) 26%,color-mix(in srgb,var(--paper-lit) 82%,var(--paper-dim)) 62%,color-mix(in srgb,var(--paper-lit) 58%,var(--paper-dim)) 100%)}
-/* the other lights fall off gently, so the whole sheet stays readable and only the brightness changes with the distance from the bow */
-.device.game[data-light=flash] .page,.device.game[data-light=beam] .page{background:var(--paper-dim)}
-.device.game[data-light=candle] .page{background:color-mix(in srgb,var(--paper-dim) 80%,#170a02)}
-.device.game[data-light=off] .page{background:color-mix(in srgb,var(--paper-dim) 94%,#000)}
-.device.game[data-light=flash] .light{background:radial-gradient(circle farthest-corner at var(--gx,50%) var(--gy,70%),var(--paper-lit) 0%,var(--paper-lit) 18%,color-mix(in srgb,var(--paper-lit) 70%,transparent) 48%,color-mix(in srgb,var(--paper-lit) 38%,transparent) 100%)}
-.device.game[data-light=beam] .light{background:conic-gradient(from calc(-62deg + var(--gt,0deg)) at var(--gx,50%) var(--gy,70%),color-mix(in srgb,var(--paper-lit) 34%,transparent) 0deg,color-mix(in srgb,var(--paper-lit) 62%,transparent) 16deg,var(--paper-lit) 34deg,var(--paper-lit) 90deg,color-mix(in srgb,var(--paper-lit) 62%,transparent) 108deg,color-mix(in srgb,var(--paper-lit) 34%,transparent) 124deg,color-mix(in srgb,var(--paper-lit) 34%,transparent) 360deg)}
-.device.game[data-light=candle] .light{background:radial-gradient(ellipse 140% 110% at var(--gx,50%) var(--gy,70%),color-mix(in srgb,var(--paper-lit) 70%,#ffc27a) 0%,color-mix(in srgb,var(--paper-lit) 52%,#ffa64d) 30%,color-mix(in srgb,var(--paper-lit) 34%,#e8852b) 62%,color-mix(in srgb,#b85f1c 40%,transparent) 100%)}
-.game .slug.hint,.drill .slug.hint{animation:gpulse .6s ease-in-out infinite alternate}
+.drill .sg-row{visibility:hidden}
+.drill .clip{display:none}
+.drill .slug.hint{animation:gpulse .6s ease-in-out infinite alternate}
 @keyframes gpulse{to{box-shadow:0 0 0 3px #f0d58a,0 0 16px 5px rgba(240,213,138,.95)}}
 .drill #shareBtn{display:none}
 .khint{font:500 13px var(--ui);background:rgba(22,20,18,.7);border-radius:10px;padding:6px 10px;white-space:nowrap}
@@ -442,8 +415,6 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 .pages .tabs{display:flex;gap:6px}
 .unit{border:0;margin-top:4px}
 /* learn: a hero card for the next lesson, the game, then each unit with its progress */
-.pick .tabs{display:none} /* the lesson-game picker is only the list */
-.lgnote{margin:0 0 12px;padding:10px 14px;border-radius:14px;background:rgba(240,213,138,.1);border:1px solid rgba(240,213,138,.3);font-size:13px;line-height:1.5}
 .lhero{display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:20px;margin-bottom:4px;
   background:linear-gradient(150deg,#3a332a,#2a2622 60%);border:1px solid rgba(240,213,138,.22)}
 .lgo{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;padding:2px 64px 2px 0;color:inherit}
@@ -457,8 +428,6 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 .lsum b{font:700 17px var(--ui);font-variant-numeric:tabular-nums}.lsum span{font-size:11.5px;color:var(--panel-mute)}
 .lbar{display:block;height:5px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}
 .lbar>i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#d9a441,var(--head))}
-.lgame{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;margin:8px 0 6px;border-radius:16px;color:inherit;
-  background:linear-gradient(120deg,#23303a,#2a2724);border:1px solid rgba(140,190,220,.22)}
 .lgi{flex:none;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:22px;background:rgba(0,0,0,.25)}
 .lgt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.lgt b{font:600 16px var(--ui)}.lgt span{font-size:12.5px;color:var(--panel-mute)}
 .lgb{flex:none;display:flex;flex-direction:column;align-items:flex-end;font-size:11px;color:var(--panel-mute)}.lgb b{font:700 17px var(--ui);color:var(--panel-text)}
@@ -471,7 +440,7 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 .unit summary::after{content:"";flex:none;width:8px;height:8px;margin:0 6px 0 4px;border:solid var(--panel-mute);border-width:0 2px 2px 0;transform:rotate(45deg);transition:transform .2s}
 .unit[open] summary::after{transform:rotate(-135deg)}
 .unit.full .ui{background:#2f4a36}
-.lrow,.lgame{box-sizing:border-box}
+.lrow{box-sizing:border-box}
 .lrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:10px 12px;border-radius:14px;border:1px solid var(--panel-line);background:#2e2b29;color:inherit}
 .lrow .ln{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font:600 13px var(--ui);background:#3a3633;color:var(--panel-mute)}
 .lrow.ok .ln{background:#3c6b48;color:#e8f5ea}
@@ -487,35 +456,6 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
 .unit .rows{display:flex;flex-direction:column;gap:8px;padding:2px 0 10px}
 .pg .st{flex:none;align-self:center;padding:0 12px;color:var(--accent);letter-spacing:2px;font-size:15px}
 .st .off{opacity:.22}
-/* the lesson picker for the games, drawn in ballpoint on ruled notebook paper (purple and pink pen on a sunny page for young kids) */
-#learn.pick{--pi:#1f3a93;--pp:#fbf8ef;--pa:#c8232c;--pg:#1d7a46;--pl:rgba(31,58,147,.13);
-  --panel-text:var(--pi);--panel-mute:color-mix(in srgb,var(--pi) 62%,transparent);--panel-line:var(--pi);--head:var(--pi);--accent:var(--pa);
-  color:var(--pi);background:repeating-linear-gradient(transparent 0 33px,var(--pl) 33px 34px) 0 6px,linear-gradient(90deg,transparent 22px,rgba(200,35,44,.28) 22px 23.5px,transparent 23.5px),#f7f2e3}
-#learn.pick.kid{--pi:#6a3fd0;--pp:#ffffff;--pa:#ff4f9a;--pg:#2f9e2b;--pl:rgba(255,127,184,.16);
-  background:radial-gradient(circle,rgba(255,194,26,.35) 0 2px,transparent 2.6px) 0 0/26px 26px,radial-gradient(circle,rgba(79,184,255,.3) 0 2px,transparent 2.6px) 13px 13px/26px 26px,#fff6dc}
-#learn.pick header{background:transparent;border-bottom:2px solid var(--pi)}
-#learn.pick h2{font:400 30px/1 Fasthand,"Noto Sans Khmer",cursive;color:var(--pi)}
-#learn.pick .hb{color:var(--pi)}
-#learn.pick .chip{background:transparent;border:1.6px solid var(--pi);color:var(--pi);border-radius:255px 14px 225px 14px/14px 225px 14px 255px}
-#learn.pick .chip.sel{background:color-mix(in srgb,var(--pi) 12%,transparent)}
-#learn.pick .lgnote{background:var(--pp);border:1.6px dashed var(--pi);border-radius:6px 12px 8px 14px;font:400 17px/1.4 Fasthand,"Noto Sans Khmer",cursive;color:var(--pi)}
-#learn.pick .lhero{background:var(--pp);border:2px solid var(--pi);border-radius:18px 6px 20px 8px/8px 20px 6px 18px;box-shadow:3px 3px 0 var(--pl)}
-#learn.pick .lgo .lt,#learn.pick .unit summary .ut b,#learn.pick .lrow .t{font-family:Fasthand,"Noto Sans Khmer",cursive;font-weight:400}
-#learn.pick .lrow .t{font-size:20px;line-height:1.25}
-#learn.pick .lplay{background:var(--pi);color:var(--pp);box-shadow:2px 2px 0 var(--pl)}
-#learn.pick .lsum div{background:transparent;border:1.4px solid var(--pl)}
-#learn.pick .lbar{background:var(--pl)}#learn.pick .lbar>i{background:var(--pi)}
-#learn.pick .unit summary .ui{background:var(--pp);border:1.6px solid var(--pi);border-radius:10px 4px 12px 5px}
-#learn.pick .unit.full .ui{border-color:var(--pg);background:color-mix(in srgb,var(--pg) 12%,var(--pp))}
-#learn.pick .unit summary::after{border-color:var(--pi)}
-#learn.pick .lrow{background:var(--pp);border:1.7px solid var(--pi);border-radius:255px 16px 225px 16px/16px 225px 16px 255px;box-shadow:2px 2px 0 var(--pl);transition:transform .12s}
-#learn.pick .lrow:nth-child(2n){border-radius:16px 225px 16px 255px/255px 16px 225px 16px}
-#learn.pick .lrow:hover{transform:rotate(-.6deg)}
-#learn.pick .lrow .ln{background:transparent;border:1.6px solid var(--pi);color:var(--pi);font:400 17px Fasthand,var(--ui);border-radius:50% 46% 52% 48%}
-#learn.pick .lrow.ok .ln{border-color:var(--pg);color:var(--pg);background:color-mix(in srgb,var(--pg) 10%,transparent)}
-#learn.pick .lrow.next{border-width:2.6px;background:color-mix(in srgb,var(--pi) 7%,var(--pp))}
-#learn.pick .lrow.next .ln{background:var(--pi);color:var(--pp)}
-#learn.pick .lrow .st{color:var(--pa)}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px}
 .tile{background:#2e2b29;border:1px solid var(--panel-line);border-radius:12px;padding:10px 8px;text-align:center;min-width:0}
 .tile b{display:block;font:400 22px var(--face);font-variant-numeric:tabular-nums}
@@ -607,8 +547,6 @@ a.chip{display:inline-flex;align-items:center;color:var(--panel-text);text-decor
       <span class="clock" id="clock" hidden></span>
       <span class="khint" id="khint" hidden></span>
       <button class="count" id="count" aria-label="Progress toward goal. Switch between characters and words"></button>
-      <button class="hb gameonly" id="gameKb" aria-label="Show or hide the machine keys" title="Machine keys on / off"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M8 14h8"/></svg></button>
-      <button class="hb gameonly spdx" id="gameSpd" aria-label="Game speed" title="Speed up">1×</button>
       <button class="hb clip" id="copyBtn" aria-label="Copy the text on this page" title="Copy text"><svg class="i" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5V5a1.5 1.5 0 00-1.5-1.5H5A1.5 1.5 0 003.5 5v9A1.5 1.5 0 005 15.5h3.5"/></svg></button>
       <button class="hb clip" id="pasteBtn" aria-label="Paste text onto the page" title="Paste"><svg class="i" viewBox="0 0 24 24"><rect x="5" y="4.5" width="14" height="16.5" rx="2"/><path d="M9 4.5V3.5h6v1M9 11h6M9 15h4"/></svg></button>
       <button class="hb" id="shareBtn" aria-label="Copy your text"><svg class="i" viewBox="0 0 24 24"><path d="M12 15V3M8 7l4-4 4 4M7 11H5v9h14v-9h-2"/></svg></button>
@@ -702,7 +640,7 @@ const LIGHTS={spot:'Spotlight',flash:'Flashlight',beam:'Projector beam',candle:'
 if(!LIGHTS[S.light])S.light=S.lamp===false?'room':'spot';
 let saveT;const save=()=>{S.sv=Date.now();clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}cloudSave()},300)};
 let cloudSave=()=>{},haptic=()=>{};
-let D=null,G=null; /* G stays null: InkBow, the game, moved to typinggames.bykhmer.com; the old checks on it are inert */ /* the typing lesson in progress, if any */
+let D=null; /* the typing lesson in progress, if any */
 const doc=()=>S.docs.find(d=>d.id===S.cur)||S.docs[0];
 /* a computer with a real keyboard starts without the phone keys, until someone turns them on themselves */
 if(!coarse&&!S.oskChosen)S.osk=true;
@@ -727,82 +665,19 @@ function noise(dur,freq,q,gain,when=0){const a=audio();if(!a)return;const n=Math
   for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,3);
   const s=a.createBufferSource();s.buffer=b;const f=a.createBiquadFilter();f.type='bandpass';f.frequency.value=freq;f.Q.value=q;
   const g=a.createGain();g.gain.value=gain;s.connect(f);f.connect(g);g.connect(a.destination);s.start(a.currentTime+when)}
-function ding(when=0){if(kidSnd()){[1568,2093,2637].forEach((f,i)=>tone(f,f,.35,.07,'sine',when+i*.08));return} /* kids: a little glockenspiel sparkle */
+function ding(when=0){
   const a=audio();if(!a)return;const t=a.currentTime+when;[[2093,.22],[4186,.07],[5274,.04]].forEach(([hz,v])=>{
   const o=a.createOscillator(),g=a.createGain();o.frequency.value=hz;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+1.3);
   o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+1.35)})}
-/* young kids mode and the kids game: soft, round sine-wave sounds on a happy five-note scale instead of clacks and bangs */
-const kidSnd=()=>S.kidmode==='young'||S.gtheme==='kid';
-const PENTA=[1047,1175,1319,1568,1760],pn=()=>PENTA[Math.floor(Math.random()*PENTA.length)];
-const arp=(fs,gap=.06,dur=.16,v=.07)=>fs.forEach((f,i)=>tone(f,f*1.02,dur,v,'sine',i*gap));
 function play(kind){
   if(kind==='bell'){if(S.bell)ding();return}
   if(!S.sound||!kind)return;
-  if(kidSnd()){
-    if(kind==='key'){const f=pn();tone(f,f*1.25,.09,.08,'sine');tone(f*2,f*2.4,.05,.015,'sine')}
-    else if(kind==='space')tone(392,587,.13,.07,'sine');
-    else if(kind==='back')tone(660,440,.11,.06,'sine');
-    else if(kind==='return'){arp([784,988,1175,1568]);if(S.bell)ding(.28)}
-    return}
   if(kind==='key'){noise(.035,2400+Math.random()*700,1.2,.55);noise(.05,320,1,.5)}
   else if(kind==='space'){noise(.07,650,.8,.65)}
   else if(kind==='back'){noise(.04,1500,1,.35)}
   else if(kind==='return'){noise(.3,1100,.6,.4);noise(.06,300,1,.6,.28);if(S.bell)ding(.05)}
 }
 
-/* the game's own sounds: the shot is a bow's twang and whoosh, a weak shot a limp pfft, a hit a dull thunk in wood,
-   the last arrow a crack and clatter, a miss landing a soft tap in the dirt. None of them is the typewriter's click. */
-let SND_P=1; /* a pitch nudge for the current sound, so repeats differ */
-function tone(f0,f1,dur,gain,type='triangle',when=0){f0*=SND_P;f1*=SND_P;const a=audio();if(!a)return;const t=a.currentTime+when,o=a.createOscillator(),g=a.createGain();
-  o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(20,f1),t+dur);
-  g.gain.setValueAtTime(gain,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+dur+.02)}
-const SVAR={hit:4,break:3,boom:3,blast:3,pop:2};
-function gsound(k,v){
-  if(!S.sound)return;
-  if(v===undefined&&SVAR[k]){v=Math.floor(Math.random()*SVAR[k]);SND_P=[1,1.06,.94,1.12,.89][Math.floor(Math.random()*5)];try{gsound(k,v)}finally{SND_P=1}return}
-  if(k==='glass'){for(let i=0;i<7;i++)tone(2200+Math.random()*3200,1800+Math.random()*2000,.05+Math.random()*.08,.05,'sine',i*.025+Math.random()*.02);noise(.18,6000,1.2,.25);return} /* a shatter: a spray of tinkles */
-  if(k==='spark'){for(let i=0;i<3;i++)tone(1400+Math.random()*900,500,.04,.05,'sawtooth',i*.035);noise(.06,5000,3,.18);return} /* an electric zap */
-  if(k==='splat'){noise(.14,600,1.1,.4);tone(260,110,.12,.18,'sine');noise(.06,2400,2,.15,.06);return} /* ink splashing */
-  if(k==='rattle'){for(let i=0;i<9;i++)tone(240+Math.random()*700,180,.03,.07,'square',.05+i*.045);return} /* parts clattering down */
-  if(v&&!kidSnd()){ /* the grown-up variants */
-    if(k==='hit'){if(v===1){tone(320,180,.07,.35,'triangle');noise(.03,3000,3,.3)}else if(v===2){tone(110,70,.09,.45,'sine');noise(.04,800,1.2,.35);tone(900,600,.03,.08,'square')}else{tone(1200,900,.06,.15,'sine');noise(.03,4000,2,.2);tone(140,60,.08,.3,'sine')}return}
-    if(k==='break'){if(v===1){noise(.2,2600,.8,.45);tone(300,120,.14,.2,'triangle');tone(1800,900,.05,.05,'sine',.02)}else{noise(.18,1200,.9,.5);tone(160,60,.15,.3,'sawtooth')}return}
-    if(k==='boom'){if(v===1){tone(100,35,.35,.6,'sine');for(let i=0;i<6;i++)noise(.03,2500,2,.3,i*.04)}else{tone(180,50,.3,.5,'triangle');noise(.25,900,.6,.5)}return}
-    if(k==='blast'){if(v===1){tone(70,25,.6,.8,'sine');noise(.4,1000,.6,.55);for(let i=0;i<8;i++)tone(300+Math.random()*500,150,.03,.08,'square',.1+i*.05)}else{tone(110,30,.4,.7,'sine');tone(90,25,.45,.6,'sine',.18);noise(.3,800,.7,.5);noise(.3,500,.8,.4,.2)}return}
-    if(k==='pop'){tone(700,380,.05,.18,'sine');noise(.04,3200,1.8,.22);return}}
-  if(v&&kidSnd()){ /* the kids' variants: other cheerful little tunes */
-    if(k==='hit'){[[1760,2640],[1320,1980],[2093,2637]][v-1].forEach((f,i)=>tone(f,f*1.03,.06,.07,'sine',i*.04));noise(.01,7000,1.4,.18);return}
-    if(k==='break'){arp(v===1?[784,988,1175,1568]:[1047,880,1319,1760],.045,.13,.07);return}
-    if(k==='boom'){arp(v===1?[392,523,659,784,1047]:[659,523,784,1047,1319],.05,.18,.08);return}
-    if(k==='blast'){arp(v===1?[392,494,587,784,988,1175,1568]:[523,784,659,1047,880,1319,1760],.04,.24,.08);return}
-    if(k==='pop'){tone(1200,1800,.05,.07,'sine');return}}
-  if(kidSnd()){
-    if(k==='shoot'){tone(480,960,.09,.06,'sine');tone(960,1440,.05,.02,'triangle',.02)}
-    else if(k==='weak')tone(420,300,.13,.05,'sine');
-    else if(k==='hit'){noise(.012,6500,1.4,.22);tone(2200,1100,.045,.1,'triangle');tone(1500,2600,.06,.05,'sine',.02);tone(3200,4200,.04,.025,'sine',.045)} /* a crisp tick, a sharp bright ping and a tiny sparkle */
-    else if(k==='break')arp([659,784,988,1319],.05,.14,.07);
-    else if(k==='pop')tone(900,1450,.06,.07,'sine');
-    else if(k==='boom')arp([523,659,784,1047,1319],.05,.2,.08);
-    else if(k==='blast')arp([523,659,784,1047,1319,1568],.045,.26,.08);
-    else if(k==='combo')arp([988,1319],.07,.14,.07);
-    else if(k==='lose'){tone(520,440,.14,.06,'sine');tone(440,370,.18,.06,'sine',.13)}
-    else if(k==='power')arp([523,659,784,1047,1319,1568],.06,.2,.07);
-    else if(k==='hurt'){tone(320,190,.2,.09,'sine');tone(640,380,.2,.03,'sine')}
-    else if(k==='dirt')tone(210,170,.05,.035,'sine');
-    return}
-  if(k==='shoot'){tone(660,260,.16,.2,'triangle');tone(1320,520,.1,.06,'sine');noise(.14,2600,.7,.28,.01)}
-  else if(k==='weak'){tone(300,150,.14,.09,'triangle');noise(.16,900,.8,.16)}
-  else if(k==='hit'){tone(150,55,.11,.5,'sine');noise(.05,1500,2,.4)}
-  else if(k==='break'){noise(.22,1800,.6,.5);tone(220,90,.18,.22,'square');noise(.12,700,1,.4,.08)}
-  else if(k==='pop'){tone(520,300,.06,.16,'triangle');noise(.05,2200,1.5,.25)}
-  else if(k==='boom'){tone(130,40,.28,.6,'sine');noise(.2,1500,.7,.5);noise(.16,600,1,.4,.07)}
-  else if(k==='blast'){tone(90,28,.5,.75,'sine');noise(.3,1300,.6,.6);tone(200,60,.3,.3,'square',.03);noise(.35,500,.8,.45,.1)}
-  else if(k==='combo'){tone(520,520,.08,.16,'triangle');tone(780,780,.12,.16,'triangle',.07)}
-  else if(k==='lose')tone(340,170,.22,.14,'sawtooth')
-  else if(k==='power'){[523,659,784,1047].forEach((f,i)=>tone(f,f,.14,.14,'triangle',i*.07))}
-  else if(k==='hurt'){tone(240,70,.22,.3,'sawtooth');noise(.1,500,1,.4)}
-  else if(k==='dirt')noise(.07,350,1,.35)
-}
 
 /* ---------- paper follow ---------- */
 let anchor=300,bellArmed=true,lh=28,caretX=0,pointing=false;
@@ -1134,7 +1009,7 @@ function onChange(kind){
 scroll.addEventListener('pointerdown',()=>{scrollHand=true},{passive:true});
 scroll.addEventListener('wheel',()=>{scrollHand=true},{passive:true});
 scroll.addEventListener('touchstart',()=>{scrollHand=true},{passive:true});
-scroll.addEventListener('scroll',()=>{if(!scrollHand&&scrollWant!=null&&Math.abs(scroll.scrollTop-scrollWant)>1&&!G)scroll.scrollTop=scrollWant});
+scroll.addEventListener('scroll',()=>{if(!scrollHand&&scrollWant!=null&&Math.abs(scroll.scrollTop-scrollWant)>1&&true)scroll.scrollTop=scrollWant});
 addEventListener('scroll',()=>{if((scrollX||scrollY)&&!(window.visualViewport&&visualViewport.scale>1.02))scrollTo(0,0)});
 ta.addEventListener('keydown',()=>{scrollHand=false});
 ta.addEventListener('beforeinput',e=>{if(D){if(/^(delete|history)/.test(e.inputType||''))e.preventDefault();return}if(S.noErase&&/^(delete|history)/.test(e.inputType||'')){e.preventDefault();toast('No erasing is on. Keep going.')}});
@@ -1181,7 +1056,7 @@ function buildKb(){
   kb.classList.toggle('shift',shift>0);kb.classList.toggle('caps',shift===2);suggest();paintBars();
 }
 function paintShift(){if(S.lang==='km'&&mode==='abc'){buildKb();return}kb.classList.toggle('shift',shift>0);kb.classList.toggle('caps',shift===2);paintBars()}
-function autoShift(){if(D||G||shift===2||!S.autoCap||S.lang==='km')return;const pre=ta.value.slice(Math.max(0,ta.selectionStart-4),ta.selectionStart);
+function autoShift(){if(D||shift===2||!S.autoCap||S.lang==='km')return;const pre=ta.value.slice(Math.max(0,ta.selectionStart-4),ta.selectionStart);
   shift=(ta.selectionStart===0||/(^|[.!?]\s+|\n)$/.test(pre))?1:0;paintShift()}
 function insert(str,kind){lastIn=str;ta.setRangeText(str,ta.selectionStart,ta.selectionEnd,'end');onChange(kind||(str==='\n'?'return':str===' '?'space':'key'))}
 function backspace(){
@@ -1200,7 +1075,7 @@ function press(b){
     case '123':mode='123';buildKb();break;
     case 'abc':case 'abc2':mode='abc';buildKb();break;
     case 'emoji':mode='emoji';buildKb();break;
-    case 'globe':if(G)break; /* in the game the language key does nothing: the language is changed on the pause screen */
+    case 'globe':
       S.lang=S.lang==='km'?'en':'km';shift=0;mode='abc';save();buildKb();autoShift();toast(S.lang==='km'?'ខ្មែរ':'English');break;
     case 'mic':dictate();break;
     case 'enter':insert('\n');break;
@@ -1254,14 +1129,13 @@ $('fan').addEventListener('pointerdown',e=>{
   /* a key types the moment it is pressed, so fast typing never waits for a finger to lift. A key with a second letter
      (or a floating word) still takes a flick up: the letter just typed is swapped for the second letter (or the word) */
   const hn=headHint(c),pw=hn?null:predMap[c];
-  if(S.kidmode==='young'){const sl=bar.querySelector('.slug');if(sl&&sl.animate)sl.animate({scale:['1','.8 .74','1.14 1.18','.96','1']},{duration:380,easing:'ease-out'})} /* young kids: a bouncy key */
   if(!hn&&!pw){typeIt();return}
   let typed=false;
   const want=false;
   if(!want){typeIt();typed=true}
   const y0=e.clientY,pid=e.pointerId;let done=false;
   const mv=ev=>{if(ev.pointerId!==pid||done||y0-ev.clientY<16)return;done=true;
-    if(typed){if(G)return; /* the game took the letter already */
+    if(typed){
       const e2=ta.selectionStart;if(ta.value.slice(e2-u.length,e2)!==u)return;ta.setRangeText('',e2-u.length,e2,'end');onChange('back')}
     audio();if(hn){insert(hn);const p=$('kpop2');if(p)p.textContent=hn}else pick(pw);
     if(shift===1){shift=0;paintShift()}haptic('medium');focusTa();if(D)drillHint()};
@@ -1448,7 +1322,6 @@ function renderTools(){
     `<button class="tb fold" data-t="tutor" aria-label="Keyboard tutor (ហាត់វាយ)" title="Keyboard tutor">${svg(IC.tutor)}</button>`+
     TOOLS.map(t=>!t?'<span class="div fold"></span>':`<button class="tb fold${(t.toggle&&S[t.toggle])||(t.id==='timer'&&timerEnd)||(t.id==='sound'&&(S.sound||S.bell))||(t.id==='acct'&&window.Auth&&Auth.user)?' on':''}${openPanel===t.id?' open':''}" data-t="${t.id}" aria-label="${t.label}" title="${t.label}"${t.toggle?` aria-pressed="${!!S[t.toggle]}"`:''}>${svg(IC[t.id])}</button>`).join('')+
     `<span class="gap"></span>`+(S.osk?'':`<button class="tb" data-t="keys" aria-label="Show on-screen keys" title="Show on-screen keys">${svg(IC.keys)}</button>`);
-  tools.classList.add('more'); /* one page of tools: the games moved to https://typinggames.bykhmer.com/ */
 }
 function applyLook(){
   device.dataset.light=S.light;device.dataset.keys=S.keys;device.classList.toggle('focus',S.focus);
@@ -1744,7 +1617,7 @@ const COENG='្';
 const EN_SENT=['The lamp is on and the page is waiting.','Type slowly at first; speed will come later.','Keep your eyes on the paper, not on the keys.',
   'Every good story starts with one small word.','Rain fell all night, and the river rose by morning.','She wrote ten lines, read them twice, and smiled.',
   'Is it late? Yes, but the work is almost done.','Practice a little each day, and your hands will learn.'];
-let course=null,learnTab='lessons',learnGame=false; /* learnGame: the list opened from the Lesson games button, so a lesson starts as a game */
+let course=null,learnTab='lessons';
 
 function buildCourse(){
   const K=KMP,where={},units=[],lessons=[];
@@ -1911,13 +1784,12 @@ function streak(days){let n=0;const t=new Date();if(!days[dkey(t)])t.setDate(t.g
 function lessonsHtml(){
   const c=getCourse(),B=LN().best,nextL=c.lessons.find(l=>!B[l.id]),nDone=c.lessons.filter(l=>B[l.id]).length,N=c.lessons.length;
   const pct=N?Math.round(nDone/N*100):0,stars=c.lessons.reduce((a,l)=>a+(B[l.id]?B[l.id].s:0),0);
-  let h=learnGame?'':'<div class="lhero">'+(nextL?
+  let h='<div class="lhero">'+(nextL?
     '<button class="lgo" data-l="'+nextL.id+'"><span class="lk">'+(nDone?'Continue':'Start here')+' · lesson '+(c.lessons.indexOf(nextL)+1)+' of '+N+'</span>'+
       '<span class="lt">'+esc((nextL.icon?nextL.icon+' ':'')+nextL.t[0])+'</span><span class="ls">'+esc(nextL.t[1])+'</span><span class="lplay" aria-hidden="true">▶</span></button>':
     '<div class="lgo done"><span class="lk">Course complete</span><span class="lt">Every lesson done 🎉</span><span class="ls">Replay any lesson to beat your best speed</span></div>')+
     '<div class="lsum"><div><b>'+pct+'%</b><span>course</span></div><div><b>'+nDone+'</b><span>of '+N+' lessons</span></div><div><b>★ '+stars+'</b><span>of '+N*3+'</span></div></div>'+
     '<i class="lbar"><i style="width:'+pct+'%"></i></i></div>';
-  h+='<a class="lgame" href="https://typinggames.bykhmer.com/inkbow.html"><span class="lgi" aria-hidden="true">🏹</span><span class="lgt"><b>InkBow</b><span>Shoot the raining words by typing them · on the games site</span></span></a>';
   let n=0;
   c.units.forEach(u=>{
     const ls=c.lessons.filter(l=>l.unit===u.id);if(!ls.length)return;
@@ -1958,17 +1830,17 @@ function statsHtml(){
   h+='<h4>Recent lessons</h4>'+H.slice(-8).reverse().map(x=>'<div class="pg"><div class="open"><div class="t">'+esc(name(x.i))+'</div><div class="m">'+new Date(x.d).toLocaleDateString(undefined,{month:'short',day:'numeric'})+' · '+x.w+' wpm · '+x.a+'% · '+Math.floor(x.s/60)+':'+String(x.s%60).padStart(2,'0')+'</div></div></div>').join('');
   return h+'<div class="rowset" style="margin-top:18px"><button class="chip" data-reset>Reset statistics</button></div></div>';
 }
-function showLearn(tab,asGame){
-  if(tab)learnTab=tab;learnGame=!!asGame;
+function showLearn(tab){
+  if(tab)learnTab=tab;
   learnEl.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('sel',b.dataset.tab===learnTab));
-  learnBody.innerHTML=(learnGame&&learnTab!=='stats'?'<p class="lgnote">🏹 ជ្រើសមេរៀនដើម្បីលេង · Choose a lesson to play</p>':'')+(learnTab==='stats'?statsHtml():lessonsHtml());
-  learnEl.classList.toggle('pick',learnGame);learnEl.classList.toggle('kid',learnGame&&S.gtheme==='kid');learnEl.hidden=false;
+  learnBody.innerHTML=(learnTab==='stats'?statsHtml():lessonsHtml());
+  learnEl.hidden=false;
 }
 
 learnEl.addEventListener('click',e=>{
   const l=e.target.closest('[data-l]'),t=e.target.closest('[data-tab]'),r=e.target.closest('[data-reset]');
   if(l){audio();startDrill(l.dataset.l)}
-  else if(t)showLearn(t.dataset.tab,learnGame);
+  else if(t)showLearn(t.dataset.tab);
   else if(r){if(!r.classList.contains('sure')){r.classList.add('sure');r.textContent='Erase all lesson results?';return}S.learn=null;save();showLearn()}
 });
 $('learnClose').addEventListener('click',()=>{learnEl.hidden=true;if(D){exitDrill(false);return}
